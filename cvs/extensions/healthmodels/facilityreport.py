@@ -11,7 +11,6 @@ class XFormFacilityReport(models.Model):
     reporter = models.ForeignKey(HealthProvider, null=True, blank=True)
     message = models.ForeignKey(Message, null=True, blank=True)
     valid = models.BooleanField(default=True)
-    groups = models.ManyToManyField(Group, blank=True, null=True)
     
     class Meta:
         abstract = True
