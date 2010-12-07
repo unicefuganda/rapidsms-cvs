@@ -3,7 +3,7 @@ from rapidsms_xforms.models import XFormSubmission
 from healthmodels.models.HealthProvider import HealthProvider
 from rapidsms_httprouter.models import Message
 
-class XFormPatientReport(models.Model):
+class XFormPatientEncounter(models.Model):
     """
     FIXME: Documentation
     """
