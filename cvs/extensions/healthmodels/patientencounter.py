@@ -1,4 +1,5 @@
 from django.db import models
+from rapidsms.models import Contact
 from rapidsms_xforms.models import XFormSubmission
 from healthmodels.models.HealthProvider import HealthProvider
 from rapidsms_httprouter.models import Message
