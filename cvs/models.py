@@ -109,100 +109,88 @@ XFormField.register_field_type('cvsmuacr', 'Muac Reading', parse_muacreading,
 XFormField.register_field_type('cvsodema', 'Oedema Occurrence', parse_oedema,
                                db_type=XFormField.TYPE_TEXT, xforms_type='string')
 
+def get_or_create_patient(healthcare_provider, patient_name, birthdate=None, deathdate=None, gender=None):
+    return create_patient(healthcare_provider, patient_name, birthdate, deathdate, gender)
+
+def create_patient(healthcare_provider, patient_name, birthdate, deathdate, gender):
+    names = submission.eav.birth_name.split(' ')
+    first_name = names[0]
+    last_name = ''
+    middle_name = ''
+    if len(names) > 1:
+        last_name = names[len(names) - 1]
+    if len(names) > 2:
+        middle_name = ' '.join(names[1:-1])
+
+    healthcode = generate_tracking_tag()
+    if HealthId.objects.count():
+        healthcode = HealthId.objects.order_by('-pk')[0].health_id
+        healthcode = generate_tracking_tag(healthcode)
+    healthid = HealthId.objects.create(
+        health_id = healthcode
+    )
+    healthid.save()
+    patient = Patient.objects.create(
+         health_id=healthid,
+         first_name=first_name,
+         middle_name=middle_name,
+         last_name=last_name,
+         gender=gender,
+         birthdate=birthdate,
+         deathdate=deathdate,
+    )
+    patient.save()
+    healthid.issued_to = patient
+    healthid.save()
+    patient.health_worker=healthcare_provider
+    patient.save()
+    return patient
+
+def check_validity(xform_type, healthcare_provider, patient=None):
+    return True
+
 def xform_received_handler(sender, **kwargs):
     xform = kwargs['xform']
     submission = kwargs['submission']
 
-    # TODO: create patient
     # TODO: check validity
-    # TODO: where's the message FK?
     patient = None
-    valid = True
     kwargs.setdefault('message', None)
     message = kwargs['message']
+    if not message:
+        return
 
+    health_provider = submission.connection.contact.healthproviderbase.healthprovider
     if xform.keyword == 'muac':
+        days = submission.eav.muac_age
+        birthdate = datetime.date.today() - datetime.timedelta(days=days)
+        patient = get_or_create_patient(health_provider, submission.eav.muac_name, birthdate=birthdate, gender=submission.eav.muac_gender)
+        valid = check_validity(xform.keyword, healthcare_provider, patient)                
         report = PatientEncounter.objects.create(
                 submission=submission,
-                reporter=submission.contact.healthproviderbase.healthprovider,
+                reporter=health_provider,
                 patient=patient,
                 message=message,
                 valid=valid)
-        patient.health_worker=submission.connection.contact.healthproviderbase.healthprovider
-        patient.save()
     elif xform.keyword == 'birth':
-        names = submission.eav.birth_name.split(' ')
-        first_name = names[0]
-        last_name = ''
-        middle_name = ''
-        if len(names) > 1:
-            last_name = names[len(names) - 1]
-        if len(names) > 2:
-            middle_name = ' '.join(names[1:-1])
-
-        healthcode = generate_tracking_tag()
-        if HealthId.objects.count():
-            healthcode = HealthId.objects.order_by('-pk')[0].health_id
-            healthcode = generate_tracking_tag(healthcode)
-        healthid = HealthId.objects.create(
-            health_id = healthcode
-        )
-        healthid.save()
-        patient = Patient.objects.create(
-             health_id=healthid,
-             first_name=first_name,
-             middle_name=middle_name,
-             last_name=last_name,
-             gender=submission.eav.gender,
-             birthdate=datetime.datetime.now(),
-        )
-        patient.save()
-        healthid.issued_to = patient
-        healthid.save()
-        
+        patient = create_patient(health_provider, submission.eav.birth_name, birthdate=datetime.datetime.now(), gender=submission.eav.birth_gender)
+        valid = check_validity(xform.keyword, healthcare_provider, patient)
         report = PatientEncounter.objects.create(
                 submission=submission,
                 reporter=submission.connection.contact.healthproviderbase.healthprovider,
                 patient=patient,
                 message=message,
-                valid=valid)
-        patient.health_worker=submission.connection.contact.healthproviderbase.healthprovider
-        patient.save()                
+                valid=valid)                
     elif xform.keyword == 'death':
+        days = submission.eav.death_age
+        birthdate = datetime.date.today() - datetime.timedelta(days=days)
+        patient = get_or_create_patient(health_provider, submission.eav.death_name, birthdate=birthdate, gender=submission.eav.death_gender, deathdate=datetime.date.today())
+        valid = check_validity(xform.keyword, healthcare_provider, patient)                
         report = PatientEncounter.objects.create(
                 submission=submission,
-                reporter=submission.connection.contact.healthproviderbase.healthprovider,
+                reporter=health_provider,
                 patient=patient,
                 message=message,
                 valid=valid)
-        patient.health_worker=submission.connection.contact.healthproviderbase.healthprovider
-        patient.save()
-    elif xform.keyword == 'itp':
-        report = PatientEncounter.objects.create(
-                submission=submission,
-                reporter=submission.connection.contact.healthproviderbase.healthprovider,
-                patient=patient,
-                message=message,
-                valid=valid)
-        patient.health_worker=submission.connection.contact.healthproviderbase.healthprovider
-        patient.save()
-    elif xform.keyword == 'otp':
-        report = PatientEncounter.objects.create(
-                submission=submission,
-                reporter=submission.connection.contact.healthproviderbase.healthprovider,
-                patient=patient,
-                message=message,
-                valid=valid)
-        patient.health_worker=submission.connection.contact.healthproviderbase.healthprovider
-        patient.save()
-    elif xform.keyword == 'cure':
-        report = PatientEncounter.objects.create(
-                submission=submission,
-                reporter=submission.connection.contact.healthproviderbase.healthprovider,
-                patient=patient,
-                message=message,
-                valid=valid)
-        patient.health_worker=submission.connection.contact.healthproviderbase.healthprovider
-        patient.save()
 
 xform_received.connect(xform_received_handler, weak=True)
