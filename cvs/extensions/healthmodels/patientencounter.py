@@ -8,10 +8,10 @@ class XFormPatientEncounter(models.Model):
     """
     FIXME: Documentation
     """
-    submission = models.ForeignKey(XFormSubmission, null=True, blank=True)
+    submission = models.OneToOneField(XFormSubmission, null=True, blank=True, related_name='report')
     reporter = models.ForeignKey(HealthProvider, null=True, blank=True)
     message = models.ForeignKey(Message, null=True, blank=True)
     valid = models.BooleanField(default=True)
-    
+
     class Meta:
         abstract = True
