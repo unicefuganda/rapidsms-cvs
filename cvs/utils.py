@@ -92,7 +92,6 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
         sql += " group by " + ' , '.join(groupby_columns)
     if len(orderby_columns):
         sql += " order by " + ' , '.join(orderby_columns)
-    print sql 
     cursor.execute(sql)
     list_toret = []
     for row in cursor.fetchall():

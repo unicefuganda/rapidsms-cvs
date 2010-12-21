@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<table>
+{% for key, value in report.items %}
+<tr>
+<td>{{ key }}</td>
+<td>{{ value.muac }}</td>
+<td>{{ value.ma }}</td>
+<td>{{ value.tb }}</td>
+<td>{{ value.bd }}</td>
+<td>{{ value.birth }}</td>
+<td>{{ value.death }}</td>
+<td>{{ value.wa }}</td>
+<td>{{ value.to }}</td>
+</tr>
+{% endfor %}
+</table>
+
+
+{% endblock %}
