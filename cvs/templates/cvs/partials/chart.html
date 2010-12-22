@@ -1,0 +1,79 @@
+{% load dict %}
+<div style="width:800px;height:400px; margin-top:30px;" id="chart">
+</div>
+<script language="javascript">
+    var options = {
+        chart: {
+            renderTo: 'chart',
+            defaultSeriesType: 'line',
+            marginRight: 130,
+            marginBottom: 25,
+            borderColor :'#2fc4d6'
+        },
+        title: {
+            text: '{{ chart_title }}',
+            x: -20 //center
+        },
+        subtitle: {
+            text: 'From {{ start_date|date:"Y-m-d" }} to {{ end_date|date:"Y-m-d" }}',
+            x: -20
+        },        
+        xAxis: {
+            title: {
+                text: '{{ xaxis }}'
+            },
+            categories: [
+                {% for time, loc_dict in data|items_sorted %}
+                    '' + parseInt('{{ time }}'),
+                {% endfor %}
+            ]
+        },
+        yAxis: {
+            title: {
+                text: '{{ yaxis }}'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#2fc4d6'
+            }],
+            min:0
+        },
+        tooltip: {
+            formatter: function() {
+                    return '<b>'+ this.series.name +'</b><br/>'+
+                    this.x +': '+ this.y +'cases';
+            }
+        },
+        credits:false,
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'top',
+            x: -10,
+            y: 100,
+            borderWidth: 0
+        },
+        series:[
+            {% for s in series %}
+                {'name': '{{ s }}',
+                 'data': [
+                    {% for time, loc_dict in data|items_sorted %}
+                        {% if loc_dict|dict:s %}
+                            {{ loc_dict|dict:s }},
+                        {% else %}
+                            0.0,
+                        {% endif %}
+                    {% endfor %} 
+                 ]},
+            {% endfor %}
+        ]
+    };
+    options.yAxis.max=100;
+    options.tooltip.formatter=function (){
+         return '<b>'+ this.series.name +'</b><br/>{{ tooltip_prefix }}'+
+                    this.x +': '+ parseInt(this.y);
+    }
+    chart = new Highcharts.Chart(options);
+</script>
+

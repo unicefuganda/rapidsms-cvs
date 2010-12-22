@@ -7,17 +7,12 @@ from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
-from cvs.utils import report, GROUP_BY_LOCATION
-
-def _add_value(key_attribute, value_attribute, key, report, report_dict):
-    for dict in report:
-        key_attribute_val = dict[key_attribute]
-        report_dict.setdefault(key_attribute_val,{})
-        report_dict[key_attribute_val][key] = dict[value_attribute]
+from cvs.utils import report, reorganize_location, reorganize_timespan, GROUP_BY_LOCATION, GROUP_BY_WEEK, GROUP_BY_YEAR
+import datetime
 
 def index(request, location_id=None):
     if location_id:
-        location = get_object_or_404(Area, location_id)
+        location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
     muac = report('muac', location=location, group_by = GROUP_BY_LOCATION)
@@ -29,14 +24,53 @@ def index(request, location_id=None):
     to = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION)
     wa = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION)
     report_dict = {}
-    _add_value('location_name', 'count', 'muac', muac, report_dict)
-    _add_value('location_name', 'sum', 'ma', ma, report_dict)
-    _add_value('location_name', 'sum', 'tb', tb, report_dict)
-    _add_value('location_name', 'sum', 'bd', bd, report_dict)
-    _add_value('location_name', 'count', 'birth', birth, report_dict)
-    _add_value('location_name', 'count', 'death', death, report_dict)
-    _add_value('location_name', 'sum', 'to', to, report_dict)
-    _add_value('location_name', 'sum', 'wa', wa, report_dict)
-    return render_to_response("cvs/stats.html",{'report':report_dict}, context_instance=RequestContext(request))
-
+    reorganize_location('muac', muac, report_dict)
+    reorganize_location('ma', ma, report_dict)
+    reorganize_location('tb', tb, report_dict)
+    reorganize_location('bd', bd, report_dict)
+    reorganize_location('birth', birth, report_dict)
+    reorganize_location('death', death, report_dict)
+    reorganize_location('to', to, report_dict)
+    reorganize_location('wa', wa, report_dict)
+    topColumns = (('','',1),
+                  ('Malnutrition', '', 1),
+                  ('Epi','',3),
+                  ('Birth','',1),
+                  ('Death','',1),
+                  ('Home', '',1),
+                  ('Reporters','',1)
+                  )
+    columns = (('','',1),
+               ('Total New Cases','',1,''),
+               ('Malaria','',1,''),
+               ('Tb','',1,''),
+               ('Bloody Diarrhea','javascript:void(0)',1,"$('#chart_container').load('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/bd/')"),
+               ('Total','',1,''),
+               ('Total Child Deaths','',1,''),
+               ('Safe Drinking Water (% of homesteads)','',1,''),
+               ('% of expected weekly Epi reports received','',1,''),
+    )
     
+    end_date = datetime.datetime.now()
+    start_date = datetime.datetime.now() - datetime.timedelta(days=30)
+    chart = report('epi', location=location, attribute_keyword='ma', start_date=start_date, end_date=end_date, group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
+    chart_title = 'Variation of Malaria Reports'
+    xaxis = 'Week of Year'
+    yaxis = 'Number of Cases'
+    chart_dict = {}
+    location_list = []
+    reorganize_timespan('week', chart, chart_dict, location_list)    
+    return render_to_response("cvs/stats.html",
+                              {'report':report_dict, 
+                               'top_columns':topColumns, 
+                               'columns':columns, 
+                               'location_id':location_id, 
+                               'report_template':'cvs/partials/stats_main.html', 
+                               'data':chart_dict, 
+                               'series':location_list, 
+                               'start_date':start_date, 
+                               'end_date':end_date, 
+                               'xaxis':xaxis, 
+                               'yaxis':yaxis, 
+                               'chart_title': chart_title,
+                               'tooltip_prefix': 'Week '}, context_instance=RequestContext(request))

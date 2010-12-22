@@ -9,6 +9,7 @@ GROUP_BY_WEEK = 1
 GROUP_BY_MONTH = 2
 GROUP_BY_YEAR = 4
 GROUP_BY_LOCATION = 8
+GROUP_BY_DAY = 16
 
 def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), attribute_keyword=None, location=None, facility=None, group_by=None):
     """
@@ -43,12 +44,12 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
     groupby_columns = []
     orderby_columns = []
     if attribute_keyword is not None:
-        select_clauses = [('sum(value_int)', 'sum',)]
+        select_clauses = [('sum(value_int)', 'value',)]
         root_table = "eav_value as values"
         where_clauses = ["attributes.slug = '%s_%s'" % (xform_keyword, attribute_keyword)]
         joins = ['eav_attribute attributes on values.attribute_id = attributes.id', 'rapidsms_xforms_xformsubmission submissions on values.entity_id = submissions.id']
     else:
-        select_clauses = [('count(submissions.id)', 'count',)]
+        select_clauses = [('count(submissions.id)', 'value',)]
         root_table = 'rapidsms_xforms_xformsubmission as submissions'
         where_clauses = ["xforms.keyword = '%s'" % xform_keyword] 
         joins = ['rapidsms_xforms_xform xforms on submissions.xform_id = xforms.id']
@@ -68,13 +69,20 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
     if group_by & GROUP_BY_WEEK:
         select_clauses.append(('extract(week from submissions.created)', 'week',))
         groupby_columns.append('week')
+        orderby_columns.append('week')        
     if group_by & GROUP_BY_MONTH:
-        select_clauses.append(('extract(month from submission.created)', 'month'))
+        select_clauses.append(('extract(month from submissions.created)', 'month'))
         groupby_columns.append('month')
-        orderby_columns.append('month')        
+        orderby_columns.append('month')
+    if group_by & GROUP_BY_DAY:
+        select_clauses.append(('extract(day from submissions.created)', 'day'))
+        groupby_columns.append('day')
+        orderby_columns.append('day')
     if group_by & GROUP_BY_LOCATION:
         select_clauses.append(('locations.name', 'lname',))
+        select_clauses.append(('locations.id', 'lid',))
         groupby_columns.append('lname')
+        groupby_columns.append('lid')
         orderby_columns.append('lname')
         joins.append('rapidsms_connection connections on submissions.connection_id = connections.id')
         joins.append('healthmodels_healthproviderbase providers on connections.contact_id = providers.contact_ptr_id')
@@ -95,22 +103,39 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
     cursor.execute(sql)
     list_toret = []
     for row in cursor.fetchall():
-        if attribute_keyword is not None:
-            rowdict = {'sum':row[0]}
-        else:
-            rowdict = {'count':row[0]}
+        rowdict = {'value':row[0]}
         rowoff = 1
         if group_by & GROUP_BY_YEAR:
             rowdict.update({'year':row[rowoff]})
             rowoff += 1
+        if group_by & GROUP_BY_WEEK:
+            rowdict.update({'week':row[rowoff]})
+            rowoff += 1            
         if group_by & GROUP_BY_MONTH:
             rowdict.update({'month':row[rowoff]})
             rowoff += 1
-        if group_by & GROUP_BY_WEEK:
-            rowdict.update({'week':row[rowoff]})
-            rowoff += 1
+        if group_by & GROUP_BY_DAY:
+            rowdict.update({'day':row[rowoff]})
+            rowoff += 1            
         if group_by & GROUP_BY_LOCATION:
             rowdict.update({'location_name':row[rowoff]})
             rowoff += 1
+            rowdict.update({'location_id':row[rowoff]})
+            rowoff += 1
         list_toret.append(rowdict)
     return list_toret
+
+def reorganize_location(key, report, report_dict):
+    for dict in report:
+        location = dict['location_name']
+        report_dict.setdefault(location,{'location_id':dict['location_id']})
+        report_dict[location][key] = dict['value']
+        
+def reorganize_timespan(timespan, report, report_dict, location_list):
+    for dict in report:
+        time = dict[timespan]
+        report_dict.setdefault(time,{})
+        location = dict['location_name']
+        report_dict[time][location] = dict['value']
+        if not location in location_list:
+            location_list.append(location)

@@ -1,32 +1,46 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/highcharts.js"></script>
 <table>
-<tr>
-<td>Location</td>
-<td>New Malnutrition Cases</td>
-<td>Total Malaria</td>
-<td>Tb</td>
-<td>Bloody Diarrhea</td>
-<td>New Births</td>
-<td>Deaths</td>
-<td>Houses with handwashing facilities</td>
-<td>Total Houses visited</td>
-</tr>
-{% for key, value in report.items %}
-<tr>
-<td>{{ key }}</td>
-<td>{{ value.muac }}</td>
-<td>{{ value.ma }}</td>
-<td>{{ value.tb }}</td>
-<td>{{ value.bd }}</td>
-<td>{{ value.birth }}</td>
-<td>{{ value.death }}</td>
-<td>{{ value.wa }}</td>
-<td>{{ value.to }}</td>
-</tr>
-{% endfor %}
+
+{% if top_columns or columns %}
+    <thead>
+    {% if top_columns %}    
+        <tr>
+        {% for name, link, colspan in top_columns %}
+            <td colspan="{{ colspan }}">
+                {% if link %}
+                    <a href="{{ link }}">
+                {% endif %}
+                {{ name }}
+                {% if link %}
+                    </a>
+                {% endif %}
+            </td>
+        {% endfor %}
+        </tr>
+    {% endif %}
+    {% if columns %}
+        <tr>
+        {% for name, link, colspan, onclick in columns %}
+            <td colspan="{{ colspan }}">
+                {% if link or onclick %}
+                    <a href="{{ link }}" onclick="{{ onclick }}">
+                {% endif %}
+                {{ name }}
+                {% if link %}
+                    </a>
+                {% endif %}
+            </td>
+        {% endfor %}
+        </tr>
+    {% endif %}
+    </thead>
+{% endif %}
+{% include report_template %}
 </table>
-
-
+<div id="chart_container">
+    {% include "cvs/partials/chart.html" %}
+</div>
 {% endblock %}
