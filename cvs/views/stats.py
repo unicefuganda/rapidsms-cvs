@@ -14,6 +14,16 @@ import time
 from django.db import connection
 
 def index(request, location_id=None):
+    """
+        This is the basic stats page.  You can see that each column requires a separate
+        call to report, but only once per column, not once per-column-per-location (same
+        with the chart, no calls per week, month or quarter.
+        
+        FIXME: the proper GROUP_BY_xxx flags need to be used based on the date range
+        passed from the user: If it's greater than nine months, it should probably
+        be graphed quarterly, if it's greated than 3 months, monthly, if it's greater
+        than 21 days, weekly, otherwise daily.
+    """
     if request.POST:
         form = DateRangeForm(request.POST)
         if form.is_valid():
@@ -51,6 +61,7 @@ def index(request, location_id=None):
     reorganize_location('death', death, report_dict)
     reorganize_location('to', to, report_dict)
     reorganize_location('wa', wa, report_dict)
+    # label, link, colspan
     topColumns = (('','',1),
                   ('Malnutrition', '', 1),
                   ('Epi','',3),
@@ -59,6 +70,7 @@ def index(request, location_id=None):
                   ('Home', '',1),
                   ('Reporters','',1)
                   )
+    # label, link, colspan, onclick
     columns = (('','',1),
                ('Total New Cases','',1,''),
                ('Malaria','',1,''),

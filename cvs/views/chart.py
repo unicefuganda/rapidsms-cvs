@@ -13,6 +13,14 @@ from cvs.forms import DateRangeForm
 import datetime
 
 def chart(request, xform_keyword, attribute_keyword=None, location_id=None):
+    """
+        This view can handle basic functionality for all charts.  This view
+        is a partial response, to be loaded within a container div for another
+        page, and can also handle post requests with a date range passed in.
+        
+        FIXME: grouping should be performed appropriately, as per the instructions
+        in views.stats.index
+    """
     if request.POST:
         form = DateRangeForm(request.POST)
         if form.is_valid():

@@ -50,7 +50,7 @@
     {% if top_columns %}    
         <tr>
         {% for name, link, colspan in top_columns %}
-            <td colspan="{{ colspan }}">
+            <th colspan="{{ colspan }}">
                 {% if link %}
                     <a href="{{ link }}">
                 {% endif %}
@@ -58,14 +58,14 @@
                 {% if link %}
                     </a>
                 {% endif %}
-            </td>
+            </th>
         {% endfor %}
         </tr>
     {% endif %}
     {% if columns %}
         <tr>
         {% for name, link, colspan, onclick in columns %}
-            <td colspan="{{ colspan }}">
+            <th colspan="{{ colspan }}">
                 {% if link or onclick %}
                     <a href="{{ link }}" onclick="{{ onclick }}">
                 {% endif %}
@@ -73,7 +73,7 @@
                 {% if link %}
                     </a>
                 {% endif %}
-            </td>
+            </th>
         {% endfor %}
         </tr>
     {% endif %}
