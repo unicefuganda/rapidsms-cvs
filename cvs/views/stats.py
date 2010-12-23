@@ -8,21 +8,40 @@ from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
 from cvs.utils import report, reorganize_location, reorganize_timespan, GROUP_BY_LOCATION, GROUP_BY_WEEK, GROUP_BY_YEAR
+from cvs.forms import DateRangeForm
 import datetime
+import time
+from django.db import connection
 
 def index(request, location_id=None):
+    if request.POST:
+        form = DateRangeForm(request.POST)
+        if form.is_valid():
+            cursor = connection.cursor()
+            cursor.execute("select min(created) from rapidsms_xforms_xformsubmission")
+            min_date = cursor.fetchone()[0]
+            start_date = form.cleaned_data['start_ts']
+            end_date = form.cleaned_data['end_ts']
+    else:
+        form = DateRangeForm()
+        cursor = connection.cursor()
+        cursor.execute("select min(created), max(created) from rapidsms_xforms_xformsubmission")
+        min_date, end_date = cursor.fetchone()
+        start_date = end_date - datetime.timedelta(days=30)        
+    max_date = datetime.datetime.now()
+
     if location_id:
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-    muac = report('muac', location=location, group_by = GROUP_BY_LOCATION)
-    ma = report('epi', attribute_keyword='ma', location=location, group_by = GROUP_BY_LOCATION)
-    tb = report('epi', attribute_keyword='tb', location=location, group_by = GROUP_BY_LOCATION)
-    bd = report('epi', attribute_keyword='bd', location=location, group_by = GROUP_BY_LOCATION)
-    birth = report('birth', location=location, group_by = GROUP_BY_LOCATION)
-    death = report('death', location=location, group_by = GROUP_BY_LOCATION)
-    to = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION)
-    wa = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION)
+    muac = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
+    ma = report('epi', attribute_keyword='ma', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
+    tb = report('epi', attribute_keyword='tb', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
+    bd = report('epi', attribute_keyword='bd', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
+    birth = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
+    death = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
+    to = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
+    wa = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
     report_dict = {}
     reorganize_location('muac', muac, report_dict)
     reorganize_location('ma', ma, report_dict)
@@ -50,9 +69,7 @@ def index(request, location_id=None):
                ('Safe Drinking Water (% of homesteads)','',1,''),
                ('% of expected weekly Epi reports received','',1,''),
     )
-    
-    end_date = datetime.datetime.now()
-    start_date = datetime.datetime.now() - datetime.timedelta(days=30)
+
     chart = report('epi', location=location, attribute_keyword='ma', start_date=start_date, end_date=end_date, group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
     chart_title = 'Variation of Malaria Reports'
     xaxis = 'Week of Year'
@@ -73,4 +90,10 @@ def index(request, location_id=None):
                                'xaxis':xaxis, 
                                'yaxis':yaxis, 
                                'chart_title': chart_title,
-                               'tooltip_prefix': 'Week '}, context_instance=RequestContext(request))
+                               'tooltip_prefix': 'Week ',
+                               'max_ts':time.mktime(max_date.timetuple()) * 1000,
+                               'min_ts':time.mktime(min_date.timetuple()) * 1000,
+                               'start_ts':time.mktime(start_date.timetuple()) * 1000,
+                               'end_ts':time.mktime(end_date.timetuple()) * 1000,
+                               'date_range_form':form,
+                                }, context_instance=RequestContext(request))

@@ -1,9 +1,49 @@
 {% extends "layout.html" %}
 
-{% block content %}
-<script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/highcharts.js"></script>
-<table>
+{% block stylesheets %}
+{{ block.super }}
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}cvs/stylesheets/jquery-ui-1.7.3.custom.css" />
+{% endblock %}
 
+{% block javascripts %}
+{{ block.super }}
+<script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/highcharts.js"></script>
+{% endblock %}
+
+{% block content %}
+<form method="POST">
+{% csrf_token %}
+<p>Date Range:<span id="date_slider_value" class="daterange">From {{ start_date|date:"Y-m-d" }} to {{ end_date|date:"Y-m-d" }}</span>
+<a href="javascript:void(0)" onclick="document.forms[0].submit()" style="float:right">update</a>
+{{ date_range_form }}
+<div id="date_slider" style="margin: 5px 5px 20px 5px"></div>
+<script language="javascript">
+    $( "#date_slider" ).slider({
+        range: true,
+        min: {{ min_ts }},
+        max: {{ max_ts }},
+        values: [{{ start_ts }}, {{ end_ts }}],
+        slide: function(event, ui) {
+            start_date = new Date(ui.values[0]);
+            start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
+            end_date = new Date(ui.values[1]);
+            end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
+            $('#id_start_ts').val('' + ui.values[0]);
+            $('#id_end_ts').val('' + ui.values[1]);
+            $( "#date_slider_value" ).text( "From " + start_str + " to " + end_str );
+        }
+    });
+    start_date = new Date({{ start_ts }});
+    start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
+    end_date = new Date({{ end_ts }});
+    end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
+    $('#id_start_ts').val('' + {{ start_ts }});
+    $('#id_end_ts').val('' + {{ end_ts }});    
+    $( "#date_slider_value" ).text( "From " + start_str +
+        " to " + end_str );
+</script>
+<table>
 {% if top_columns or columns %}
     <thead>
     {% if top_columns %}    
@@ -43,4 +83,5 @@
 <div id="chart_container">
     {% include "cvs/partials/chart.html" %}
 </div>
+</form>
 {% endblock %}

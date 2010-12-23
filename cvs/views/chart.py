@@ -11,6 +11,16 @@ from cvs.utils import report, reorganize_timespan, GROUP_BY_LOCATION, GROUP_BY_W
 import datetime
 
 def chart(request, xform_keyword, attribute_keyword=None, location_id=None):
+    if request.POST:
+        form = DateRangeForm(request.POST)
+        if form.is_valid():
+            start_date = form.cleaned_data['start_ts']
+            end_date = form.cleaned_data['end_ts']
+    else:
+        cursor = connection.cursor()
+        cursor.execute("select max(created) from rapidsms_xforms_xformsubmission")
+        end_date = cursor.fetchone()[0]
+        start_date = datetime.datetime.now() - datetime.timedelta(days=30)
     print "xform %s attribute %s" % (xform_keyword, attribute_keyword)
     if location_id:
         location = get_object_or_404(Area, pk=location_id)

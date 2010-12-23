@@ -13,7 +13,7 @@ GROUP_BY_DAY = 16
 
 def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), attribute_keyword=None, location=None, facility=None, group_by=None):
     """
-        select count(submissions.id), extract(week from submissions.created) as week, extract(year from submissions.created) as year from rapidsms_xforms_xformsubmission submissions join rapidsms_xforms_xform xforms on submissions.xform_id = xforms.id where xforms.keyword = 'muac' group by extract(week from submissions.created), extract(year from submissions.created) order by year, week;
+        
     """
     if group_by is not None:
         return report_raw(xform_keyword, group_by, start_date, end_date, attribute_keyword, location, facility)
@@ -40,6 +40,23 @@ def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), att
         return values.aggregate(Sum('value_int'))['value_int__sum']
 
 def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, location=None, facility=None):
+    """
+        report_raw returns a list of dictionaries, each with keys based on the GROUP_BY_xxxx flags used.
+        all dictionaries will at least contain a "value" key, which is the count() of reports or the sum() of a particular
+        attribute for a particular report.
+        For instance, report_raw('epi', group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION, attribute_keyword='ma') would return a list of 
+        dictionaries of the form:
+        [{'location_id':1,'location_name':'Uganda','week':1,'value':13},
+        ...
+        ]
+        where '13' is the total number of cases of malaria in Uganda (in this case, we didn't filter by
+        time, so in fact 13 would be the total number of cases reported for the entire database in Uganda.
+        
+        Note how the SQL raw query is composed of select_clauses, joins, where_clauses, orderby_columns,
+        and groupby_columns.  This can be modified to suit even more particular cases (for instance, maybe
+        counting the number of occurences of a particular attribute having a particular value, like total
+        birth reports with gender == 'M'
+    """
     cursor = connection.cursor()
     groupby_columns = []
     orderby_columns = []
