@@ -9,10 +9,11 @@
 {{ block.super }}
 <script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/highcharts.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/cvs_stats.js"></script>
 {% endblock %}
 
 {% block content %}
-<form method="POST">
+<form id="date_range_form" method="POST">
 {% csrf_token %}
 <p>Date Range:<span id="date_slider_value" class="daterange">From {{ start_date|date:"Y-m-d" }} to {{ end_date|date:"Y-m-d" }}</span>
 <a href="javascript:void(0)" onclick="document.forms[0].submit()" style="float:right">update</a>

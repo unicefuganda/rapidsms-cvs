@@ -63,7 +63,7 @@ def index(request, location_id=None):
                ('Total New Cases','',1,''),
                ('Malaria','',1,''),
                ('Tb','',1,''),
-               ('Bloody Diarrhea','javascript:void(0)',1,"$('#chart_container').load('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/bd/')"),
+               ('Bloody Diarrhea','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/bd/')"),
                ('Total','',1,''),
                ('Total Child Deaths','',1,''),
                ('Safe Drinking Water (% of homesteads)','',1,''),

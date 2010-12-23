@@ -7,7 +7,9 @@ from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
+from django.db import connection
 from cvs.utils import report, reorganize_timespan, GROUP_BY_LOCATION, GROUP_BY_WEEK, GROUP_BY_YEAR, GROUP_BY_DAY
+from cvs.forms import DateRangeForm
 import datetime
 
 def chart(request, xform_keyword, attribute_keyword=None, location_id=None):
@@ -20,14 +22,11 @@ def chart(request, xform_keyword, attribute_keyword=None, location_id=None):
         cursor = connection.cursor()
         cursor.execute("select max(created) from rapidsms_xforms_xformsubmission")
         end_date = cursor.fetchone()[0]
-        start_date = datetime.datetime.now() - datetime.timedelta(days=30)
-    print "xform %s attribute %s" % (xform_keyword, attribute_keyword)
+        start_date = end_date - datetime.timedelta(days=30)
     if location_id:
         location = get_object_or_404(Area, pk=location_id)
     else:
-        location = Area.tree.root_nodes()[0]    
-    end_date = datetime.datetime.now()
-    start_date = datetime.datetime.now() - datetime.timedelta(days=30)
+        location = Area.tree.root_nodes()[0]
     if attribute_keyword:
         chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, start_date=start_date, end_date=end_date, group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
     else:
