@@ -103,6 +103,8 @@ def index(request, location_id=None):
                                'yaxis':yaxis, 
                                'chart_title': chart_title,
                                'tooltip_prefix': 'Week ',
+                               # timestamps in python are in seconds,
+                               # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
                                'min_ts':time.mktime(min_date.timetuple()) * 1000,
                                'start_ts':time.mktime(start_date.timetuple()) * 1000,

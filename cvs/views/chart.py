@@ -46,6 +46,8 @@ def chart(request, xform_keyword, attribute_keyword=None, location_id=None):
     report_dict = {}
     location_list = []
     reorganize_timespan('week', chart_data, report_dict, location_list)
+    # FIXME: should also fixure out how to calculate max and min values for
+    # yaxis range
     return render_to_response("cvs/partials/chart.html",
                               {'data':report_dict, 
                                'series':location_list, 
