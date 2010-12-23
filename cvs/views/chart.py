@@ -20,6 +20,10 @@ def chart(request, xform_keyword, attribute_keyword=None, location_id=None):
         
         FIXME: grouping should be performed appropriately, as per the instructions
         in views.stats.index
+        
+        FIXME: I would have a static dictionary, for looking up chart titles, and
+        x and y axis labels, based on the xform_keyword and attribute_keyword
+        values passed in (see the FIXMEs) below.
     """
     if request.POST:
         form = DateRangeForm(request.POST)

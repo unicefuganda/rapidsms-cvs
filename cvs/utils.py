@@ -11,12 +11,12 @@ GROUP_BY_YEAR = 4
 GROUP_BY_LOCATION = 8
 GROUP_BY_DAY = 16
 
-def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), attribute_keyword=None, location=None, facility=None, group_by=None):
+def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), attribute_keyword=None, attribute_value=None, location=None, facility=None, group_by=None):
     """
         
     """
     if group_by is not None:
-        return report_raw(xform_keyword, group_by, start_date, end_date, attribute_keyword, location, facility)
+        return report_raw(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility)
     if attribute_keyword is None:
         submissions = XFormSubmission.objects.filter(xform__keyword=xform_keyword)
         if start_date is not None:
@@ -36,10 +36,13 @@ def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), att
             values = values.filter(Q(submission__connection__contact__healthproviderbase__healthprovider__location=location) | Q(submission__connection__contact__healthproviderbase__healthprovider__location__in=location.get_descendants()))
         if facility is not None:
             values = values.filter(Q(submission__connection__contact__healthproviderbase__healthprovider__facility=facility) | 
-                                   Q(submission__connection__contact__healthproviderbase__healthprovider__location__in=facility.catchment_areas.all()))            
+                                   Q(submission__connection__contact__healthproviderbase__healthprovider__location__in=facility.catchment_areas.all()))
+        if attribute_value is not None:
+            values = values.filter(value_text=attribute_value)
+            return values.count()
         return values.aggregate(Sum('value_int'))['value_int__sum']
 
-def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, location=None, facility=None):
+def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None):
     """
         report_raw returns a list of dictionaries, each with keys based on the GROUP_BY_xxxx flags used.
         all dictionaries will at least contain a "value" key, which is the count() of reports or the sum() of a particular
@@ -61,10 +64,14 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
     groupby_columns = []
     orderby_columns = []
     if attribute_keyword is not None:
-        select_clauses = [('sum(value_int)', 'value',)]
         root_table = "eav_value as values"
         where_clauses = ["attributes.slug = '%s_%s'" % (xform_keyword, attribute_keyword)]
         joins = ['eav_attribute attributes on values.attribute_id = attributes.id', 'rapidsms_xforms_xformsubmission submissions on values.entity_id = submissions.id']
+        if attribute_value is not None:
+            select_clauses = [('count(value_text)', 'value',)]
+            where_clauses.append("values.value_text = '%s'" % attribute_value)
+        else:
+            select_clauses = [('sum(value_int)', 'value',)]        
     else:
         select_clauses = [('count(submissions.id)', 'value',)]
         root_table = 'rapidsms_xforms_xformsubmission as submissions'
