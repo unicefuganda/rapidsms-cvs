@@ -32,12 +32,18 @@ def index(request, location_id=None):
             min_date = cursor.fetchone()[0]
             start_date = form.cleaned_data['start_ts']
             end_date = form.cleaned_data['end_ts']
+            request.session['start_date'] = start_date
+            request.session['end_date'] = end_date
     else:
         form = DateRangeForm()
         cursor = connection.cursor()
         cursor.execute("select min(created), max(created) from rapidsms_xforms_xformsubmission")
         min_date, end_date = cursor.fetchone()
-        start_date = end_date - datetime.timedelta(days=30)        
+        start_date = end_date - datetime.timedelta(days=30)
+        if request.session.get('start_date',None)  and request.session.get('end_date',None):
+            start_date=request.session['start_date']
+            end_date=request.session['end_date']
+
     max_date = datetime.datetime.now()
     
     if location_id:
