@@ -39,19 +39,19 @@ def index(request, location_id=None):
         min_date, end_date = cursor.fetchone()
         start_date = end_date - datetime.timedelta(days=30)        
     max_date = datetime.datetime.now()
-
+    
     if location_id:
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-    muac = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
-    ma = report('epi', attribute_keyword='ma', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
-    tb = report('epi', attribute_keyword='tb', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
-    bd = report('epi', attribute_keyword='bd', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
-    birth = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
-    death = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
-    to = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
-    wa = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
+    muac = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
+    ma = report('epi', attribute_keyword='ma', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
+    tb = report('epi', attribute_keyword='tb', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
+    bd = report('epi', attribute_keyword='bd', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
+    birth = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
+    death = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
+    to = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
+    wa = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
     report_dict = {}
     reorganize_location('muac', muac, report_dict)
     reorganize_location('ma', ma, report_dict)

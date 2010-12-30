@@ -11,12 +11,13 @@ GROUP_BY_YEAR = 4
 GROUP_BY_LOCATION = 8
 GROUP_BY_DAY = 16
 
-def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), attribute_keyword=None, attribute_value=None, location=None, facility=None, group_by=None):
+def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), attribute_keyword=None, attribute_value=None, location=None, facility=None, group_by=None,**kwargs):
     """
         
     """
+    request=kwargs.get('request',None)
     if group_by is not None:
-        return report_raw(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility)
+        return report_raw(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility,request=request)
     if attribute_keyword is None:
         submissions = XFormSubmission.objects.filter(xform__keyword=xform_keyword)
         if start_date is not None:
@@ -42,7 +43,7 @@ def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), att
             return values.count()
         return values.aggregate(Sum('value_int'))['value_int__sum']
 
-def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None):
+def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None,**kwargs):
     """
         report_raw returns a list of dictionaries, each with keys based on the GROUP_BY_xxxx flags used.
         all dictionaries will at least contain a "value" key, which is the count() of reports or the sum() of a particular
@@ -78,8 +79,14 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
         where_clauses = ["xforms.keyword = '%s'" % xform_keyword] 
         joins = ['rapidsms_xforms_xform xforms on submissions.xform_id = xforms.id']
     if location is not None:
-        group_by = group_by | GROUP_BY_LOCATION
-        where_clauses.append("locations.id in (%s)" % ' , '.join(str(id) for id in location.get_children().values_list('pk', flat=True)))
+        if kwargs['request'] and kwargs['request'].GET.get('root',None):
+             group_by = group_by | GROUP_BY_LOCATION
+             where_clauses.append("locations.id in (%s)" % location.id)
+        else:
+            group_by = group_by | GROUP_BY_LOCATION
+            where_clauses.append("locations.id in (%s)" % ' , '.join(str(id) for id in location.get_children().values_list('pk', flat=True)))
+
+
     if start_date is not None:
         where_clauses.append("submissions.created >= date '%s'" % datetime.datetime.strftime(start_date, '%Y-%m-%d'))
         where_clauses.append("submissions.created <= date '%s'" % datetime.datetime.strftime(end_date, '%Y-%m-%d'))
