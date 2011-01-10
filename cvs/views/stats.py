@@ -7,11 +7,12 @@ from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
-from cvs.utils import report, reorganize_location, reorganize_timespan, GROUP_BY_LOCATION, GROUP_BY_WEEK, GROUP_BY_YEAR
+from cvs.utils import report, reorganize_location, reorganize_timespan, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER
 from cvs.forms import DateRangeForm
 import datetime
 import time
 from django.db import connection
+from django.utils.datastructures import SortedDict
 
 def index(request, location_id=None):
     """
@@ -50,6 +51,7 @@ def index(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+
     muac = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
     ma = report('epi', attribute_keyword='ma', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
     tb = report('epi', attribute_keyword='tb', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
@@ -58,7 +60,7 @@ def index(request, location_id=None):
     death = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
     to = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
     wa = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=start_date, end_date=end_date,request=request)
-    report_dict = {}
+    report_dict = SortedDict()
     reorganize_location('muac', muac, report_dict)
     reorganize_location('ma', ma, report_dict)
     reorganize_location('tb', tb, report_dict)
@@ -69,32 +71,46 @@ def index(request, location_id=None):
     reorganize_location('wa', wa, report_dict)
     # label, link, colspan
     topColumns = (('','',1),
-                  ('Malnutrition', '', 1),
-                  ('Epi','',3),
-                  ('Birth','',1),
-                  ('Death','',1),
-                  ('Home', '',1),
-                  ('Reporters','',1)
+                  ('Malnutrition', '/cvs/muac/', 1),
+                  ('Epi','/cvs/epi/',3),
+                  ('Birth','/cvs/birth/',1),
+                  ('Death','/cvs/death/',1),
+                  ('Home', '/cvs/home/',1),
+                  ('Reporters','/cvs/reporters/',1)
                   )
     # label, link, colspan, onclick
     columns = (('','',1),
-               ('Total New Cases','',1,''),
-               ('Malaria','',1,''),
-               ('Tb','',1,''),
+               ('Total New Cases','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/')"),
+               ('Malaria','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/ma/')"),
+               ('Tb','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/tb/')"),
                ('Bloody Diarrhea','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/bd/')"),
-               ('Total','',1,''),
-               ('Total Child Deaths','',1,''),
-               ('Safe Drinking Water (% of homesteads)','',1,''),
-               ('% of expected weekly Epi reports received','',1,''),
+               ('Total','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/')"),
+               ('Total Child Deaths','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/')"),
+               ('Safe Drinking Water (% of homesteads)','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/')"),
+               ('% of expected weekly Epi reports received','javascript:void(0)',1,''),
     )
+    interval=end_date-start_date
+    if interval<=datetime.timedelta(days=21):
+        group_by=GROUP_BY_DAY
+        r='day'
+    elif datetime.timedelta(days=21) <=interval<=datetime.timedelta(days=90):
+        group_by=GROUP_BY_WEEK
+        r='week'
+    elif datetime.timedelta(days=90) <=interval<=datetime.timedelta(days=270):
+        group_by=GROUP_BY_MONTH
+        r='month'
+    else:
+        group_by=GROUP_BY_QUARTER
+        r='quarter'
 
-    chart = report('epi', location=location, attribute_keyword='ma', start_date=start_date, end_date=end_date, group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
+
+    chart = report('epi', location=location, attribute_keyword='ma', start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION )
     chart_title = 'Variation of Malaria Reports'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
-    chart_dict = {}
+    chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan('week', chart, chart_dict, location_list)    
+    reorganize_timespan(r, chart, chart_dict, location_list)    
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'top_columns':topColumns, 
@@ -108,7 +124,7 @@ def index(request, location_id=None):
                                'xaxis':xaxis, 
                                'yaxis':yaxis, 
                                'chart_title': chart_title,
-                               'tooltip_prefix': 'Week ',
+                               'tooltip_prefix': '',
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -117,3 +133,41 @@ def index(request, location_id=None):
                                'end_ts':time.mktime(end_date.timetuple()) * 1000,
                                'date_range_form':form,
                                 }, context_instance=RequestContext(request))
+
+
+
+def muac_detail(request,location_id=None):
+    
+    if request.POST:
+        form = DateRangeForm(request.POST)
+        if form.is_valid():
+            cursor = connection.cursor()
+            cursor.execute("select min(created) from rapidsms_xforms_xformsubmission")
+            min_date = cursor.fetchone()[0]
+            start_date = form.cleaned_data['start_ts']
+            end_date = form.cleaned_data['end_ts']
+            request.session['start_date'] = start_date
+            request.session['end_date'] = end_date
+    else:
+        form = DateRangeForm()
+        cursor = connection.cursor()
+        cursor.execute("select min(created), max(created) from rapidsms_xforms_xformsubmission")
+        min_date, end_date = cursor.fetchone()
+        start_date = end_date - datetime.timedelta(days=30)
+        if request.session.get('start_date',None)  and request.session.get('end_date',None):
+            start_date=request.session['start_date']
+            end_date=request.session['end_date']
+
+    max_date = datetime.datetime.now()
+
+    if location_id:
+        location = get_object_or_404(Area, pk=location_id)
+    else:
+        location = Area.tree.root_nodes()[0]
+
+    return render_to_response("cvs/stats.html")
+
+
+
+
+

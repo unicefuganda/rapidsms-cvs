@@ -1,6 +1,7 @@
 from django.db.models import Sum
 from django.db.models import Q
 from django.db import connection
+from django.utils.datastructures import SortedDict
 
 from rapidsms_xforms.models import *
 import datetime
@@ -10,6 +11,28 @@ GROUP_BY_MONTH = 2
 GROUP_BY_YEAR = 4
 GROUP_BY_LOCATION = 8
 GROUP_BY_DAY = 16
+GROUP_BY_QUARTER = 32
+
+months={
+    1: 'Jan',
+    2: 'Feb',
+    3: 'Mar',
+    4: 'Apr',
+    5: 'May',
+    6: 'Jun',
+    7: 'Jul',
+    8: 'Aug',
+    9: 'Sept',
+    10: 'Oct',
+    11: 'Nov',
+    12: 'Dec'
+}
+quarters{
+    1:'First',
+    2:'Second',
+    3:'Third',
+    4:'Forth'
+}
 
 def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), attribute_keyword=None, attribute_value=None, location=None, facility=None, group_by=None,**kwargs):
     """
@@ -48,7 +71,7 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
         report_raw returns a list of dictionaries, each with keys based on the GROUP_BY_xxxx flags used.
         all dictionaries will at least contain a "value" key, which is the count() of reports or the sum() of a particular
         attribute for a particular report.
-        For instance, report_raw('epi', group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION, attribute_keyword='ma') would return a list of 
+        For instance, report_raw('epi', group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION, attribute_keyword='ma') would return a list of
         dictionaries of the form:
         [{'location_id':1,'location_name':'Uganda','week':1,'value':13},
         ...
@@ -109,6 +132,12 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
         select_clauses.append(('extract(day from submissions.created)', 'day'))
         groupby_columns.append('day')
         orderby_columns.append('day')
+    if group_by & GROUP_BY_QUARTER:
+           select_clauses.append(('extract(quarter from submissions.created)', 'day'))
+           groupby_columns.append('quarter')
+           orderby_columns.append('quarter')
+
+
     if group_by & GROUP_BY_LOCATION:
         select_clauses.append(('locations.name', 'lname',))
         select_clauses.append(('locations.id', 'lid',))
@@ -131,6 +160,7 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
         sql += " group by " + ' , '.join(groupby_columns)
     if len(orderby_columns):
         sql += " order by " + ' , '.join(orderby_columns)
+    print sql
     cursor.execute(sql)
     list_toret = []
     for row in cursor.fetchall():
@@ -147,7 +177,7 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
             rowoff += 1
         if group_by & GROUP_BY_DAY:
             rowdict.update({'day':row[rowoff]})
-            rowoff += 1            
+            rowoff += 1
         if group_by & GROUP_BY_LOCATION:
             rowdict.update({'location_name':row[rowoff]})
             rowoff += 1
@@ -162,11 +192,25 @@ def reorganize_location(key, report, report_dict):
         report_dict.setdefault(location,{'location_id':dict['location_id']})
         report_dict[location][key] = dict['value']
         
-def reorganize_timespan(timespan, report, report_dict, location_list):
+def reorganize_timespan(timespan, report, report_dict, location_list,request=None):
     for dict in report:
         time = dict[timespan]
+        if timespan =='month':
+            time = months[int(time)]
+        elif timespan =='week':
+            time = 'Week '+str(int(time))
+        elif timespan =='quarter':
+            time = quarters[int(time)]+ ' Quarter'
+        else:
+            time=int(time)
+
+
         report_dict.setdefault(time,{})
         location = dict['location_name']
         report_dict[time][location] = dict['value']
+
         if not location in location_list:
             location_list.append(location)
+    report_dict=SortedDict(report_dict)
+
+   
