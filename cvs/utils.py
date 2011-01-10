@@ -2,6 +2,9 @@ from django.db.models import Sum
 from django.db.models import Q
 from django.db import connection
 from django.utils.datastructures import SortedDict
+from cvs.forms import DateRangeForm
+import datetime
+import time
 
 from rapidsms_xforms.models import *
 import datetime
@@ -320,5 +323,28 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
         if not location in location_list:
             location_list.append(location)
     report_dict=SortedDict(report_dict)
+    
+def get_dates(request):
+    if request.POST:
+        form = DateRangeForm(request.POST)
+        if form.is_valid():
+            cursor = connection.cursor()
+            cursor.execute("select min(created) from rapidsms_xforms_xformsubmission")
+            min_date = cursor.fetchone()[0]
+            start_date = form.cleaned_data['start_ts']
+            end_date = form.cleaned_data['end_ts']
+            request.session['start_date'] = start_date
+            request.session['end_date'] = end_date
+    else:
+        form = DateRangeForm()
+        cursor = connection.cursor()
+        cursor.execute("select min(created), max(created) from rapidsms_xforms_xformsubmission")
+        min_date, end_date = cursor.fetchone()
+        start_date = end_date - datetime.timedelta(days=30)
+        if request.session.get('start_date',None)  and request.session.get('end_date',None):
+            start_date=request.session['start_date']
+            end_date=request.session['end_date']
+            
+    return {'start':start_date, 'end':end_date, 'min':min_date, 'form':form}
 
    
