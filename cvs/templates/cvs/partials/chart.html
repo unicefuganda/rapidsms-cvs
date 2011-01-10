@@ -23,8 +23,8 @@
                 text: '{{ xaxis }}'
             },
             categories: [
-                {% for time, loc_dict in data|items_sorted %}
-                    '' + parseInt('{{ time }}'),
+                {% for time in data %}
+                    '{{ time }}',
                 {% endfor %}
             ]
         },
@@ -72,7 +72,7 @@
     //options.yAxis.max=100;
     options.tooltip.formatter=function (){
          return '<b>'+ this.series.name +'</b><br/>{{ tooltip_prefix }}'+
-                    this.x +': '+ parseInt(this.y);
+                    this.x +': '+ parseInt(this.y) +' cases';
     }
     chart = new Highcharts.Chart(options);
 </script>
