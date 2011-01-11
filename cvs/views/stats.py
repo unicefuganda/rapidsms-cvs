@@ -55,7 +55,7 @@ def index(request, location_id=None):
     topColumns = (('','',1),
                   ('Malnutrition', '/cvs/muac/', 1),
                   ('Epi','/cvs/epi/',3),
-                  ('Birth','',1),
+                  ('Birth','/cvs/birth',1),
                   ('Death','',1),
                   ('Home', '',1),
                   ('Reporters','',1)
@@ -254,7 +254,79 @@ def epi_detail(request, location_id=None):
                                'date_range_form':dates['form'],
                                 }, context_instance=RequestContext(request))    
 
-#    return render_to_response("cvs/stats.html")
-
 def birth_detail(request, location_id=None):
-    pass
+    """
+        birth reports method
+        
+    """
+    dates = get_dates(request)
+    max_date = datetime.datetime.now()   
+    if location_id:
+        location = get_object_or_404(Area, pk=location_id)
+    else:
+        location = Area.tree.root_nodes()[0]
+#    import pdb
+#    pdb.set_trace()
+    total = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+    boys = report('birth', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    girls = report('birth', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    percentage_at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    at_clinic = report('birth', attribute_keyword='place', attribute_value='CLINIC', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    x = 0
+    while x < len(percentage_at_home):
+        home_divide = float(percentage_at_home[x]['value'])
+        total_value = float(total[x]['value'])
+        home_divide /= total_value
+        percentage_at_home[x]['value'] = round(home_divide*100,1)
+        x +=1
+   
+    report_dict = {}
+    reorganize_location('total', total, report_dict)
+    reorganize_location('boys', boys, report_dict)
+    reorganize_location('girls', girls, report_dict)
+    reorganize_location('at_home', at_home, report_dict)
+    reorganize_location('at_clinic', at_clinic, report_dict)
+    reorganize_location('at_facility', at_facility, report_dict)
+    reorganize_location('percentage_at_home', percentage_at_home, report_dict)
+    
+    columns = (('','',1),
+                  ('Total Births', '', 1),
+                  ('Boys','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/gender/M/')"),
+                  ('Girls','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/gender/F/')"),
+                  ('Delivered at Home','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/HOME/')"),
+                  ('Delivered at Clinic','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/CLINIC/')"),
+                  ('Delivered at Facility','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/FACILITY/')"),
+                  ('% Delivered at Home','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/percentage/')")
+                  )
+    
+    chart = report('birth', location=location, start_date=dates['start'], end_date=dates['end'], group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
+    chart_title = 'Variation of Total Birth Reports'
+    xaxis = 'Week of Year'
+    yaxis = 'Number of Cases'
+    chart_dict = {}
+    location_list = []
+    reorganize_timespan('week', chart, chart_dict, location_list)  
+    
+    return render_to_response("cvs/stats.html",
+                              {'report':report_dict, 
+                               'columns':columns,  
+                               'location_id':location_id, 
+                               'report_template':'cvs/partials/birth_main.html',
+                               'data':chart_dict, 
+                               'series':location_list, 
+                               'start_date':dates['start'], 
+                               'end_date':dates['end'], 
+                               'xaxis':xaxis, 
+                               'yaxis':yaxis, 
+                               'chart_title': chart_title,
+                               'tooltip_prefix': 'Week ', 
+                               # timestamps in python are in seconds,
+                               # in javascript they're in milliseconds
+                               'max_ts':time.mktime(max_date.timetuple()) * 1000,
+                               'min_ts':time.mktime(dates['min'].timetuple()) * 1000,
+                               'start_ts':time.mktime(dates['start'].timetuple()) * 1000,
+                               'end_ts':time.mktime(dates['end'].timetuple()) * 1000,
+                               'date_range_form':dates['form'],
+                                }, context_instance=RequestContext(request))

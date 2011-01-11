@@ -26,8 +26,6 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
         values passed in (see the FIXMEs) below.
 
     """
-#    import pdb
-#    pdb.set_trace()
     if request.POST:
         form = DateRangeForm(request.POST)
         if form.is_valid():
@@ -60,16 +58,27 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
     if location_id:
         location = get_object_or_404(Area, pk=location_id)
     else:
-        location = Area.tree.root_nodes()[0]
-        
-    params = chart_params(xform_keyword, attribute_keyword, attribute_value, r)
+        location = Area.tree.root_nodes()[0]    
+    params = chart_params(xform_keyword, attribute_keyword, r, attribute_value)
     
     if attribute_keyword and attribute_value:
         if attribute_keyword.find('__') > 0:
             attribute_keyword = attribute_keyword.split('__')
         if attribute_value.find('__') > 0:
             attribute_value = attribute_value.split('__')
-        chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION, location=location)
+        if xform_keyword == 'birth' and attribute_value == 'percentage':
+            percentage_at_home = report(xform_keyword, attribute_keyword='place', attribute_value='HOME', start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION, location=location)
+            total = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION, location=location)
+            x = 0
+            while x < len(percentage_at_home):
+                home_divide = float(percentage_at_home[x]['value'])
+                total_value = float(total[x]['value'])
+                home_divide /= total_value
+                percentage_at_home[x]['value'] = round(home_divide*100,1)
+                x +=1
+                chart_data = percentage_at_home
+        else:
+            chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION, location=location)
     elif attribute_keyword and not attribute_value:
         chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
     else:
@@ -107,32 +116,35 @@ def chart_params(xform_keyword, attribute_keyword, r, attribute_value=None):
     'ra':'Rabies',
     'vf':'Hemorrhagic Fevers',
     'ei':'Infectious Diseases'
-    }
-
+    }   
+    value_dict = {
+                  'G':'Green',
+                  'G__T':'Green + Oedema',
+                  'Y':'Yellow',
+                  'R':'Red',
+                  'R__T':'Red + Oedema',
+                  'M':'Male',
+                  'F':'Female',
+                  'HOME':'Home',
+                  'CLINIC':'Clinic',
+                  'FACILITY':'Facility',
+                  'percentage':'Percentage Home'
+                  }
     
-    value_dict = (
-                  ('G', "Green"),
-                  ('G__T', "Green + Oedema"),
-                  ('Y', "Yellow"),
-                  ('R', "Red"),
-                  ('R__T', "Red + Oedema"),
-                  )
-    
-#    import pdb
-#    pdb.set_trace()
     indicator = None
     category = None
-    if xform_keyword != 'muac':
+    if xform_keyword == 'epi':
         indicator = keyword_dict[attribute_keyword]
     
-    if attribute_value:
-        for attrib_key, v in value_dict:
-            if attrib_key == attribute_value:
-                category = v + " Category "
+    if attribute_value and xform_keyword == 'muac':
+        category = value_dict[attribute_value] + " Category "
+    else:
+        category = value_dict[attribute_value]
                 
     epi_params = {"chart_title":"Variation of "+str(indicator)+" Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix": r}
     muac_params = {"chart_title":"Variation of "+str(category)+" Malnutrition Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
+    birth_params = {"chart_title":"Variation of "+str(category)+" Birth Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
 
-    params = {"muac":muac_params, "epi":epi_params}
+    params = {"muac":muac_params, "epi":epi_params, "birth":birth_params}
     
     return params[xform_keyword]
