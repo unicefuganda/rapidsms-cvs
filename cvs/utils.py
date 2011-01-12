@@ -27,7 +27,7 @@ months={
     11: 'Nov',
     12: 'Dec'
 }
-quarters{
+quarters={
     1:'First',
     2:'Second',
     3:'Third',
