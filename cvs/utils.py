@@ -74,8 +74,6 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
     list_toret = []
     countx = None
     if isinstance(attribute_keyword, list) and isinstance(attribute_value, list):
-#        import pdb
-#        pdb.set_trace()
         sql = mk_entity_raw_sql(xform_keyword, group_by, start_date, end_date, attribute_keyword[0], attribute_value[0], location, facility,**kwargs)
         cursor.execute(sql)
         k = 0
@@ -147,8 +145,20 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         where_clauses = ["attributes.slug = '%s_%s'" % (xform_keyword, attribute_keyword)]
         joins = ['eav_attribute attributes on values.attribute_id = attributes.id', 'rapidsms_xforms_xformsubmission submissions on values.entity_id = submissions.id']
         if attribute_value is not None:
-            select_clauses = [('count(value_text)', 'value',)]
-            where_clauses.append("values.value_text = '%s'" % attribute_value)
+            if isinstance(attribute_value, dict):
+                select_clauses = [('count(value_int)', 'value',)]
+                func = attribute_value.keys()
+                if isinstance(attribute_value[func[0]], list):
+                    attribute_values = tuple(attribute_value[func[0]])
+                else:
+                    attribute_values = attribute_value[func[0]]
+                if func[0] == 'under':
+                    where_clauses.append("values.value_int < %d" % attribute_values)
+                else:
+                    where_clauses.append("values.value_int between %d and %d" % attribute_values)
+            else:
+                select_clauses = [('count(value_text)', 'value',)]
+                where_clauses.append("values.value_text = '%s'" % attribute_value)
         else:
             select_clauses = [('sum(value_int)', 'value',)]        
     else:

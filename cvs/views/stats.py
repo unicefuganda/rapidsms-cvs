@@ -55,8 +55,8 @@ def index(request, location_id=None):
     topColumns = (('','',1),
                   ('Malnutrition', '/cvs/muac/', 1),
                   ('Epi','/cvs/epi/',3),
-                  ('Birth','/cvs/birth',1),
-                  ('Death','',1),
+                  ('Birth','/cvs/birth/',1),
+                  ('Death','/cvs/death/',1),
                   ('Home', '',1),
                   ('Reporters','',1)
                   )
@@ -130,10 +130,8 @@ def muac_detail(request,location_id=None):
     total = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     green = report('muac', attribute_keyword='category', attribute_value='G', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     green_oedema = report('muac', attribute_keyword=['category', 'oedema'], attribute_value=['G','T'], location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-#    green_oedema = green.filter(muac_oedma='T');
     yellow = report('muac', attribute_keyword='category', attribute_value='Y', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     red = report('muac', attribute_keyword='category', attribute_value='R', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-#    red_oedema = report('muac', attribute_keyword='oedema', attribute_value='T', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     red_oedema = report('muac', attribute_keyword=['category', 'oedema'], attribute_value=['R','T'], location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     report_dict = {}
     reorganize_location('total', total, report_dict)
@@ -256,7 +254,7 @@ def epi_detail(request, location_id=None):
 
 def birth_detail(request, location_id=None):
     """
-        birth reports method
+        birth reports view
         
     """
     dates = get_dates(request)
@@ -265,8 +263,6 @@ def birth_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-#    import pdb
-#    pdb.set_trace()
     total = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     boys = report('birth', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     girls = report('birth', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -314,6 +310,73 @@ def birth_detail(request, location_id=None):
                                'columns':columns,  
                                'location_id':location_id, 
                                'report_template':'cvs/partials/birth_main.html',
+                               'data':chart_dict, 
+                               'series':location_list, 
+                               'start_date':dates['start'], 
+                               'end_date':dates['end'], 
+                               'xaxis':xaxis, 
+                               'yaxis':yaxis, 
+                               'chart_title': chart_title,
+                               'tooltip_prefix': 'Week ', 
+                               # timestamps in python are in seconds,
+                               # in javascript they're in milliseconds
+                               'max_ts':time.mktime(max_date.timetuple()) * 1000,
+                               'min_ts':time.mktime(dates['min'].timetuple()) * 1000,
+                               'start_ts':time.mktime(dates['start'].timetuple()) * 1000,
+                               'end_ts':time.mktime(dates['end'].timetuple()) * 1000,
+                               'date_range_form':dates['form'],
+                                }, context_instance=RequestContext(request))
+    
+def death_detail(request, location_id=None):
+    """
+        death reports view
+        
+    """
+    dates = get_dates(request)
+    max_date = datetime.datetime.now()   
+    if location_id:
+        location = get_object_or_404(Area, pk=location_id)
+    else:
+        location = Area.tree.root_nodes()[0]
+    total = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+    boys = report('death', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    girls = report('death', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    under_28days = report('death', attribute_keyword='age', attribute_value={"under":(28)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    upto_3months = report('death', attribute_keyword='age', attribute_value={"between":(28, 90)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    upto_12months = report('death', attribute_keyword='age', attribute_value={"between":(90, 365)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    upto_5years = report('death', attribute_keyword='age', attribute_value={"between":(365, 1825)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    report_dict = {}
+    reorganize_location('total', total, report_dict)
+    reorganize_location('boys', boys, report_dict)
+    reorganize_location('girls', girls, report_dict)
+    reorganize_location('under_28days', under_28days, report_dict)
+    reorganize_location('upto_3months', upto_3months, report_dict)
+    reorganize_location('upto_12months', upto_12months, report_dict)
+    reorganize_location('upto_5years', upto_5years, report_dict)
+    
+    columns = (('','',1),
+                  ('Total Child Deaths', '', 1),
+                  ('Male Deaths','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/gender/M/')"),
+                  ('Female Deaths','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/gender/F/')"),
+                  ('Deaths Under 28 days','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/under_28/')"),
+                  ('Deaths 28 days to 3 months','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/between_28_90/')"),
+                  ('Deaths 3 months to 12 months','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/between_90_365/')"),
+                  ('Deaths 1 year to 5 years','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/between_365_1825/')")
+                  )
+    
+    chart = report('death', location=location, start_date=dates['start'], end_date=dates['end'], group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
+    chart_title = 'Variation of Total Child Death Reports'
+    xaxis = 'Week of Year'
+    yaxis = 'Number of Cases'
+    chart_dict = {}
+    location_list = []
+    reorganize_timespan('week', chart, chart_dict, location_list)  
+    
+    return render_to_response("cvs/stats.html",
+                              {'report':report_dict, 
+                               'columns':columns,  
+                               'location_id':location_id, 
+                               'report_template':'cvs/partials/death_main.html',
                                'data':chart_dict, 
                                'series':location_list, 
                                'start_date':dates['start'], 

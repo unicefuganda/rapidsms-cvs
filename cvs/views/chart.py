@@ -58,7 +58,7 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
     if location_id:
         location = get_object_or_404(Area, pk=location_id)
     else:
-        location = Area.tree.root_nodes()[0]    
+        location = Area.tree.root_nodes()[0]
     params = chart_params(xform_keyword, attribute_keyword, r, attribute_value)
     
     if attribute_keyword and attribute_value:
@@ -66,6 +66,18 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
             attribute_keyword = attribute_keyword.split('__')
         if attribute_value.find('__') > 0:
             attribute_value = attribute_value.split('__')
+        if xform_keyword == 'death' and attribute_keyword == 'age':
+            vlist = attribute_value.split('_')
+            value_dict_key = str(vlist[0])
+            value_dict_values = []
+            x = 0
+            while x < len(vlist):
+                if x == 0:
+                    pass
+                else:
+                    value_dict_values.append(int(vlist[x]))
+                x +=1
+            attribute_value = {value_dict_key:value_dict_values}
         if xform_keyword == 'birth' and attribute_value == 'percentage':
             percentage_at_home = report(xform_keyword, attribute_keyword='place', attribute_value='HOME', start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION, location=location)
             total = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION, location=location)
@@ -128,7 +140,11 @@ def chart_params(xform_keyword, attribute_keyword, r, attribute_value=None):
                   'HOME':'Home',
                   'CLINIC':'Clinic',
                   'FACILITY':'Facility',
-                  'percentage':'Percentage Home'
+                  'percentage':'Percentage Home',
+                  'under_28': 'under 28 days',
+                  'between_28_90': 'between 28 days and 3 months',
+                  'between_90_365': 'between 3 months and 12 months',
+                  'between_365_1825': 'between 1 year and 5 years',
                   }
     
     indicator = None
@@ -144,7 +160,8 @@ def chart_params(xform_keyword, attribute_keyword, r, attribute_value=None):
     epi_params = {"chart_title":"Variation of "+str(indicator)+" Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix": r}
     muac_params = {"chart_title":"Variation of "+str(category)+" Malnutrition Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
     birth_params = {"chart_title":"Variation of "+str(category)+" Birth Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
+    death_params = {"chart_title":"Variation of Death Reports for Children "+str(category)+"", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
 
-    params = {"muac":muac_params, "epi":epi_params, "birth":birth_params}
+    params = {"muac":muac_params, "epi":epi_params, "birth":birth_params, "death":death_params}
     
     return params[xform_keyword]
