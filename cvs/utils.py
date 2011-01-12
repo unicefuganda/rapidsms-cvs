@@ -154,6 +154,8 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
                     attribute_values = attribute_value[func[0]]
                 if func[0] == 'under':
                     where_clauses.append("values.value_int < %d" % attribute_values)
+                elif func[0] == 'above':
+                    where_clauses.append("values.value_in > %d" % attribute_values)
                 else:
                     where_clauses.append("values.value_int between %d and %d" % attribute_values)
             else:
