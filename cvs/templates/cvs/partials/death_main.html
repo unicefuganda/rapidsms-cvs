@@ -1,0 +1,12 @@
+{% for key, value in report.items %}
+<tr>
+<td><a href="{% if location_id %}../{% endif %}{{ value.location_id }}/">{{ key }}</a></td>
+<td>{{ value.total }}</td>
+<td>{{ value.boys }}</td>
+<td>{{ value.girls }}</td>
+<td>{{ value.under_28days }}</td>
+<td>{{ value.upto_3months }}</td>
+<td>{{ value.upto_12months }}</td>
+<td>{{ value.upto_5years }}</td>
+</tr>
+{% endfor %}

@@ -45,7 +45,7 @@
     $( "#date_slider_value" ).text( "From " + start_str +
         " to " + end_str );
 </script>
-<table>
+<table width="100%">
 {% if top_columns or columns %}
     <thead>
     {% if top_columns %}    
@@ -82,8 +82,10 @@
 {% endif %}
 {% include report_template %}
 </table>
+{% if data %}
 <div id="chart_container">
     {% include "cvs/partials/chart.html" %}
 </div>
 </form>
+{% endif %}
 {% endblock %}
