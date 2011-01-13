@@ -127,7 +127,12 @@ def chart_params(xform_keyword, attribute_keyword, r, attribute_value=None):
     'pl':'Plague',
     'ra':'Rabies',
     'vf':'Hemorrhagic Fevers',
-    'ei':'Infectious Diseases'
+    'ei':'Infectious Diseases',
+    'to':'Total Household Visited',
+    'wa':'Safe Drinking Water',
+    'ha':'Hand Washing Facilites',
+    'la':'Latrines',
+    'it':'ITTNs/LLINs'
     }   
     value_dict = {
                   'G':'Green',
@@ -149,19 +154,21 @@ def chart_params(xform_keyword, attribute_keyword, r, attribute_value=None):
     
     indicator = None
     category = None
-    if xform_keyword == 'epi':
+    if xform_keyword == 'epi' or xform_keyword == 'home':
         indicator = keyword_dict[attribute_keyword]
     
-    if attribute_value and xform_keyword == 'muac':
-        category = value_dict[attribute_value] + " Category "
-    else:
-        category = value_dict[attribute_value]
+    if attribute_value:
+        if xform_keyword == 'muac':
+            category = value_dict[attribute_value] + " Category "
+        else:
+            category = value_dict[attribute_value]
                 
     epi_params = {"chart_title":"Variation of "+str(indicator)+" Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix": r}
     muac_params = {"chart_title":"Variation of "+str(category)+" Malnutrition Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
     birth_params = {"chart_title":"Variation of "+str(category)+" Birth Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
     death_params = {"chart_title":"Variation of Death Reports for Children "+str(category)+"", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
+    home_params = {"chart_title":"Variation of "+str(indicator)+" Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
 
-    params = {"muac":muac_params, "epi":epi_params, "birth":birth_params, "death":death_params}
+    params = {"muac":muac_params, "epi":epi_params, "birth":birth_params, "death":death_params, "home":home_params}
     
     return params[xform_keyword]
