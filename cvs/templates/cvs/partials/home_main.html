@@ -1,0 +1,14 @@
+{% for key, value in report.items %}
+<tr>
+    <td><a href="{% if location_id %}../{% endif %}{{ value.location_id }}/">{{ key }}</a></td>
+    <td>{{ value.total }}</td>
+    <td>{{ value.safe_drinking_water }}</td>
+    <td>{{ value.percentage_safe_drinking_water }}</td>
+    <td>{{ value.hand_washing_facilites }}</td>
+    <td>{{ value.percentage_hand_washing_facilities }}</td>
+    <td>{{ value.latrines }}</td>
+    <td>{{ value.percentage_latrines }}</td>
+    <td>{{ value.ittns }}</td>
+    <td>{{ value.percentage_ittns }}</td>
+</tr>
+{% endfor %}

@@ -57,7 +57,7 @@ def index(request, location_id=None):
                   ('Epi','/cvs/epi/',3),
                   ('Birth','/cvs/birth/',1),
                   ('Death','/cvs/death/',1),
-                  ('Home', '',1),
+                  ('Home', '/cvs/home/',1),
                   ('Reporters','',1)
                   )
                   
@@ -385,6 +385,100 @@ def death_detail(request, location_id=None):
                                'yaxis':yaxis, 
                                'chart_title': chart_title,
                                'tooltip_prefix': 'Week ', 
+                               # timestamps in python are in seconds,
+                               # in javascript they're in milliseconds
+                               'max_ts':time.mktime(max_date.timetuple()) * 1000,
+                               'min_ts':time.mktime(dates['min'].timetuple()) * 1000,
+                               'start_ts':time.mktime(dates['start'].timetuple()) * 1000,
+                               'end_ts':time.mktime(dates['end'].timetuple()) * 1000,
+                               'date_range_form':dates['form'],
+                                }, context_instance=RequestContext(request))
+
+def home_detail(request, location_id=None):
+    """
+        home reports view
+
+    """
+    dates = get_dates(request)
+    max_date = datetime.datetime.now()
+    if location_id:
+        location = get_object_or_404(Area, pk=location_id)
+    else:
+        location = Area.tree.root_nodes()[0]
+    total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+    safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    percentage_safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    hand_washing_facilities = report('home', attribute_keyword='ha', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    percentage_hand_washing_facilities = report('home', attribute_keyword='ha', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    latrines = report('home', attribute_keyword='la', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    percentage_latrines = report('home', attribute_keyword='la', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    ittns = report('home', attribute_keyword='it', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    percentage_ittns = report('home', attribute_keyword='it', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+        
+    report_dict = {}
+    reorganize_location('total', total, report_dict)
+    reorganize_location('safe_drinking_water', safe_drinking_water, report_dict)
+    reorganize_location('hand_washing_facilities', hand_washing_facilities, report_dict)
+    reorganize_location('latrines', latrines, report_dict)
+    reorganize_location('ittns', ittns, report_dict)
+
+    percentage_dictionaries = {
+                    "percentage_safe_drinking_water":percentage_safe_drinking_water,
+                    "percentage_hand_washing_facilities":percentage_hand_washing_facilities,
+                    "percentage_latrines":percentage_latrines,
+                    "percentage_ittns":percentage_ittns
+                    }
+
+    for dictx_name, dictx in percentage_dictionaries.items():
+        x = 0
+        while x < len(dictx):
+            dictx_divide = float(dictx[x]['value'])
+            total_value = float(total[x]['value'])
+            dictx_divide /= total_value
+            dictx[x]['value'] = round(dictx_divide*100,1)
+            x +=1
+        reorganize_location(dictx_name, dictx, report_dict)
+
+    columns = (
+                  ('Total Households Visited', 'javascript:void(0)', 2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/to/')"),
+                  ('Safe Drinking Water','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/')"),
+                  ('Hand Washing Facilities','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/ha/')"),
+                  ('Latrines','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/la/')"),
+                  ('ITTNs/LLINs','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/')"),
+                  )
+    bottom_columns = (('','',2),
+                    ('Total', '', 1),
+                    ('% of Total', '', 1),
+                    ('Total', '', 1),
+                    ('% of Total', '', 1),
+                    ('Total', '', 1),
+                    ('% of Total', '', 1),
+                    ('Total', '', 1),
+                    ('% of Total', '', 1),
+                )
+
+    chart = report('home', attribute_keyword='to', location=location, start_date=dates['start'], end_date=dates['end'], group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
+    chart_title = 'Variation of Total Households Visited'
+    xaxis = 'Week of Year'
+    yaxis = 'Number of Cases'
+    chart_dict = {}
+    location_list = []
+    reorganize_timespan('week', chart, chart_dict, location_list)
+
+    return render_to_response("cvs/stats.html",
+                              {'report':report_dict,
+                               'columns':columns,
+                               'bottom_columns':bottom_columns,
+                               'location_id':location_id,
+                               'report_template':'cvs/partials/home_main.html',
+                               'data':chart_dict,
+                               'series':location_list,
+                               'start_date':dates['start'],
+                               'end_date':dates['end'],
+                               'xaxis':xaxis,
+                               'yaxis':yaxis,
+                               'chart_title': chart_title,
+                               'tooltip_prefix': 'Week ',
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,

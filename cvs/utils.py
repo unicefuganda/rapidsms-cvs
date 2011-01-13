@@ -340,6 +340,9 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
             location_list.append(location)
     
 def get_dates(request):
+    """
+    Process date variables from POST
+    """
     if request.POST:
         form = DateRangeForm(request.POST)
         if form.is_valid():
