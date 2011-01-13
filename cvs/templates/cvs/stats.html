@@ -77,6 +77,21 @@
         {% endfor %}
         </tr>
     {% endif %}
+    {% if bottom_columns %}
+        <tr>
+        {% for name, link, colspan in bottom_columns %}
+            <th colspan="{{ colspan }}">
+                {% if link %}
+                    <a href="{{ link }}">
+                {% endif %}
+                {{ name }}
+                {% if link %}
+                    </a>
+                {% endif %}
+            </th>
+        {% endfor %}
+        </tr>
+    {% endif %}
     </thead>
 {% endif %}
 {% include report_template %}
