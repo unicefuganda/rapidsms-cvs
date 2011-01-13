@@ -112,7 +112,10 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
             rowoff += 1
         if group_by & GROUP_BY_DAY:
             rowdict.update({'day':row[rowoff]})
-            rowoff += 1            
+            rowoff += 1
+        if group_by & GROUP_BY_QUARTER:
+            rowdict.update({'quarter':row[rowoff]})
+            rowoff += 1
         if group_by & GROUP_BY_LOCATION:
             rowdict.update({'location_name':row[rowoff]})
             rowoff += 1
@@ -201,7 +204,7 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         groupby_columns.append('day')
         orderby_columns.append('day')
     if group_by & GROUP_BY_QUARTER:
-           select_clauses.append(('extract(quarter from submissions.created)', 'day'))
+           select_clauses.append(('extract(quarter from submissions.created)', 'quarter'))
            groupby_columns.append('quarter')
            orderby_columns.append('quarter')
 
@@ -335,7 +338,6 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
 
         if not location in location_list:
             location_list.append(location)
-    report_dict=SortedDict(report_dict)
     
 def get_dates(request):
     if request.POST:
