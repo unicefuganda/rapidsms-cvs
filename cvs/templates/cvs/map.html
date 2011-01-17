@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block stylesheets %}
+{{ block.super }}
+<link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}cvs/stylesheets/jquery-ui-1.7.3.custom.css" />
+ <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}cvs/stylesheets/cvs.css" />
+{% endblock %}
+
+{% block javascripts %}
+{{ block.super }}
+<script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key={{map_key}}" type="text/javascript">
+</script>
+<script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/cvs_map.js"></script>
+     <script language="javascript">
+    //get the map bounding box
+        var map;
+        var minLat={{minLat}};
+        var maxLat={{maxLat}};
+        var minLon={{minLon}};
+        var maxLon={{maxLon}};
+        var map_layers={{map_layers}};
+        base_layer="{{base_layer}}";
+        var zoom=9;
+        $(document).ready(function() {
+
+            add_layers(map_layers);
+
+});
+
+
+    </script>
+{% endblock %}
+
+{% block content %}
+
+<div id="map">
+
+</div>
+
+    <div id="overlays">
+
+    </div>
+
+
+{%  endblock  %}

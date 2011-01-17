@@ -1,0 +1,32 @@
+table th  a {
+    color: #4bd;
+}
+
+div#map {
+    width: 700px;
+    height: 400px;
+    border: 1px solid #1ebfd2;
+    float:left;
+}
+
+div#overlays {
+    width: 200px;
+    height: 400px;
+    border: 1px solid #1ebfd2;
+    float: right;
+    margin-right: 20px;
+}
+div#overlays li{
+    border-bottom:1px solid #ffffff;
+    list-style:none;
+    background-color:#4bd;
+}
+
+div#overlays li a{
+    color:#000000;
+}
+.help{
+    color: #389ece;
+  font-weight: bold;
+  margin-bottom: 1em;
+}

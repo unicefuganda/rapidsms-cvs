@@ -10,9 +10,7 @@ import string
 
 
 from healthmodels.models.HealthFacility import HealthFacility
-from cvs.settings import MAP_KEY, MAP_LAYERS, MIN_LAT,MAX_LAT,MIN_LON,MAX_LON
-from cvs.utils import report, reorganize_location, reorganize_timespan, GROUP_BY_LOCATION, GROUP_BY_WEEK, GROUP_BY_MONTH, GROUP_BY_YEAR, GROUP_BY_DAY, GROUP_BY_QUARTER
-
+from cvs.settings import MAP_KEY, MAP_LAYERS, MIN_LAT,MAX_LAT,MIN_LON,MAX_LON,BASELAYER
 
 def get_dates():
     cursor = connection.cursor()
@@ -26,7 +24,7 @@ def map_index(request):
     (minLon, maxLon, minLat, maxLat) = (mark_safe(MIN_LON),
                                         mark_safe(MAX_LON), mark_safe(MIN_LAT), mark_safe(MAX_LAT))
     start_date,end_date=get_dates()
-    return render_to_response('cvs/map.html',dict(start_date=start_date,end_date=end_date,minLon=minLon, maxLon=maxLon, minLat=minLat, maxLat=maxLat,map_key=map_key,map_layers=map_layers) ,context_instance=RequestContext(request))
+    return render_to_response('cvs/map.html',dict(start_date=start_date,end_date=end_date,minLon=minLon, maxLon=maxLon, minLat=minLat, maxLat=maxLat,map_key=map_key,map_layers=map_layers,base_layer=BASELAYER) ,context_instance=RequestContext(request))
 
 class JsonResponse(HttpResponse):
 
