@@ -81,8 +81,9 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
         while k < len(attribute_keyword):
             countx = 0
             for row in cursor.fetchall():
-                value = XFormSubmissionValue.objects.filter(entity_id=row[0], attribute__name=attribute_keyword[k], value_text=attribute_value[k])
-                countx +=value.count()
+                attribute_slug = "%s_%s" % (xform_keyword, attribute_keyword[k])
+                value = XFormSubmissionValue.objects.filter(entity_id=row[0], attribute__slug=attribute_slug, value_text=attribute_value[k])
+                countx += value.count()
             k +=1
     else:
         sql = mk_raw_sql(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility,**kwargs)
