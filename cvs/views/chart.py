@@ -70,12 +70,9 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
             vlist = attribute_value.split('_')
             value_dict_key = str(vlist[0])
             value_dict_values = []
-            x = 0
+            x = 1
             while x < len(vlist):
-                if x == 0:
-                    pass
-                else:
-                    value_dict_values.append(int(vlist[x]))
+                value_dict_values.append(int(vlist[x]))
                 x +=1
             attribute_value = {value_dict_key:value_dict_values}
         if xform_keyword == 'birth' and attribute_value == 'percentage':
@@ -152,8 +149,8 @@ def chart_params(xform_keyword, attribute_keyword, r, attribute_value=None):
                   'between_365_1825': 'between 1 year and 5 years',
                   }
     
-    indicator = None
-    category = None
+    indicator = ''
+    category = ''
     if xform_keyword == 'epi' or xform_keyword == 'home':
         indicator = keyword_dict[attribute_keyword]
     

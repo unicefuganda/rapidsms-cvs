@@ -25,6 +25,7 @@
         range: true,
         min: {{ min_ts }},
         max: {{ max_ts }},
+        step: 1,
         values: [{{ start_ts }}, {{ end_ts }}],
         slide: function(event, ui) {
             start_date = new Date(ui.values[0]);

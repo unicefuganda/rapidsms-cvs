@@ -77,20 +77,13 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
     if isinstance(attribute_keyword, list) and isinstance(attribute_value, list):
         sql = mk_entity_raw_sql(xform_keyword, group_by, start_date, end_date, attribute_keyword[0], attribute_value[0], location, facility,**kwargs)
         cursor.execute(sql)
-        k = 0
+        k = 1
         while k < len(attribute_keyword):
-            if k == 0:
-                pass
-            else:
-                countx = 0
-                for row in cursor.fetchall():
-                    entity = row[0];
-                    values = XFormSubmissionValue.objects.filter(entity_id=entity)
-                    for value in values:
-                        if value.attribute.name == attribute_keyword[k] and value.value_text == attribute_value[k]:
-                            countx +=1 
-                                               
-            k +=1 
+            countx = 0
+            for row in cursor.fetchall():
+                value = XFormSubmissionValue.objects.filter(entity_id=row[0], attribute__name=attribute_keyword[k], value_text=attribute_value[k])
+                countx +=value.count()
+            k +=1
     else:
         sql = mk_raw_sql(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility,**kwargs)
     
@@ -362,5 +355,4 @@ def get_dates(request):
             end_date=request.session['end_date']
             
     return {'start':start_date, 'end':end_date, 'min':min_date, 'form':form}
-
    
