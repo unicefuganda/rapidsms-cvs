@@ -1,5 +1,5 @@
 var colors=[];
-var points=[];
+var layers=[];
 var base_url;
 
 function ajax_loading(element)
@@ -63,7 +63,18 @@ function Label(point, html, classname, pixelOffset) {
 }
 
 //add graph to point
-function addGraph(data, x, y, color, desc) {
+function addGraph(url) {
+    if (layers[url]){
+        layers[url]
+    }
+    $.ajax({
+            type: "GET",
+            url: url,
+            dataType: "json",
+            success: function(data){
+         $.each(data, function(key, value){
+
+
     //get map width and height in lat lon
     var d = map.getBounds().toSpan();
     var height = d.lng();
@@ -71,42 +82,55 @@ function addGraph(data, x, y, color, desc) {
     var maxsize = 0.9;
     var pointpair = [];
     var increment = (parseFloat(height) / 10.0) / 100;
-    var start = new GPoint(parseFloat(x), parseFloat(y));
-    var volume = parseInt((parseFloat(data) * 100) / maxsize);
+    var start = new GPoint(parseFloat(value['lat']), parseFloat(value['lon']));
+    var volume = parseInt((parseFloat(value['heat']) * 100) / maxsize);
 
     pointpair.push(start);
     //draw the graph as an overlay
-    pointpair.push(new GPoint(parseFloat(x + increment), parseFloat(y + increment)));
-    var line = new GPolyline(pointpair, color, volume);
-
+    pointpair.push(new GPoint(parseFloat(value['lat'] + increment), parseFloat(value['lon'] + increment)));
+    var line = new GPolyline(pointpair, value['color'], volume);
+    layers[url]=line;
     map.addOverlay(line);
+            });}
+    });
 }
 
 /*
- * add a marker given the lat,lon,title icon and the data url
+ * add a markers given the  the marker data url
  *
- * the data urls is to identify markers belonging to a particular overlay
  */
-function addMarker(x,y,title,icon,url) {
+function addMarkers(url) {
 
 
-		var point = new GPoint(parseFloat(x),parseFloat(y));
-		var mIcon  = new GIcon(G_DEFAULT_ICON, icon);
+    $.ajax({
+            type: "GET",
+            url: url,
+            dataType: "json",
+            success: function(data){
+         $.each(data, function(key, value){
+             var point = new GPoint(parseFloat(value['lat']),parseFloat(value['lon']));
+                     var mIcon  = new GIcon(G_DEFAULT_ICON, value['icon']);
 
-		mIcon.iconSize = new GSize(20,20);
-		mIcon.shadowSize=new GSize(0,0);
-		mIcon.iconAnchor = new GPoint(10, 10);
-		var marker = new GMarker(point,mIcon);
-		map.addOverlay(marker);
-		var desc=[];
+                     mIcon.iconSize = new GSize(20,20);
+                     mIcon.shadowSize=new GSize(0,0);
+                     mIcon.iconAnchor = new GPoint(10, 10);
+                     var marker = new GMarker(point,mIcon);
+                     map.addOverlay(marker);
+                     var desc=[];
 
 
 
-		var ev=GEvent.addListener(marker, 'click',
-				function() {
-					//convert the disc list to a string and display in window
-			marker.openInfoWindowHtml('<p class="help">'+title+'</h1>'+'<p>'+String(desc).replace(",","")+'</p>');
-		});
+                     var ev=GEvent.addListener(marker, 'click',
+                             function() {
+                                 //convert the disc list to a string and display in window
+                         marker.openInfoWindowHtml('<p class="help">'+value['title']+'</h1>'+'<p>'+String(desc).replace(",","")+'</p>');
+                     });
+             
+
+         });
+                  }
+
+        });
 
 
 	
@@ -159,7 +183,8 @@ function add_layers(map_layers)
             //console.log(color);
             //var color='#ff0000';
 
-            layerContainer.append('<li><input type="checkbox"  onchange="addGraph("'+map_layers[key][1]+'")"></input><a href="javascript:void(0)" onclick="toggle_select($(this).prev()),addGraph(map_layers[\''+key+'\'][1])" >'+val[0]+'</a><span style="width:15px;height:15px;background-color:'+color+';float:right;margin-top:3px;margin-right:6px;"></span></li>')});
+            layerContainer.append('<li><input type="checkbox"  onchange="addGraph(\''+val[1]+'\')"   ></input><a href="javascript:void(0)" onclick="toggle_select($(this).prev()),addGraph(\''+val[1]+'\')" >'+val[0]+'</a><span style="width:15px;height:15px;background-color:'+color+';float:right;margin-top:3px;margin-right:6px;"></span></li>');
+        });
 
 
 }
@@ -168,27 +193,18 @@ function add_layers(map_layers)
 //fetch url content
 
 function fetchContent(url){
+    
     $.ajax({
         type: "GET",
         url: url,
         dataType: "json",
         success: function(data){
-            $.each(data, function(key, value){
-
-
-                  
-                    addMarker(value['lat'],value['lon'],value['title'],value['icon']);
-
-               
-          
-
-            });
-
-
-
+            return data;
+            
         }
 
     });
+
 
 }
 
@@ -197,6 +213,6 @@ function fetchContent(url){
 $(document).ready(function() {
 
             init_map();
-            fetchContent(base_layer);
+            addMarkers(base_layer);
 
 });
