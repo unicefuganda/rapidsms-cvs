@@ -58,7 +58,7 @@ def index(request, location_id=None):
                   ('Birth','/cvs/birth/',1),
                   ('Death','/cvs/death/',1),
                   ('Home', '/cvs/home/',1),
-                  ('Reporters','',1)
+                  ('Reporters','/cvs/reporter/',1)
                   )
                   
     columns = (
