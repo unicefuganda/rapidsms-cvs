@@ -144,10 +144,10 @@ def muac_detail(request,location_id=None):
     columns = (('','',1),
                   ('Total', '', 1),
                   ('Green','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/G/')"),
-                  ('Green+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__oedma/G__T/')"),
+                  ('Green+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__oedema/G__T/')"),
                   ('Yellow','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/Y/')"),
                   ('Red','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/R/')"),
-                  ('Red+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__oedma/R__T/')")
+                  ('Red+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__oedema/R__T/')")
                   )
     
     chart = report('muac', location=location, start_date=dates['start'], end_date=dates['end'], group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
