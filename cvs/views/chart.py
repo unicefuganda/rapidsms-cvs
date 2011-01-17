@@ -152,8 +152,8 @@ def chart_params(xform_keyword, attribute_keyword, r, attribute_value=None):
                   'between_365_1825': 'between 1 year and 5 years',
                   }
     
-    indicator = None
-    category = None
+    indicator = ''
+    category = ''
     if xform_keyword == 'epi' or xform_keyword == 'home':
         indicator = keyword_dict[attribute_keyword]
     
