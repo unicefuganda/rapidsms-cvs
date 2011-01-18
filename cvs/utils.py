@@ -87,7 +87,6 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
             k +=1
     else:
         sql = mk_raw_sql(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility,**kwargs)
-    
     cursor.execute(sql)
     for row in cursor.fetchall():
         if countx is None:
@@ -115,7 +114,7 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
             rowoff += 1
             rowdict.update({'location_id':row[rowoff]})
             rowoff += 1
-            list_toret.append(rowdict)
+        list_toret.append(rowdict)
     return list_toret
 
 def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None,**kwargs):
@@ -153,7 +152,7 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
                 if func[0] == 'under':
                     where_clauses.append("values.value_int < %d" % attribute_values)
                 elif func[0] == 'above':
-                    where_clauses.append("values.value_in > %d" % attribute_values)
+                    where_clauses.append("values.value_int > %d" % attribute_values)
                 else:
                     where_clauses.append("values.value_int between %d and %d" % attribute_values)
             else:
