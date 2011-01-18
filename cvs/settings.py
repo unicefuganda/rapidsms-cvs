@@ -4,9 +4,9 @@ from django.utils.datastructures import SortedDict
 
 ## set the overlay colors and icons
 MAP_LAYERS = SortedDict([
-    ('health_facilities', ['Health Facilities', '/cvs/map/health_facilities','#4572A7']),
-    ('deaths', ['Deaths','/cvs/map/deaths', '#AA4643']),
-    ('births', ['Births','/cvs/map/births', '#89A54E']),
+    #('health_facilities', ['Health Facilities', '/cvs/map/health_facilities','#4572A7']),
+    ('deaths', ['Deaths','/cvs/map/deaths/', '#AA4643']),
+    ('births', ['Births','/cvs/map/births/', '#89A54E']),
     ('malnutrition', ['Malnutrition','/malnutrition', '#80699B']),
     ('ma', ['Malaria','/cvs/map/epi/ma/', '#3D96AE']),
     ('bd', ['Bloody  Diarrhoea','/cvs/map/epi/bd/', '#DB843D']),

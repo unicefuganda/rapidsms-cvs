@@ -202,7 +202,7 @@ def health_facilities(request):
             fac['lon']=float(facility.location.longitude) 
             fac['icon']=settings.MEDIA_URL+"cvs/icons/" + facility.type.name.upper() + '.png'
             fac['desc']=facility.name
-            fac['color'] = MAP_LAYERS['health_facilities'][2]
+            #fac['color'] = MAP_LAYERS['health_facilities'][2]
             facility_list.append(fac)
 
         
