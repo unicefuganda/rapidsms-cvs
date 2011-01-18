@@ -174,6 +174,10 @@ def epi_kind(request, kind):
 
     if kind=='other':
         xform_keyword=','.join(["'epi_"+epi+"'" for epi in other])
+        other_epis={}
+        for epi in other:
+            other_epis[epi]=reports_per_healthfacilities("'epi_"+epi+"'",start_date,end_date,minLat,maxLat,minLon,maxLon)
+
     else:
         xform_keyword="'epi_"+str(kind)+"'"
 
@@ -184,7 +188,15 @@ def epi_kind(request, kind):
         epi['title']=facility['facility_name']
         epi['lat']=facility['latitude']
         epi['lon']=facility['longitude']
-        epi['desc']=facility['type']
+        if kind=='other':
+            desc=""
+            for o in other:
+                for f in other_epis[o]:
+                    desc=desc+" "+o+":"+str(f.get(facility['facility_id'],0))
+            epi['desc']=desc
+
+        else:
+            epi['desc']=str(kind)+":"+str(facility['value'])+"cases";
         epi['heat']=facility['value']/float(epi_facility_reports[0]['value'])
         epi['color']=MAP_LAYERS[kind][2]
         epi_reports.append(epi)

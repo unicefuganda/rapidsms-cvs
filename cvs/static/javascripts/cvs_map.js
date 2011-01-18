@@ -1,6 +1,11 @@
 var colors=[];
 var layers=[];
 var base_url;
+var map;
+var descriptions=[];
+var markers=[];
+var k=[];
+var c;
 
 function ajax_loading(element)
 {
@@ -64,9 +69,9 @@ function Label(point, html, classname, pixelOffset) {
 
 //add graph to point
 function addGraph(url) {
-    if (layers[url]){
-        layers[url]
-    }
+
+
+    
     $.ajax({
             type: "GET",
             url: url,
@@ -82,19 +87,51 @@ function addGraph(url) {
     var maxsize = 0.9;
     var pointpair = [];
     var increment = (parseFloat(height) / 10.0) / 100;
-    var start = new GPoint(parseFloat(value['lat']), parseFloat(value['lon']));
+    var start = new google.maps.LatLng(parseFloat(value['lon']), parseFloat(value['lat']));
     var volume = parseInt((parseFloat(value['heat']) * 100) / maxsize);
 
     pointpair.push(start);
-    //draw the graph as an overlay
-    pointpair.push(new GPoint(parseFloat(value['lat'] + increment), parseFloat(value['lon'] + increment)));
-    var line = new GPolyline(pointpair, value['color'], volume);
-    layers[url]=line;
-    map.addOverlay(line);
+    // Add a Circle overlay to the map.
+        var circle = new google.maps.Circle({
+          center:start,
+          map: map,
+          strokeColor:value['color'],
+          radius:30000*parseFloat(value['heat']), // 3000 km
+          fillColor:value['color'],
+           strokeWeight: 1
+        });
+             if (layers[url])
+             {
+                 layers[url].push(circle);
+             }
+             else{
+                 layers[url]=[];
+                    layers[url].push(circle);
+
+             }
+
+       descriptions[start].push(value['desc']);
+             console.log(start);
+             c=start;
+       circle.bindTo('position', markers[start]);
+       //circle.setMap(map);
+    
             });}
     });
+
 }
 
+function removeGraph(url)
+{
+         for (i=0;i<layers[url].length;i++)
+         {
+
+        layers[url][i].setMap(null);
+         }
+    layers[url]=null;
+
+
+}
 /*
  * add a markers given the  the marker data url
  *
@@ -108,24 +145,32 @@ function addMarkers(url) {
             dataType: "json",
             success: function(data){
          $.each(data, function(key, value){
-             var point = new GPoint(parseFloat(value['lat']),parseFloat(value['lon']));
-                     var mIcon  = new GIcon(G_DEFAULT_ICON, value['icon']);
+             var point = new google.maps.LatLng(parseFloat(value['lon']),parseFloat(value['lat']));
+             if(!descriptions[point])
+             {
+             descriptions[point]=[];
+             descriptions[point].push(value['title']);
 
-                     mIcon.iconSize = new GSize(20,20);
-                     mIcon.shadowSize=new GSize(0,0);
-                     mIcon.iconAnchor = new GPoint(10, 10);
-                     var marker = new GMarker(point,mIcon);
-                     map.addOverlay(marker);
-                     var desc=[];
+             }
 
+             var marker = new google.maps.Marker({
+                   position: point,
+                   map: map,
+                   icon: value['icon'],
+                   title:value['title']
+               });
+             markers[point]=marker;
+             var info_content=String(k);
+             info_window_opts={
+                 content: String(k)
+             };
+             var infowindow = new google.maps.InfoWindow(info_window_opts);
 
+             google.maps.event.addListener(marker, 'click', function() {
+             new google.maps.InfoWindow({content:String(descriptions[point])}).open(map,marker);
+                });
 
-                     var ev=GEvent.addListener(marker, 'click',
-                             function() {
-                                 //convert the disc list to a string and display in window
-                         marker.openInfoWindowHtml('<p class="help">'+value['title']+'</h1>'+'<p>'+String(desc).replace(",","")+'</p>');
-                     });
-             
+             marker.setMap(map);
 
          });
                   }
@@ -141,32 +186,50 @@ function addMarkers(url) {
 //    function to draw simple map
 function init_map() {
 
-    //initialise the map object
-    map = new GMap2(document.getElementById("map"));
-    //add map controls
-    map.addControl(new GLargeMapControl());
-    map.addControl(new GMapTypeControl());
+     //make sure the zoom fits all the points
 
-    //make sure the zoom fits all the points
-    var bounds = new GLatLngBounds;
-    bounds.extend(new GLatLng(parseFloat(minLon), parseFloat(minLat)));
-    bounds.extend(new GLatLng(parseFloat(maxLon), parseFloat(maxLat)));
-    map.setCenter(bounds.getCenter(), map.getBoundsZoomLevel(bounds));
+    var myOptions = {
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map(document.getElementById("map"),
+            myOptions);
+    var bounds = new google.maps.LatLngBounds()
+    bounds.extend(new google.maps.LatLng(parseFloat(minLon), parseFloat(minLat)));
+    bounds.extend(new google.maps.LatLng(parseFloat(maxLon), parseFloat(maxLat)));
+    map.fitBounds(bounds);
 
-    GEvent.addListener(map,'zoomend',function() {
+    //GEvent.addListener(map,'zoomend',function() {
         //load_layers(map_poll_pk)
-    });
+    //});
 
 }
 
-function toggle_select(elem){
-    console.log(elem);
+function toggle_select(elem,url){
     if($(elem).attr("checked"))
     {
-    $(elem).attr('checked', false);
+        if(layers[url])
+        {
+        removeGraph(url);
+        $(elem).attr('checked', false);
+        }
+        else{
+           addGraph(url);
+        }
+
+
             }
         else{
-         $(elem).attr('checked', true);
+        if(layers[url])
+        {
+        removeGraph(url);
+         $(elem).attr('checked', false);
+        }
+        else{
+            addGraph(url);
+             $(elem).attr('checked', true);
+
+        }
+
 
     }
 
@@ -183,7 +246,7 @@ function add_layers(map_layers)
             //console.log(color);
             //var color='#ff0000';
 
-            layerContainer.append('<li><input type="checkbox"  onchange="addGraph(\''+val[1]+'\')"   ></input><a href="javascript:void(0)" onclick="toggle_select($(this).prev()),addGraph(\''+val[1]+'\')" >'+val[0]+'</a><span style="width:15px;height:15px;background-color:'+color+';float:right;margin-top:3px;margin-right:6px;"></span></li>');
+            layerContainer.append('<li><input type="checkbox"  onchange="toggle_select(this,\''+val[1]+'\')"   ></input><a href="javascript:void(0)" onclick="toggle_select($(this).prev(),\''+val[1]+'\')" >'+val[0]+'</a><span style="width:15px;height:15px;background-color:'+color+';float:right;margin-top:3px;margin-right:6px;"></span></li>');
         });
 
 
