@@ -22,6 +22,9 @@
         var map_layers={{map_layers}};
         base_layer="{{base_layer}}";
         var zoom=9;
+        var slider_start_ts;
+        var slider_end_ts;
+        
         $(document).ready(function() {
 
             add_layers(map_layers);
@@ -33,7 +36,7 @@
 {% endblock %}
 
 {% block content %}
-
+<p><b>Date Range:</b><span id="date_slider_value" class="daterange help">From {{ start_date|date:"Y-m-d" }} to {{ end_date|date:"Y-m-d" }}</span>
 <div id="map">
 
 </div>
@@ -41,6 +44,36 @@
     <div id="overlays">
 
     </div>
+
+    <div id="date_slider" style="margin: 10px 5px 20px 5px;"></div>
+    <script language="javascript">
+        $( "#date_slider" ).slider({
+            range: true,
+            min: {{ min_ts }},
+            max: {{ max_ts }},
+            step: 1,
+            values: [{{ start_ts }}, {{ end_ts }}],
+            slide: function(event, ui) {
+                start_date = new Date(ui.values[0]);
+                start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
+                end_date = new Date(ui.values[1]);
+                end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
+              slider_start_ts= ui.values[0];
+           slider_end_ts=ui.values[1];
+                $( "#date_slider_value" ).text( "From " + start_str + " to " + end_str );
+            }
+        });
+        start_date = new Date({{ start_ts }});
+        start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
+        end_date = new Date({{ end_ts }});
+        end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
+
+        slider_start_ts= {{ start_ts }};
+        slider_end_ts= {{ end_ts }};
+        $( "#date_slider_value" ).text( "From " + start_str +
+            " to " + end_str );
+
+    </script>
 
 
 {%  endblock  %}

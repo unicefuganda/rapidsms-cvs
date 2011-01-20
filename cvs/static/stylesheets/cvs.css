@@ -3,6 +3,7 @@ table th  a {
 }
 
 div#map {
+    margin-top:40px;
     width: 700px;
     height: 400px;
     border: 1px solid #1ebfd2;
@@ -10,6 +11,7 @@ div#map {
 }
 
 div#overlays {
+    margin-top:40px;
     width: 200px;
     height: 400px;
     border: 1px solid #1ebfd2;

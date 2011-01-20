@@ -1,11 +1,10 @@
-var colors=[];
+
 var layers=[];
 var base_url;
 var map;
 var descriptions=[];
 var markers=[];
-var k=[];
-var c;
+var k;
 
 function ajax_loading(element)
 {
@@ -79,18 +78,8 @@ function addGraph(url) {
             success: function(data){
          $.each(data, function(key, value){
 
-
-    //get map width and height in lat lon
-    var d = map.getBounds().toSpan();
-    var height = d.lng();
-    var width = d.lat();
-    var maxsize = 0.9;
-    var pointpair = [];
-    var increment = (parseFloat(height) / 10.0) / 100;
     var start = new google.maps.LatLng(parseFloat(value['lon']), parseFloat(value['lat']));
-    var volume = parseInt((parseFloat(value['heat']) * 100) / maxsize);
-
-    pointpair.push(start);
+   
     // Add a Circle overlay to the map.
         var circle = new google.maps.Circle({
           center:start,
@@ -110,11 +99,8 @@ function addGraph(url) {
 
              }
 
-       descriptions[start].push(value['desc']);
-             console.log(start);
-             c=start;
+       descriptions[start].push("<p>"+value['desc']+"</p>");
        circle.bindTo('position', markers[start]);
-       //circle.setMap(map);
     
             });}
     });
@@ -149,9 +135,13 @@ function addMarkers(url) {
              if(!descriptions[point])
              {
              descriptions[point]=[];
-             descriptions[point].push(value['title']);
+             descriptions[point].push("<p class='help'>"+value['title']+"</p>");
 
              }
+
+
+            var mIcon  = new google.maps.MarkerImage(value['icon'],new google.maps.Size(20, 20));
+            mIcon.iconAnchor = new google.maps.LatLng(10, 10);
 
              var marker = new google.maps.Marker({
                    position: point,
@@ -159,15 +149,10 @@ function addMarkers(url) {
                    icon: value['icon'],
                    title:value['title']
                });
+             marker.setIcon(mIcon);
              markers[point]=marker;
-             var info_content=String(k);
-             info_window_opts={
-                 content: String(k)
-             };
-             var infowindow = new google.maps.InfoWindow(info_window_opts);
-
              google.maps.event.addListener(marker, 'click', function() {
-             new google.maps.InfoWindow({content:String(descriptions[point])}).open(map,marker);
+             new google.maps.InfoWindow({content:String(descriptions[point]).replace(/,/gi,'')}).open(map,marker);
                 });
 
              marker.setMap(map);
@@ -198,11 +183,9 @@ function init_map() {
     bounds.extend(new google.maps.LatLng(parseFloat(maxLon), parseFloat(maxLat)));
     map.fitBounds(bounds);
 
-    //GEvent.addListener(map,'zoomend',function() {
-        //load_layers(map_poll_pk)
-    //});
 
 }
+
 
 function toggle_select(elem,url){
     if($(elem).attr("checked"))
