@@ -5,6 +5,7 @@ var map;
 var descriptions=[];
 var markers=[];
 var start;
+points=[];
 
 
 function ajax_loading(element)
@@ -107,7 +108,12 @@ function addGraph(url) {
 
              }
 
-       descriptions[start].push("<p>"+value['desc']+"</p>");
+
+
+
+
+       descriptions[start][url]="<p>"+value['desc']+"</p>";
+
        circle.bindTo('position', markers[start]);
     
             });},
@@ -129,6 +135,12 @@ function removeGraph(url)
          }
     layers[url]=null;
 
+    for (p=0;p<points.length;p++)
+    {
+        descriptions[points[p]][url]='';
+    }
+
+
 
 }
 /*
@@ -145,12 +157,6 @@ function addMarkers(url) {
             success: function(data){
          $.each(data, function(key, value){
              var point = new google.maps.LatLng(parseFloat(value['lon']),parseFloat(value['lat']));
-             if(!descriptions[point])
-             {
-             descriptions[point]=[];
-             descriptions[point].push("<p class='help'>"+value['title']+"</p>");
-
-             }
 
 
             var mIcon  = new google.maps.MarkerImage(value['icon'],new google.maps.Size(20, 20));
@@ -162,10 +168,25 @@ function addMarkers(url) {
                    icon: value['icon'],
                    title:value['title']
                });
+             if(!descriptions[point])
+                         {
+                         descriptions[point]={};
+                         descriptions[point][url]="<p class='help'>"+value['title']+"</p>";
+
+                         }
              marker.setIcon(mIcon);
              markers[point]=marker;
+             points.push(point);
              google.maps.event.addListener(marker, 'click', function() {
-             new google.maps.InfoWindow({content:String(descriptions[point]).replace(/,/gi,'')}).open(map,marker);
+                 var desc="";
+                  $.each(descriptions[point], function(key, value){
+
+                    desc=desc+value;
+                     
+                 });
+             new google.maps.InfoWindow({content:desc
+
+           }).open(map,marker);
                 });
 
              marker.setMap(map);
