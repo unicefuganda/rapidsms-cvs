@@ -4,7 +4,8 @@ var base_url;
 var map;
 var descriptions=[];
 var markers=[];
-var k;
+var start;
+
 
 function ajax_loading(element)
 {
@@ -69,11 +70,17 @@ function Label(point, html, classname, pixelOffset) {
 //add graph to point
 function addGraph(url) {
 
+    maxLon= map.getBounds().getNorthEast().lat();
+    maxLat=map.getBounds().getNorthEast().lng();
+    minLon=map.getBounds().getSouthWest().lat();
+    minLat=map.getBounds().getSouthWest().lng();
+    zoom=map.getZoom();
 
+    var URL=url+ "?maxLat="+ maxLat + "&maxLon=" +maxLon +"&minLat="+ minLat + "&minLon=" + minLon +"&zoom=" + zoom+"&start="+slider_start_ts+"&end="+slider_end_ts;
     
     $.ajax({
             type: "GET",
-            url: url,
+            url: URL,
             dataType: "json",
             success: function(data){
          $.each(data, function(key, value){

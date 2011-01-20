@@ -16,8 +16,12 @@ def get_dates():
     cursor = connection.cursor()
     cursor.execute("select min(created), max(created) from rapidsms_xforms_xformsubmission")
     min_date, end_date = cursor.fetchone()
-    start_date = end_date - datetime.timedelta(days=30)
-    max_date = datetime.datetime.now()
+    start_date = end_date - datetime.timedelta(days=300)
+    start_date=time.mktime(start_date.timetuple()) * 1000
+    end_date=time.mktime(end_date.timetuple()) * 1000
+    max_date =  time.mktime(datetime.datetime.now().timetuple()) * 1000
+    min_date=time.mktime(min_date.timetuple()) * 1000
+
     return (start_date, end_date, min_date, max_date)
 
 def map_index(request):
@@ -27,7 +31,7 @@ def map_index(request):
                                         mark_safe(MAX_LON), mark_safe(MIN_LAT), mark_safe(MAX_LAT))
     start_date, end_date, min_date, max_date = get_dates()
     return render_to_response('cvs/map.html',
-                              dict(start_ts=time.mktime(start_date.timetuple()) * 1000, end_ts=time.mktime(end_date.timetuple()) * 1000,min_ts=time.mktime(min_date.timetuple()) * 1000, max_ts=time.mktime(max_date.timetuple()) * 1000, minLon=minLon, maxLon=maxLon, minLat=minLat
+                              dict(start_ts=start_date, end_ts=end_date,min_ts=min_date, max_ts=max_date, minLon=minLon, maxLon=maxLon, minLat=minLat
                                    , maxLat=maxLat, map_key=map_key, map_layers=map_layers, base_layer=BASELAYER),
                               context_instance=RequestContext(request))
 
@@ -148,8 +152,8 @@ def reports_per_healthfacilities(xform_keyword, start_date, end_date, minLat, ma
 
 
 def epi_kind(request, kind):
-    start_date = request.GET.get('start', get_dates()[0])
-    end_date = request.GET.get('end', get_dates()[1])
+    start_date = datetime.datetime.fromtimestamp(int(request.GET.get('start', get_dates()[0]))//1000)
+    end_date = datetime.datetime.fromtimestamp(int(request.GET.get('end', get_dates()[1]))//1000)
     minLat = request.GET.get('minLat', MIN_LAT)
     maxLat = request.GET.get('maxLat', MAX_LAT)
     minLon = request.GET.get('minLon', MIN_LON)
@@ -219,8 +223,8 @@ def health_facilities(request):
 
 
 def malnutrition(request):
-    start_date = request.GET.get('start', get_dates()[0])
-    end_date = request.GET.get('end', get_dates()[1])
+    start_date = datetime.datetime.fromtimestamp(int(request.GET.get('start', get_dates()[0]))//1000)
+    end_date = datetime.datetime.fromtimestamp(int(request.GET.get('end', get_dates()[1]))//1000)
     minLat = request.GET.get('minLat', MIN_LAT)
     maxLat = request.GET.get('maxLat', MAX_LAT)
     minLon = request.GET.get('minLon', MIN_LON)
@@ -239,8 +243,8 @@ def malnutrition(request):
     return JsonResponse(malnutrition_reports)
 
 def births(request):
-    start_date = request.GET.get('start', get_dates()[0])
-    end_date = request.GET.get('end', get_dates()[1])
+    start_date = datetime.datetime.fromtimestamp(int(request.GET.get('start', get_dates()[0]))//1000)
+    end_date = datetime.datetime.fromtimestamp(int(request.GET.get('end', get_dates()[1]))//1000)
     minLat = request.GET.get('minLat', MIN_LAT)
     maxLat = request.GET.get('maxLat', MAX_LAT)
     minLon = request.GET.get('minLon', MIN_LON)
@@ -259,8 +263,8 @@ def births(request):
     return JsonResponse(birth_reports)
 
 def deaths(request):
-    start_date = request.GET.get('start', get_dates()[0])
-    end_date = request.GET.get('end', get_dates()[1])
+    start_date = datetime.datetime.fromtimestamp(int(request.GET.get('start', get_dates()[0]))//1000)
+    end_date = datetime.datetime.fromtimestamp(int(request.GET.get('end', get_dates()[1]))//1000)
     minLat = request.GET.get('minLat', MIN_LAT)
     maxLat = request.GET.get('maxLat', MAX_LAT)
     minLon = request.GET.get('minLon', MIN_LON)
