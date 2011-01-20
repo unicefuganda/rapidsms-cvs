@@ -32,3 +32,10 @@ div#overlays li a{
   font-weight: bold;
   margin-bottom: 1em;
 }
+
+.ajax_loading{
+    background-image:url("../icons/ajax-loader.gif");
+    background-repeat:no-repeat;
+    background-position: center center;
+
+}

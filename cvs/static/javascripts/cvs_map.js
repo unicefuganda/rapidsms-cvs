@@ -69,6 +69,7 @@ function Label(point, html, classname, pixelOffset) {
 
 //add graph to point
 function addGraph(url) {
+     ajax_loading('#map');
 
     maxLon= map.getBounds().getNorthEast().lat();
     maxLat=map.getBounds().getNorthEast().lng();
@@ -109,7 +110,12 @@ function addGraph(url) {
        descriptions[start].push("<p>"+value['desc']+"</p>");
        circle.bindTo('position', markers[start]);
     
-            });}
+            });},
+        complete:function(status){
+
+          $('.ajax_loading').remove();
+        }
+        
     });
 
 }
