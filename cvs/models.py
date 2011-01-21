@@ -124,10 +124,10 @@ XFormField.register_field_type('cvsodema', 'Oedema Occurrence', parse_oedema,
 XFormField.register_field_type('facility', 'Facility Code', parse_facility,
                                db_type=XFormField.TYPE_OBJECT, xforms_type='string')
 
-def get_or_create_patient(healthcare_provider, patient_name, birthdate=None, deathdate=None, gender=None):
-    return create_patient(healthcare_provider, patient_name, birthdate, deathdate, gender)
+def get_or_create_patient(health_provider, patient_name, birthdate=None, deathdate=None, gender=None):
+    return create_patient(health_provider, patient_name, birthdate, deathdate, gender)
 
-def create_patient(healthcare_provider, patient_name, birthdate, deathdate, gender):
+def create_patient(health_provider, patient_name, birthdate, deathdate, gender):
     names = patient_name.split(' ')
     first_name = names[0]
     last_name = ''
@@ -157,12 +157,25 @@ def create_patient(healthcare_provider, patient_name, birthdate, deathdate, gend
     patient.save()
     healthid.issued_to = patient
     healthid.save()
-    patient.health_worker=healthcare_provider
+    patient.health_worker=health_provider
     patient.save()
     return patient
 
-def check_validity(xform_type, healthcare_provider, patient=None):
+def check_validity(xform_type, health_provider, patient=None):
     return True
+
+def patient_label(patient):
+        gender = 'male' if patient.gender == 'M' else 'female'
+
+        days = patient.age.days
+        if days > 365:
+            age_string = "aged %d" % (days // 365)
+        elif days > 30:
+            age_string = "(%d months old)" % (days // 30)
+        else:
+            age_string = "(infant)"
+
+        return "%s, %s %s" % (patient.full_name(), gender, age_string)
 
 def xform_received_handler(sender, **kwargs):
     xform = kwargs['xform']
@@ -182,7 +195,7 @@ def xform_received_handler(sender, **kwargs):
         hp.name = submission.eav.reg_name
         hp.save()
         return
-    import pdb;pdb.set_trace()
+
     try:
         health_provider = submission.connection.contact.healthproviderbase.healthprovider
     except HealthProviderBase.DoesNotExist:
@@ -203,32 +216,50 @@ def xform_received_handler(sender, **kwargs):
         days = submission.eav.muac_age
         birthdate = datetime.date.today() - datetime.timedelta(days=days)
         patient = get_or_create_patient(health_provider, submission.eav.muac_name, birthdate=birthdate, gender=submission.eav.muac_gender)
-        valid = check_validity(xform.keyword, healthcare_provider, patient)                
+        valid = check_validity(xform.keyword, health_provider, patient)
         report = PatientEncounter.objects.create(
                 submission=submission,
                 reporter=health_provider,
                 patient=patient,
                 message=message,
                 valid=valid)
+        muac_label = "Severe Acute Malnutrition" if (submission.eav.muac_category == 'R') else "Risk of Malnutrition"
+        submission.response = "%s has been identified with %s" % (patient_label(patient), muac_label)
+        submission.save()
+        return
     elif xform.keyword == 'birth':
         patient = create_patient(health_provider, submission.eav.birth_name, birthdate=datetime.datetime.now(), gender=submission.eav.birth_gender)
-        valid = check_validity(xform.keyword, healthcare_provider, patient)
+        valid = check_validity(xform.keyword, health_provider, patient)
         report = PatientEncounter.objects.create(
                 submission=submission,
                 reporter=submission.connection.contact.healthproviderbase.healthprovider,
                 patient=patient,
                 message=message,
-                valid=valid)                
+                valid=valid)
+        birth_location = "a facility" if submission.eav.birth_place == 'FACILITY' else 'home'
+        submission.response = "Thank you for registering the birth of %s. We have recorded that the birth took place at %s." % (patient_label(patient), birth_location)
+        submission.save()
+        return
     elif xform.keyword == 'death':
         days = submission.eav.death_age
         birthdate = datetime.date.today() - datetime.timedelta(days=days)
         patient = get_or_create_patient(health_provider, submission.eav.death_name, birthdate=birthdate, gender=submission.eav.death_gender, deathdate=datetime.date.today())
-        valid = check_validity(xform.keyword, healthcare_provider, patient)                
+        valid = check_validity(xform.keyword, health_provider, patient)
         report = PatientEncounter.objects.create(
                 submission=submission,
                 reporter=health_provider,
                 patient=patient,
                 message=message,
                 valid=valid)
-
+        submission.response = "We have recorded the death of %s." % patient_label(patient)
+        submission.save()
+        return
+    elif xform.keyword == 'epi':
+        submission.response = "Thank you for your epidemiological report."
+        submission.save()
+        return
+    elif xform.keyword == 'home':
+        submission.response = "Thank you for your home visitation report."
+        submission.save()
+        return
 xform_received.connect(xform_received_handler, weak=True)
