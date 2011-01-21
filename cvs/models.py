@@ -2,8 +2,11 @@ from rapidsms_xforms.models import XFormField, dl_distance, xform_received
 import re
 import datetime
 from healthmodels.models import *
+from healthmodels.models.HealthProvider import HealthProviderBase
 from simple_locations.models import Point, Area, AreaType
+from django.core.exceptions import ValidationError
 from code_generator.code_generator import get_code_from_model, generate_tracking_tag, generate_code
+from django.contrib.auth.models import Group
 
 def parse_timedelta(command, value):
     lvalue = value.lower().strip()
@@ -13,7 +16,7 @@ def parse_timedelta(command, value):
     except ValueError:
         try:
             return (now -  datetime.datetime.strptime(lvalue, '%m/%d/%Y')).days
-        except ValueError:            
+        except ValueError:   
             rx = re.compile('[0-9]*')
             m = rx.match(lvalue)
             number = lvalue[m.start():m.end()].strip()
@@ -28,8 +31,8 @@ def parse_timedelta(command, value):
                 }
                 for words, days in unit_dict.iteritems():
                     for word in words:
-                        if dl_distance(word, value) <= 1:
-                            return days    
+                        if dl_distance(word, unit) <= 1:
+                            return days*number    
             
     raise ValidationError("Expected an age got: %s." % value)
     #do something to parse a time delta
@@ -63,12 +66,11 @@ def parse_gender(command, value):
                     "but received instead: %s." % value)
 
 def parse_muacreading(command, value):
-    print "paring muacreading"
     lvalue = value.lower().strip()
     rx = re.compile('[0-9]*')
     m = rx.match(lvalue)
     reading = lvalue[m.start():m.end()]
-    remaining = lvalue[m.end():].strip() 
+    remaining = lvalue[m.end():].strip()
     try:
         reading = int(reading)
         if remaining == 'mm':
@@ -84,8 +86,12 @@ def parse_muacreading(command, value):
             return 'Y'
     except ValueError:
         for category, word in (('R', 'red'), ('Y','yellow'), ('G','green')):
-            if (remaining == category.lower()) or (dl_distance(lvalue, word) <= 1):
+            if (lvalue == category.lower()) or (dl_distance(lvalue, word) <= 1):
                 return category
+    raise ValidationError("Expected a muac reading "
+                "(\"green\", \"red\", \"yellow\" or a number), "
+                "but received instead: %s." % value)
+    
 
 def parse_oedema(command, value):
     lvalue = value.lower().strip()
@@ -93,6 +99,12 @@ def parse_oedema(command, value):
         return 'T'
     else:
         return 'F'
+    
+def parse_facility(command, value):
+    try:
+        return HealthFacility.objects.get(code=value)
+    except:
+        raise ValidationError("Expected an HMIS facility code (got: %s)." % value)       
 
 XFormField.register_field_type('cvssex', 'Gender', parse_gender,
                                db_type=XFormField.TYPE_TEXT, xforms_type='string')
@@ -109,11 +121,14 @@ XFormField.register_field_type('cvsmuacr', 'Muac Reading', parse_muacreading,
 XFormField.register_field_type('cvsodema', 'Oedema Occurrence', parse_oedema,
                                db_type=XFormField.TYPE_TEXT, xforms_type='string')
 
+XFormField.register_field_type('facility', 'Facility Code', parse_facility,
+                               db_type=XFormField.TYPE_OBJECT, xforms_type='string')
+
 def get_or_create_patient(healthcare_provider, patient_name, birthdate=None, deathdate=None, gender=None):
     return create_patient(healthcare_provider, patient_name, birthdate, deathdate, gender)
 
 def create_patient(healthcare_provider, patient_name, birthdate, deathdate, gender):
-    names = submission.eav.birth_name.split(' ')
+    names = patient_name.split(' ')
     first_name = names[0]
     last_name = ''
     middle_name = ''
@@ -159,8 +174,31 @@ def xform_received_handler(sender, **kwargs):
     message = kwargs['message']
     if not message:
         return
-
-    health_provider = submission.connection.contact.healthproviderbase.healthprovider
+    if xform.keyword == 'reg':
+        if submission.connection.contact:
+            hp = HealthProvider.objects.create(pk=submission.connection.contact.pk)
+        else:
+            hp = HealthProvider.objects.create()
+        hp.name = submission.eav.reg_name
+        hp.save()
+        return
+    import pdb;pdb.set_trace()
+    try:
+        health_provider = submission.connection.contact.healthproviderbase.healthprovider
+    except HealthProviderBase.DoesNotExist:
+        submission.response = "Must be a reporter. Please register first with your name."
+        submission.save()
+        return
+    if xform.keyword == 'pvht':
+        health_provider.groups.add(Group.objects.get(name='Peer Village Health Team'))
+        health_provider.facility = submission.eav.pvht_facility
+        health_provider.save()        
+        return
+    if xform.keyword == 'vht':
+        health_provider.groups.add(Group.objects.get(name='Village Health Team'))
+        health_provider.facility = submission.eav.vht_facility
+        health_provider.save()
+        return
     if xform.keyword == 'muac':
         days = submission.eav.muac_age
         birthdate = datetime.date.today() - datetime.timedelta(days=days)
