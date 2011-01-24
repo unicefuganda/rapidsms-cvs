@@ -7,7 +7,7 @@ MAP_LAYERS = SortedDict([
     #('health_facilities', ['Health Facilities', '/cvs/map/health_facilities','#4572A7']),
     ('deaths', ['Deaths','/cvs/map/deaths/', '#AA4643']),
     ('births', ['Births','/cvs/map/births/', '#89A54E']),
-    ('malnutrition', ['Malnutrition','/malnutrition', '#80699B']),
+    ('malnutrition', ['Malnutrition','/cvs/map/malnutrition/', '#80699B']),
     ('ma', ['Malaria','/cvs/map/epi/ma/', '#3D96AE']),
     ('bd', ['Bloody  Diarrhoea','/cvs/map/epi/bd/', '#DB843D']),
     ('tb', ['TuberClosis','/cvs/map/epi/tb/', '#92A8CD']),
@@ -24,4 +24,4 @@ MAX_LON = '3.88875'
 MAP_KEY = \
     'ABQIAAAAYimH_excdTjwGjM6LcP-DhTX43PO8-sEH-jeG6rM560fvsomnhQ4fvBin-y4dRWztAXXs1ap0AwfdQ'
 
-BASELAYER="/cvs/map/health_facilities"
+BASELAYER="/cvs/map/health_facilities/"
