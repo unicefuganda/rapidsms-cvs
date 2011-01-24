@@ -240,7 +240,7 @@ def xform_received_handler(sender, **kwargs):
         return
     if xform.keyword == 'muac':
         days = submission.eav.muac_age
-        birthdate = datetime.date.today() - datetime.timedelta(days=days)
+        birthdate = datetime.datetime.now() - datetime.timedelta(days=days)
         patient = get_or_create_patient(health_provider, submission.eav.muac_name, birthdate=birthdate, gender=submission.eav.muac_gender)
         valid = check_validity(xform.keyword, health_provider, patient)
         report = PatientEncounter.objects.create(
@@ -254,7 +254,7 @@ def xform_received_handler(sender, **kwargs):
         submission.save()
         return
     elif xform.keyword == 'birth':
-        patient = create_patient(health_provider, submission.eav.birth_name, birthdate=datetime.datetime.now(), gender=submission.eav.birth_gender)
+        patient = get_or_create_patient(health_provider, submission.eav.birth_name, birthdate=datetime.datetime.now(), gender=submission.eav.birth_gender)
         valid = check_validity(xform.keyword, health_provider, patient)
         report = PatientEncounter.objects.create(
                 submission=submission,
@@ -268,8 +268,8 @@ def xform_received_handler(sender, **kwargs):
         return
     elif xform.keyword == 'death':
         days = submission.eav.death_age
-        birthdate = datetime.date.today() - datetime.timedelta(days=days)
-        patient = get_or_create_patient(health_provider, submission.eav.death_name, birthdate=birthdate, gender=submission.eav.death_gender, deathdate=datetime.date.today())
+        birthdate = datetime.datetime.now() - datetime.timedelta(days=days)
+        patient = get_or_create_patient(health_provider, submission.eav.death_name, birthdate=birthdate, gender=submission.eav.death_gender, deathdate=datetime.datetime.now())
         valid = check_validity(xform.keyword, health_provider, patient)
         report = PatientEncounter.objects.create(
                 submission=submission,
