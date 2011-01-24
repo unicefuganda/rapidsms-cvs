@@ -3,6 +3,9 @@ from django.db.models import Q
 from django.db import connection
 from django.utils.datastructures import SortedDict
 from cvs.forms import DateRangeForm
+from django.contrib.auth.models import Group
+from healthmodels.models.HealthProvider import HealthProvider
+from math import floor
 import datetime
 import time
 
@@ -357,4 +360,14 @@ def get_dates(request):
             end_date=request.session['end_date']
             
     return {'start':start_date, 'end':end_date, 'min':min_date, 'form':form}
+
+def get_expected_epi(location, request):
+    dates = get_dates(request)
+    health_providers = HealthProvider.objects.filter(location__in=location.get_descendants(),
+                                                     groups=Group.objects.get(name='Village Health Team')).count()
+
+    datediff = dates['end'] - dates['start']
+    weeks = floor((datediff.days / 7))
+    return health_providers * weeks
+    
    
