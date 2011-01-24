@@ -1,21 +1,21 @@
 {% for key, value in report.items %}
 <tr>
 <td><a href="{% if location_id %}../{% endif %}{{ value.location_id }}/">{{ key }}</a></td>
-<td>{{ value.total }}</td>
-<td>{{ value.bd }}</td>
-<td>{{ value.ma }}</td>
-<td>{{ value.tb }}</td>
-<td>{{ value.ab }}</td>
-<td>{{ value.af }}</td>
-<td>{{ value.mg }}</td>
-<td>{{ value.me }}</td>
-<td>{{ value.ch }}</td>
-<td>{{ value.gw }}</td>
-<td>{{ value.nt }}</td>
-<td>{{ value.yf }}</td>
-<td>{{ value.pl }}</td>
-<td>{{ value.ra }}</td>
-<td>{{ value.vf }}</td>
-<td>{{ value.ei }}</td>
+<td>{% if value.total %} {{ value.total }} {% else %} 0 {% endif %}</td>
+<td>{% if value.bd %} {{ value.bd }} {% else %} 0 {% endif %}</td>
+<td>{% if value.ma %} {{ value.ma }} {% else %} 0 {% endif %}</td>
+<td>{% if value.tb %} {{ value.tb }} {% else %} 0 {% endif %}</td>
+<td>{% if value.ab %} {{ value.ab }} {% else %} 0 {% endif %}</td>
+<td>{% if value.af %} {{ value.af }} {% else %} 0 {% endif %}</td>
+<td>{% if value.mg %} {{ value.mg }} {% else %} 0 {% endif %}</td>
+<td>{% if value.me %} {{ value.me }} {% else %} 0 {% endif %}</td>
+<td>{% if value.ch %} {{ value.ch }} {% else %} 0 {% endif %}</td>
+<td>{% if value.gw %} {{ value.gw }} {% else %} 0 {% endif %}</td>
+<td>{% if value.nt %} {{ value.nt }} {% else %} 0 {% endif %}</td>
+<td>{% if value.yf %} {{ value.yf }} {% else %} 0 {% endif %}</td>
+<td>{% if value.pl %} {{ value.pl }} {% else %} 0 {% endif %}</td>
+<td>{% if value.ra %} {{ value.ra }} {% else %} 0 {% endif %}</td>
+<td>{% if value.vf %} {{ value.vf }} {% else %} 0 {% endif %}</td>
+<td>{% if value.ei %} {{ value.ei }} {% else %} 0 {% endif %}</td>
 </tr>
 {% endfor %}
