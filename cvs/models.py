@@ -178,6 +178,32 @@ def patient_label(patient):
         return "%s, %s %s" % (patient.full_name(), gender, age_string)
 
 def xform_received_handler(sender, **kwargs):
+    
+    disease_dict = {
+        'bd':'Bloody diarrhea (Dysentery)',
+        'ma':'Malaria',
+        'tb':'Tuberculosis',
+        'ab':'Animal Bites',
+        'af':'Acute Flaccid Paralysis (Polio)',
+        'mg':'Meningitis',
+        'me':'Measles',
+        'ch':'Cholera',
+        'gw':'Guinea Worm',
+        'nt':'Neonatal Tetanus',
+        'yf':'Yellow Fever',
+        'pl':'Plague',
+        'ra':'Rabies',   
+        'vf':'Other Viral Hemorrhagic Fevers',
+        'ei':'Other Emerging Infectious Diseases',
+    }
+
+    home_dict = {
+        'it':'ITTNs/LLINs',
+        'la':'Latrines',
+        'ha':'Handwashing Facilities',
+        'wa':'Safe Drinking Water',            
+    }
+
     xform = kwargs['xform']
     submission = kwargs['submission']
 
@@ -255,11 +281,21 @@ def xform_received_handler(sender, **kwargs):
         submission.save()
         return
     elif xform.keyword == 'epi':
-        submission.response = "Thank you for your epidemiological report."
+        value_list = []
+        for v in submission.eav.get_values():
+            value_list.append("%s %d" % (disease_dict[v.attribute.name], v.value_int))
+        value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
+        submission.response = "You reported %s" % ','.join(value_list)
         submission.save()
         return
     elif xform.keyword == 'home':
-        submission.response = "Thank you for your home visitation report."
+        value_list = []
+        for v in submission.eav.get_values():
+            if v.attribute.name in home_dict:
+                value_list.append("%s %d" % (home_dict[v.attribute.name], v.value_int))
+        value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
+        submission.response = "You reported %s" % ','.join(value_list)
         submission.save()
         return
+
 xform_received.connect(xform_received_handler, weak=True)
