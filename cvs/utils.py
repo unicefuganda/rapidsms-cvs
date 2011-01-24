@@ -7,7 +7,7 @@ import datetime
 import datetime
 import time
 
-def init_xforms(self):
+def init_xforms():
     DISEASE_CHOICES = [
         ('bd','int','Bloody diarrhea (Dysentery)'),
         ('ma','int','Malaria'),
@@ -81,7 +81,7 @@ def init_xforms(self):
 
     user = User.objects.get(username='admin')
     xform_dict = {}
-    for tuple in self.XFORMS:
+    for tuple in XFORMS:
         xform, created = XForm.objects.get_or_create(
             keyword=tuple[0],
             defaults={
@@ -98,7 +98,7 @@ def init_xforms(self):
         )
         xform_dict[tuple[0]] = xform
 
-    for form_key, attributes in self.XFORM_FIELDS.items():
+    for form_key, attributes in XFORM_FIELDS.items():
         order = 0
         form = xform_dict[form_key]
         for attribute in attributes:
