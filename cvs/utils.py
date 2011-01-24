@@ -15,6 +15,7 @@ GROUP_BY_YEAR = 4
 GROUP_BY_LOCATION = 8
 GROUP_BY_DAY = 16
 GROUP_BY_QUARTER = 32
+GROUP_BY_FACILITY = 64
 
 months={
     1: 'Jan',
@@ -43,8 +44,9 @@ def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), att
         
     """
     request=kwargs.get('request',None)
+
     if group_by is not None:
-        return report_raw(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility,request=request)
+        return report_raw(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility,**kwargs)
     if attribute_keyword is None:
         submissions = XFormSubmission.objects.filter(xform__keyword=xform_keyword)
         if start_date is not None:
@@ -71,6 +73,7 @@ def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), att
         return values.aggregate(Sum('value_int'))['value_int__sum']
 
 def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None,**kwargs):
+
     cursor = connection.cursor()
     list_toret = []
     countx = None
@@ -97,6 +100,7 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
         if group_by & GROUP_BY_YEAR:
             rowdict.update({'year':row[rowoff]})
             rowoff += 1
+
         if group_by & GROUP_BY_WEEK:
             rowdict.update({'week':row[rowoff]})
             rowoff += 1            
@@ -114,10 +118,17 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
             rowoff += 1
             rowdict.update({'location_id':row[rowoff]})
             rowoff += 1
+        if group_by & GROUP_BY_FACILITY:
+            rowdict.update({'facility_name':row[1]})
+            rowdict.update({'facility_id':row[2]})
+            rowdict.update({'type':row[3]})
+            rowdict.update({'latitude':row[4]})
+            rowdict.update({'longitude':row[5]})
         list_toret.append(rowdict)
     return list_toret
 
 def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None,**kwargs):
+
     """
         report_raw returns a list of dictionaries, each with keys based on the GROUP_BY_xxxx flags used.
         all dictionaries will at least contain a "value" key, which is the count() of reports or the sum() of a particular
@@ -200,6 +211,28 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
            select_clauses.append(('extract(quarter from submissions.created)', 'quarter'))
            groupby_columns.append('quarter')
            orderby_columns.append('quarter')
+    if group_by & GROUP_BY_FACILITY:
+        select_clauses.append(('facility.name', 'fname',))
+        select_clauses.append(('providers.facility_id', 'fid',))
+        select_clauses.append(('type.name', 'tname',))
+        select_clauses.append(('location.latitude', 'latitude',))
+        select_clauses.append(('location.longitude', 'longitude',))
+        groupby_columns.append('fname')
+        groupby_columns.append('tname')
+        groupby_columns.append('fid')
+        groupby_columns.append('latitude')
+        groupby_columns.append('longitude')
+        orderby_columns.append('value DESC')
+        where_clauses.append('location.latitude >=%s'% kwargs.get('minLat'))
+        where_clauses.append('location.latitude <=%s'% kwargs.get('maxLat'))
+        where_clauses.append('location.longitude >=%s'%kwargs.get('minLon'))
+        where_clauses.append('location.longitude <=%s'%kwargs.get('maxLon'))
+        joins.append('rapidsms_connection connections on submissions.connection_id = connections.id')
+        joins.append('healthmodels_healthproviderbase providers on connections.contact_id = providers.contact_ptr_id')
+        joins.append('healthmodels_healthfacilitybase facility on providers.facility_id = facility.id')
+        joins.append(' healthmodels_healthfacilitytypebase type on type.id = facility.type_id')
+        joins.append(' simple_locations_point location on facility.location_id = location.id')
+
 
 
     if group_by & GROUP_BY_LOCATION:
@@ -226,11 +259,10 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
     if len(groupby_columns):
         sql += " group by " + ' , '.join(groupby_columns)
     if len(orderby_columns):
-        sql += " order by " + ' , '.join(orderby_columns)  
+        sql += " order by " + ' , '.join(orderby_columns)
     return sql
 
 def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None,**kwargs):
-    
     groupby_columns = []
     orderby_columns = []
     if attribute_keyword is not None:
