@@ -1,12 +1,12 @@
 {% for key, value in report.items %}
 <tr>
 <td><a href="{% if location_id %}../{% endif %}{{ value.location_id }}/">{{ key }}</a></td>
-<td>{{ value.total }}</td>
-<td>{{ value.boys }}</td>
-<td>{{ value.girls }}</td>
-<td>{{ value.at_home }}</td>
-<td>{{ value.at_clinic }}</td>
-<td>{{ value.at_facility }}</td>
-<td>{{ value.percentage_at_home }}</td>
+<td>{% if value.total %} {{ value.total }} {% else %} 0 {% endif %}</td>
+<td>{% if value.boys %} {{ value.boys }} {% else %} 0 {% endif %}</td>
+<td>{% if value.girls %} {{ value.girls }} {% else %} 0 {% endif %}</td>
+<td>{% if value.at_home %} {{ value.at_home }} {% else %} 0 {% endif %}</td>
+<td>{% if value.at_clinic %} {{ value.at_clinic }} {% else %} 0 {% endif %}</td>
+<td>{% if value.at_facility %} {{ value.at_facility }} {% else %} 0 {% endif %}</td>
+<td>{% if value.percentage_at_home %} {{ value.percentage_at_home }} {% else %} 0 {% endif %}</td>
 </tr>
 {% endfor %}

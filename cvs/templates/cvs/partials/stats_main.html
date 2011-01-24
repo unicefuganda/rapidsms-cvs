@@ -1,13 +1,13 @@
 {% for key, value in report.items %}
 <tr>
 <td><a href="{% if location_id %}../{% endif %}{{ value.location_id }}/">{{ key }}</a></td>
-<td>{{ value.muac }}</td>
-<td>{{ value.ma }}</td>
-<td>{{ value.tb }}</td>
-<td>{{ value.bd }}</td>
-<td>{{ value.birth }}</td>
-<td>{{ value.death }}</td>
-<td>{{ value.wa }}</td>
-<td>{{ value.to }}</td>
+<td>{% if value.muac %} {{ value.muac }} {% else %} 0 {% endif %}</td>
+<td>{% if value.ma %} {{ value.ma }} {% else %} 0 {% endif %}</td>
+<td>{% if value.tb %} {{ value.tb }} {% else %} 0 {% endif %}</td>
+<td>{% if value.bd %} {{ value.bd }} {% else %} 0 {% endif %}</td>
+<td>{% if value.birth %} {{ value.birth }} {% else %} 0 {% endif %}</td>
+<td>{% if value.death %} {{ value.death }} {% else %} 0 {% endif %}</td>
+<td>{% if value.wa %} {{ value.wa }} {% else %} 0 {% endif %}</td>
+<td>{% if value.to %} {{ value.to }} {% else %} 0 {% endif %}</td>
 </tr>
 {% endfor %}
