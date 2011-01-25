@@ -177,7 +177,7 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         where_clauses = ["xforms.keyword = '%s'" % xform_keyword] 
         joins = ['rapidsms_xforms_xform xforms on submissions.xform_id = xforms.id']
     if location is not None:
-        if kwargs['request'] and kwargs['request'].GET.get('root',None):
+        if kwargs.get('request',None) and kwargs['request'].GET.get('root',None):
              group_by = group_by | GROUP_BY_LOCATION
              where_clauses.append("locations.id in (%s)" % location.id)
         else:
