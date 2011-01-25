@@ -2,8 +2,11 @@ from cvs.forms import DateRangeForm
 from django.db import connection
 from django.db.models import Q, Sum
 from django.utils.datastructures import SortedDict
+from cvs.forms import DateRangeForm
+from django.contrib.auth.models import Group
+from healthmodels.models.HealthProvider import HealthProvider
+from math import floor
 from rapidsms_xforms.models import *
-import datetime
 import datetime
 import time
 
@@ -285,7 +288,7 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         where_clauses = ["xforms.keyword = '%s'" % xform_keyword] 
         joins = ['rapidsms_xforms_xform xforms on submissions.xform_id = xforms.id']
     if location is not None:
-        if kwargs['request'] and kwargs['request'].GET.get('root',None):
+        if kwargs.get('request',None) and kwargs['request'].GET.get('root',None):
              group_by = group_by | GROUP_BY_LOCATION
              where_clauses.append("locations.id in (%s)" % location.id)
         else:
@@ -497,4 +500,14 @@ def get_dates(request):
             end_date=request.session['end_date']
             
     return {'start':start_date, 'end':end_date, 'min':min_date, 'form':form}
+
+def get_expected_epi(location, request):
+    dates = get_dates(request)
+    health_providers = HealthProvider.objects.filter(location__in=location.get_descendants(),
+                                                     groups=Group.objects.get(name='Village Health Team')).count()
+
+    datediff = dates['end'] - dates['start']
+    weeks = floor((datediff.days / 7))
+    return health_providers * weeks
+    
    

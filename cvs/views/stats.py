@@ -7,7 +7,7 @@ from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
-from cvs.utils import report, reorganize_location, reorganize_timespan, get_dates, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER
+from cvs.utils import report, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER
 from cvs.forms import DateRangeForm
 import datetime
 import time
@@ -40,8 +40,26 @@ def index(request, location_id=None):
     bd = report('epi', attribute_keyword='bd', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     birth = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     death = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    to = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    wa = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+    percentage_safe_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+    home_total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+    percentage_epi = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+    expected_epi = get_expected_epi(location,request)
+
+    x = 0
+    while x < len(percentage_safe_water):
+        home_divide = float(percentage_safe_water[x]['value'])
+        total_value = float(home_total[x]['value'])
+        home_divide /= total_value
+        percentage_safe_water[x]['value'] = round(home_divide*100,1)
+        x +=1
+
+    y = 0
+    while y < len(percentage_epi):
+        epi_divide = float(percentage_epi[y]['value'])
+        epi_divide /= expected_epi
+        percentage_epi[y]['value'] = round(epi_divide*100,1)
+        y +=1
+
     report_dict = SortedDict()
     reorganize_location('muac', muac, report_dict)
     reorganize_location('ma', ma, report_dict)
@@ -49,8 +67,8 @@ def index(request, location_id=None):
     reorganize_location('bd', bd, report_dict)
     reorganize_location('birth', birth, report_dict)
     reorganize_location('death', death, report_dict)
-    reorganize_location('to', to, report_dict)
-    reorganize_location('wa', wa, report_dict)
+    reorganize_location('percentage_epi', percentage_epi, report_dict)
+    reorganize_location('percentage_safe_water', percentage_safe_water, report_dict)
     # label, link, colspan
     topColumns = (('','',1),
                   ('Malnutrition', '/cvs/muac/', 1),
