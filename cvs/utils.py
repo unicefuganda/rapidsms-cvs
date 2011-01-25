@@ -1,13 +1,124 @@
-from django.db.models import Sum
-from django.db.models import Q
+from cvs.forms import DateRangeForm
 from django.db import connection
+from django.db.models import Q, Sum
 from django.utils.datastructures import SortedDict
 from cvs.forms import DateRangeForm
+from django.contrib.auth.models import Group
+from healthmodels.models.HealthProvider import HealthProvider
+from math import floor
+from rapidsms_xforms.models import *
 import datetime
 import time
 
-from rapidsms_xforms.models import *
-import datetime
+def init_xforms():
+    DISEASE_CHOICES = [
+        ('bd','int','Bloody diarrhea (Dysentery)'),
+        ('ma','int','Malaria'),
+        ('tb','int','Tuberculosis'),
+        ('ab','int','Animal Bites'),
+        ('af','int','Acute Flaccid Paralysis (Polio)'),
+        ('mg','int','Meningitis'),
+        ('me','int','Measles'),
+        ('ch','int','Cholera'),
+        ('gw','int','Guinea Worm'),
+        ('nt','int','Neonatal Tetanus'),
+        ('yf','int','Yellow Fever'),
+        ('pl','int','Plague'),
+        ('ra','int','Rabies'),
+        ('vf','int','Other Viral Hemorrhagic Fevers'),
+        ('ei','int','Other Emerging Infectious Diseases'),
+    ]
+
+    HOME_ATTRIBUTES = [
+       ('to','int','Total Homesteads Visited'),
+       ('it','int','ITTNs/LLINs'),
+       ('la','int','Latrines'),
+       ('ha','int','Handwashing Facilities'),
+       ('wa','int','Safe Drinking Water'),
+    ]
+
+    XFORMS = (
+        ('epi','Epi Report','Weekly-submitted VHT epidemiological reports'),
+        ('home','Home Report','Monthly-submitted PVHT home visitation reports'),
+        ('muac','Malnu Report','VHT report of child malnutrition'),
+        ('birth','Birth Report','VHT report of a birth'),
+        ('death','Death Report','VHT report of a death'),
+        ('itp','Inpatient Treatment Report','Health Center report of an inpatient treatment',),
+        ('otp','Outpatient Treatment Report','Health Center report of an outpatient treatment',),
+        ('cure','Cure Treatment Report','Health Center report of patient cure',),
+        ('reg','Registration','Registers a reporter with their name',),
+        ('pvht','PVHT Signup','Registers a PVHT with their facility',),
+        ('vht','VHT Signup','Registers a VHT with their facility',),
+    )
+
+    XFORM_FIELDS = {
+        'muac':[
+             ('name', 'text', 'The name of the malnourished patient'),
+             ('gender', 'cvssex','The gender of the malnourished patient'),
+             ('age', 'cvstdelt', 'The age of the malnurished patient'),
+             ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition'),
+             ('oedema','cvsodema', 'Occurence of oedema (T/F)')
+         ],
+        'birth':[
+             ('name', 'text', 'The name of the child born'),
+             ('gender', 'cvssex', 'The gender of the child born'),
+             ('place','cvsloc', 'At home or at a health facility'),
+         ],
+         'death':[
+             ('name','text','The name of the person who has died'),
+             ('gender', 'cvssex', 'The gender of the person who has died'),
+             ('age', 'cvstdelt', 'The age of the person who has died'),
+         ],
+        'epi':DISEASE_CHOICES,
+        'home':HOME_ATTRIBUTES,
+        'reg':[
+             ('name','text','The name of the reporter registering'),
+        ],
+        'vht':[
+             ('facility','facility','The facility of the vht signing up'),
+        ],
+        'pvht':[
+             ('facility','facility','The facility of the pvht signing up'),
+        ],
+    }
+
+    user = User.objects.get(username='admin')
+    xform_dict = {}
+    for tuple in XFORMS:
+        xform, created = XForm.objects.get_or_create(
+            keyword=tuple[0],
+            defaults={
+                'name':tuple[1],
+                'description':tuple[2],
+                'response':'',
+                'active':True,
+                'owner':user,
+                'site':Site.objects.get_current(),
+                'separator':',',
+                'command_prefix':'',
+                'keyword_prefix':'+',
+            }
+        )
+        xform_dict[tuple[0]] = xform
+
+    for form_key, attributes in XFORM_FIELDS.items():
+        order = 0
+        form = xform_dict[form_key]
+        for attribute in attributes:
+            xformfield, created = XFormField.objects.get_or_create(
+                command = attribute[0],
+                xform=form,
+                defaults={
+                    'order':order,
+                    'field_type':attribute[1],
+                    'type':attribute[1],
+                    'name':attribute[0],
+                    'description':attribute[2],
+                }
+            )
+            order = order + 1
+    return xform_dict
+
 
 GROUP_BY_WEEK = 1
 GROUP_BY_MONTH = 2
@@ -389,4 +500,14 @@ def get_dates(request):
             end_date=request.session['end_date']
             
     return {'start':start_date, 'end':end_date, 'min':min_date, 'form':form}
+
+def get_expected_epi(location, request):
+    dates = get_dates(request)
+    health_providers = HealthProvider.objects.filter(location__in=location.get_descendants(),
+                                                     groups=Group.objects.get(name='Village Health Team')).count()
+
+    datediff = dates['end'] - dates['start']
+    weeks = floor((datediff.days / 7))
+    return health_providers * weeks
+    
    
