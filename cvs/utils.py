@@ -57,7 +57,7 @@ def init_xforms():
              ('gender', 'cvssex','The gender of the malnourished patient'),
              ('age', 'cvstdelt', 'The age of the malnurished patient'),
              ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition'),
-             ('oedema','cvsodema', 'Occurence of oedema (T/F)')
+             ('ignored','cvsodema', 'Occurence of oedema (T/F)')
          ],
         'birth':[
              ('name', 'text', 'The name of the child born'),

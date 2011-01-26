@@ -23,16 +23,24 @@ def parse_timedelta(command, value):
             unit = lvalue[m.end():].strip()
             if number:
                 number = int(number)
-                unit_dict = {
-                    ('day','days','dys','ds','d'):1,
-                    ('week', 'wk','wks','weeks','w'):7,
-                    ('month', 'mo','months','mnths','mos','ms','mns','mnth','m'):30,
-                    ('year', 'yr','yrs','y'):365,
+                unit_amounts = {
+                    'd':1,
+                    'w':7,
+                    'm':30,
+                    'y':365,
                 }
-                for words, days in unit_dict.iteritems():
+                unit_dict = {
+                    'd':('day','days','dys','ds'),
+                    'w':('wk','wks','weeks'),
+                    'm':('mo','months','mnths','mos','ms','mns','mnth'),
+                    'y':('year','yr','yrs'),
+                }
+                for key, words in unit_dict.iteritems():
+                    if unit == key:
+                        return number*unit_amounts[key]
                     for word in words:
                         if dl_distance(word, unit) <= 1:
-                            return days*number    
+                            return number*unit_amounts[key]
             
     raise ValidationError("Expected an age got: %s." % value)
     #do something to parse a time delta
@@ -240,6 +248,9 @@ def xform_received_handler(sender, **kwargs):
         return
     if xform.keyword == 'muac':
         days = submission.eav.muac_age
+        if not (submission.eav.muac_ignored == 'T'):
+            submission.eav.muac_ignored = 'F'
+            submission.save()
         birthdate = datetime.datetime.now() - datetime.timedelta(days=days)
         patient = get_or_create_patient(health_provider, submission.eav.muac_name, birthdate=birthdate, gender=submission.eav.muac_gender)
         valid = check_validity(xform.keyword, health_provider, patient)
