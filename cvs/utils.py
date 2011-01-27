@@ -294,7 +294,9 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         else:
             group_by = group_by | GROUP_BY_LOCATION
             where_clauses.append("locations.id in (%s)" % ' , '.join(str(id) for id in location.get_children().values_list('pk', flat=True)))
-
+    
+    # Only use non-duplicate submissions
+    where_clauses.append('not submissions.has_errors')
 
     if start_date is not None:
         where_clauses.append("submissions.created >= date '%s'" % datetime.datetime.strftime(start_date, '%Y-%m-%d'))
@@ -343,8 +345,6 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         joins.append('healthmodels_healthfacilitybase facility on providers.facility_id = facility.id')
         joins.append(' healthmodels_healthfacilitytypebase type on type.id = facility.type_id')
         joins.append(' simple_locations_point location on facility.location_id = location.id')
-
-
 
     if group_by & GROUP_BY_LOCATION:
         select_clauses.append(('locations.name', 'lname',))
