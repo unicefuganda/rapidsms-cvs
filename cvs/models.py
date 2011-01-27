@@ -1,4 +1,4 @@
-from rapidsms_xforms.models import XFormField, dl_distance, xform_received
+from rapidsms_xforms.models import XFormField, XForm, XFormSubmission, dl_distance, xform_received
 import re
 import datetime
 from healthmodels.models import *
@@ -31,9 +31,9 @@ def parse_timedelta(command, value):
                 }
                 unit_dict = {
                     'd':('day','days','dys','ds'),
-                    'w':('wk','wks','weeks'),
-                    'm':('mo','months','mnths','mos','ms','mns','mnth'),
-                    'y':('year','yr','yrs'),
+                    'w':('wk','wks','weeks','week'),
+                    'm':('mo','months','month','mnths','mos','ms','mns','mnth'),
+                    'y':('year','years','yr','yrs'),
                 }
                 for key, words in unit_dict.iteritems():
                     if unit == key:
@@ -132,10 +132,7 @@ XFormField.register_field_type('cvsodema', 'Oedema Occurrence', parse_oedema,
 XFormField.register_field_type('facility', 'Facility Code', parse_facility,
                                db_type=XFormField.TYPE_OBJECT, xforms_type='string')
 
-def get_or_create_patient(health_provider, patient_name, birthdate=None, deathdate=None, gender=None):
-    return create_patient(health_provider, patient_name, birthdate, deathdate, gender)
-
-def create_patient(health_provider, patient_name, birthdate, deathdate, gender):
+def split_name(patient_name):
     names = patient_name.split(' ')
     first_name = names[0]
     last_name = ''
@@ -144,6 +141,27 @@ def create_patient(health_provider, patient_name, birthdate, deathdate, gender):
         last_name = names[len(names) - 1]
     if len(names) > 2:
         middle_name = ' '.join(names[1:-1])
+    return (first_name, middle_name, last_name)
+
+def get_or_create_patient(health_provider, patient_name, birthdate=None, deathdate=None, gender=None):
+    for p in Patient.objects.filter(health_worker=health_provider):
+        if dl_distance(p.full_name(), patient_name) <= 1:
+            first_name, middle_name, last_name = split_name(patient_name)
+            p.first_name = first_name
+            p.middle_name = middle_name
+            p.last_name = last_name
+            if birthdate:
+                p.birthdate = birthdate
+            if deathdate:
+                p.deathdate = deathdate
+            if gender:
+                p.gender = gender
+            p.save()
+            return p
+    return create_patient(health_provider, patient_name, birthdate, deathdate, gender)
+
+def create_patient(health_provider, patient_name, birthdate, deathdate, gender):
+    first_name, middle_name, last_name = split_name(patient_name)
 
     healthcode = generate_tracking_tag()
     if HealthId.objects.count():
@@ -169,8 +187,28 @@ def create_patient(health_provider, patient_name, birthdate, deathdate, gender):
     patient.save()
     return patient
 
-def check_validity(xform_type, health_provider, patient=None):
+def check_validity(xform_type, submission, health_provider, patient, day_range):
+    xform = XForm.objects.get(keyword=xform_type)
+    start_date = datetime.datetime.now() - datetime.timedelta(hours=(day_range*24))
+    for s in XFormSubmission.objects.filter(connection__contact__healthproviderbase__healthprovider=health_provider,
+                                            xform=xform,
+                                            created__gte=start_date,
+                                            report__patient=patient).exclude(pk=submission.pk):
+        pe = s.report
+        pe.valid = False
+        pe.save()
+        s.has_errors = True
+        s.save()
     return True
+
+def check_basic_validity(xform_type, submission, health_provider, day_range):
+    xform = XForm.objects.get(keyword=xform_type)
+    start_date = datetime.datetime.now() - datetime.timedelta(hours=(day_range*24))
+    for s in XFormSubmission.objects.filter(connection__contact__healthproviderbase__healthprovider=health_provider,
+                                            xform=xform,
+                                            created__gte=start_date).exclude(pk=submission.pk):
+        s.has_errors = True
+        s.save()
 
 def patient_label(patient):
         gender = 'male' if patient.gender == 'M' else 'female'
@@ -226,14 +264,18 @@ def xform_received_handler(sender, **kwargs):
             hp = HealthProvider.objects.create(pk=submission.connection.contact.pk)
         else:
             hp = HealthProvider.objects.create()
+            conn = submission.connection
+            conn.contact = hp
+            conn.save()
         hp.name = submission.eav.reg_name
         hp.save()
         return
 
     try:
         health_provider = submission.connection.contact.healthproviderbase.healthprovider
-    except HealthProviderBase.DoesNotExist:
+    except:
         submission.response = "Must be a reporter. Please register first with your name."
+        submission.has_errors = True
         submission.save()
         return
     if xform.keyword == 'pvht':
@@ -253,26 +295,26 @@ def xform_received_handler(sender, **kwargs):
             submission.save()
         birthdate = datetime.datetime.now() - datetime.timedelta(days=days)
         patient = get_or_create_patient(health_provider, submission.eav.muac_name, birthdate=birthdate, gender=submission.eav.muac_gender)
-        valid = check_validity(xform.keyword, health_provider, patient)
+        check_validity(xform.keyword, submission, health_provider, patient, 1)
         report = PatientEncounter.objects.create(
                 submission=submission,
                 reporter=health_provider,
                 patient=patient,
                 message=message,
-                valid=valid)
+                valid=True)
         muac_label = "Severe Acute Malnutrition" if (submission.eav.muac_category == 'R') else "Risk of Malnutrition"
         submission.response = "%s has been identified with %s" % (patient_label(patient), muac_label)
         submission.save()
         return
     elif xform.keyword == 'birth':
         patient = get_or_create_patient(health_provider, submission.eav.birth_name, birthdate=datetime.datetime.now(), gender=submission.eav.birth_gender)
-        valid = check_validity(xform.keyword, health_provider, patient)
+        check_validity(xform.keyword, submission, health_provider, patient, 3)
         report = PatientEncounter.objects.create(
                 submission=submission,
                 reporter=submission.connection.contact.healthproviderbase.healthprovider,
                 patient=patient,
                 message=message,
-                valid=valid)
+                valid=True)
         birth_location = "a facility" if submission.eav.birth_place == 'FACILITY' else 'home'
         submission.response = "Thank you for registering the birth of %s. We have recorded that the birth took place at %s." % (patient_label(patient), birth_location)
         submission.save()
@@ -281,17 +323,18 @@ def xform_received_handler(sender, **kwargs):
         days = submission.eav.death_age
         birthdate = datetime.datetime.now() - datetime.timedelta(days=days)
         patient = get_or_create_patient(health_provider, submission.eav.death_name, birthdate=birthdate, gender=submission.eav.death_gender, deathdate=datetime.datetime.now())
-        valid = check_validity(xform.keyword, health_provider, patient)
+        check_validity(xform.keyword, submission, health_provider, patient, 1)
         report = PatientEncounter.objects.create(
                 submission=submission,
                 reporter=health_provider,
                 patient=patient,
                 message=message,
-                valid=valid)
+                valid=True)
         submission.response = "We have recorded the death of %s." % patient_label(patient)
         submission.save()
         return
     elif xform.keyword == 'epi':
+        check_basic_validity('epi', submission, health_provider, 1)
         value_list = []
         for v in submission.eav.get_values():
             value_list.append("%s %d" % (disease_dict[v.attribute.name], v.value_int))
@@ -300,6 +343,7 @@ def xform_received_handler(sender, **kwargs):
         submission.save()
         return
     elif xform.keyword == 'home':
+        check_basic_validity('home', submission, health_provider, 1)
         value_list = []
         for v in submission.eav.get_values():
             if v.attribute.name in home_dict:
