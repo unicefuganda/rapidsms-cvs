@@ -98,7 +98,7 @@ def epi_kind(request, kind):
             epi['desc'] = desc
 
         else:
-            epi['desc'] = "<b>" + str(kind) + "</b>:" + str(facility['value']) + "cases";
+            epi['desc'] = "<b>" + str(kind) + "</b>:" + str(facility['value']) + " cases"
         epi['heat'] = facility['value'] / float(epi_facility_reports[0]['value'])
         epi['color'] = MAP_LAYERS[kind][2]
         epi_reports.append(epi)
@@ -136,7 +136,7 @@ def malnutrition(request):
         muac['title'] = facility['facility_name']
         muac['lat'] = float(facility['latitude'])
         muac['lon'] = float(facility['longitude'])
-        muac['desc'] = "<b>Malnutrition:</b>" +  str(facility['value']) + "cases";
+        muac['desc'] = "<b>Malnutrition:</b>" +  str(facility['value']) + " cases"
         muac['heat'] = facility['value'] / float(muac_facility_reports[0]['value'])
         muac['color'] = MAP_LAYERS['malnutrition'][2]
         malnutrition_reports.append(muac)
@@ -156,9 +156,9 @@ def births(request):
         birth['title'] = facility['facility_name']
         birth['lat'] = float(facility['latitude'])
         birth['lon'] = float(facility['longitude'])
-        birth['desc'] = "<b>Births:</b>" + str(facility['value']) + "cases";
+        birth['desc'] = "<b>Births:</b>" + str(facility['value']) + " cases"
         birth['heat'] = facility['value'] / float(birth_facility_reports[0]['value'])
-        birth['color'] = MAP_LAYERS['malnutrition'][2]
+        birth['color'] = MAP_LAYERS['births'][2]
         birth_reports.append(birth)
     return JsonResponse(birth_reports)
 
@@ -176,8 +176,8 @@ def deaths(request):
         death['title'] = facility['facility_name']
         death['lat'] = float(facility['latitude'])
         death['lon'] = float(facility['longitude'])
-        death['desc'] = "<b>Deaths:</b>" + str(facility['value']) + "cases";
+        death['desc'] = "<b>Deaths:</b>" + str(facility['value']) + " cases"
         death['heat'] = facility['value'] / float(death_facility_reports[0]['value'])
-        death['color'] = MAP_LAYERS['malnutrition'][2]
+        death['color'] = MAP_LAYERS['deaths'][2]
         death_reports.append(death)
     return JsonResponse(death_reports)
