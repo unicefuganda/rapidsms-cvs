@@ -263,7 +263,7 @@ function add_layers(map_layers)
             //console.log(color);
             //var color='#ff0000';
 
-            layerContainer.append('<li><input type="checkbox"  onchange="toggle_select(this,\''+val[1]+'\')"   ></input><a href="javascript:void(0)" onclick="toggle_select($(this).prev(),\''+val[1]+'\')" >'+val[0]+'</a><span style="width:15px;height:15px;background-color:'+color+';float:right;margin-top:3px;margin-right:6px;"></span></li>');
+            layerContainer.append('<li><input type="checkbox"   onchange="toggle_select(this,\''+val[1]+'\')"   ></input><a url ="'+val[1]+'" href="javascript:void(0)" onclick="toggle_select($(this).prev(),\''+val[1]+'\')" >'+val[0]+'</a><span style="width:15px;height:15px;background-color:'+color+';float:right;margin-top:3px;margin-right:6px;"></span></li>');
         });
 
 
@@ -288,7 +288,18 @@ function fetchContent(url){
 
 }
 
+function filter_by_date()
+{
 
+    $('#overlays').find('input:checked').each(function (){
+
+        var url=String($(this).next().attr('url'));
+        removeGraph(url);
+        addGraph(url);
+
+    });
+
+}
 
 $(document).ready(function() {
 
