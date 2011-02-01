@@ -36,8 +36,11 @@
 {% endblock %}
 
 {% block content %}
+    <p></p><a href="javascript:void(0)" onclick="filter_by_date()"> Update   </a></p>
 <p><b>Date Range:</b><span id="date_slider_value" class="daterange help">From {{ start_date|date:"Y-m-d" }} to {{ end_date|date:"Y-m-d" }}</span>
-<div id="map">
+
+    <div id="map">
+
 
 </div>
 
