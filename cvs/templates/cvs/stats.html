@@ -1,4 +1,5 @@
 {% extends "layout.html" %}
+{% load stats_extras %}
 
 {% block stylesheets %}
 {{ block.super }}
@@ -14,6 +15,28 @@
 {% endblock %}
 
 {% block content %}
+    <div class="breadcrumb">
+        <span>
+            {% if request.path|section != 'stats' %}
+                <a href="/cvs/stats/?root=true">Stats Home</a> &raquo;
+            {% else %}
+                Stats Home &raquo;
+            {% endif %}
+            {% if request.path|section != 'stats' %}
+                {{ request.path|section }} Reports &raquo;
+            {% endif %}
+        </span>
+        {% if location_id|ancestors %}
+            {% for ancestor in location_id|ancestors %}
+                <a href="/cvs/{{ request.path|section }}/{% if ancestor.pk|parentId %}{{ ancestor.pk|parentId }}/{% else %}?root=true{% endif %}">{{ ancestor|name }}</a> &raquo;
+            {% endfor %}
+        {% endif %}
+        {% if location_id != None %}
+            <a href="/cvs/{{ request.path|section }}/{% if location_id|parentId %}{{ location_id|parentId }}/{% else %}?root=true{% endif %}">{{ location_id|parent|name }}</a>
+        {% else %}
+            Uganda
+        {% endif %}
+    </div>
 <form id="date_range_form" method="POST">
 {% csrf_token %}
 <p>Date Range:<span id="date_slider_value" class="daterange">From {{ start_date|date:"Y-m-d" }} to {{ end_date|date:"Y-m-d" }}</span>
