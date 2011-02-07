@@ -116,7 +116,8 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                                'end_date':end_date,
                                'chart_title':params['chart_title'],
                                'xaxis':params['xaxis'],
-                               'yaxis':params['yaxis'] }, context_instance=RequestContext(request))
+                               'yaxis':params['yaxis']
+                               }, context_instance=RequestContext(request))
 
 def chart_params(xform_keyword, attribute_keyword, attribute_value=None):
     

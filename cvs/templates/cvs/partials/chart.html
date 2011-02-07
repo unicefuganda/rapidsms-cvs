@@ -7,7 +7,7 @@
             renderTo: 'chart',
             defaultSeriesType: 'line',
             marginRight: 130,
-            marginBottom: 25,
+            marginBottom: 100,
             borderColor :'#2fc4d6'
         },
         title: {
@@ -19,14 +19,21 @@
             x: -20
         },        
         xAxis: {
-            title: {
+            /*title: {
                 text: '{{ xaxis }}'
-            },
+            },*/
             categories: [
                 {% for time in data %}
                     '{{ time }}',
                 {% endfor %}
-            ]
+            ],
+            labels: {
+                rotation: -45,
+                align: 'right',
+                style: {
+                    font: 'normal 13px Verdana, sans-serif'
+                }
+            }
         },
         yAxis: {
             title: {
