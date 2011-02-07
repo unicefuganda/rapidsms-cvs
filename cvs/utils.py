@@ -288,7 +288,7 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         where_clauses = ["xforms.keyword = '%s'" % xform_keyword] 
         joins = ['rapidsms_xforms_xform xforms on submissions.xform_id = xforms.id']
     if location is not None:
-        if kwargs.get('request',None) and kwargs['request'].GET.get('root',None):
+        if kwargs.get('request',None) and kwargs.get('request',None) and kwargs['request'].GET.get('root',None):
              group_by = group_by | GROUP_BY_LOCATION
              where_clauses.append("locations.id in (%s)" % location.id)
         else:
@@ -391,7 +391,7 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
         where_clauses = ["xforms.keyword = '%s'" % xform_keyword] 
         joins = ['rapidsms_xforms_xform xforms on submissions.xform_id = xforms.id']
     if location is not None:
-        if kwargs['request'] and kwargs['request'].GET.get('root',None):
+        if kwargs.get('request',None) and kwargs['request'] and  kwargs['request'].GET.get('root',None):
              group_by = group_by | GROUP_BY_LOCATION
              where_clauses.append("locations.id in (%s)" % location.id)
         else:
@@ -511,5 +511,20 @@ def get_expected_epi(location, request):
     if weeks == 0:
         weeks = 1
     return health_providers * weeks
-    
+
+def get_group_by(start_date, end_date):
+    interval=end_date-start_date
+    if interval<=datetime.timedelta(days=21):
+        group_by=GROUP_BY_DAY
+        prefix = 'day'
+    elif datetime.timedelta(days=21) <=interval<=datetime.timedelta(days=90):
+        group_by=GROUP_BY_WEEK
+        prefix = 'week'
+    elif datetime.timedelta(days=90) <=interval<=datetime.timedelta(days=270):
+        group_by=GROUP_BY_MONTH
+        prefix = 'month'
+    else:
+        group_by=GROUP_BY_QUARTER
+        prefix = 'quarter'
+    return {'group_by':group_by, 'group_by_name':prefix}
    
