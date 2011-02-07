@@ -98,7 +98,7 @@ def index(request, location_id=None):
     yaxis = 'Number of Cases'
     chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list)
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'top_columns':topColumns, 
@@ -161,7 +161,7 @@ def muac_detail(request,location_id=None):
     yaxis = 'Number of Cases'
     chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list)
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'columns':columns,  
@@ -232,7 +232,7 @@ def epi_detail(request, location_id=None):
     yaxis = 'Number of Cases'
     chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list)
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
     
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
@@ -307,7 +307,7 @@ def birth_detail(request, location_id=None):
     yaxis = 'Number of Cases'
     chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list)
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
     
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
@@ -374,7 +374,7 @@ def death_detail(request, location_id=None):
     yaxis = 'Number of Cases'
     chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list)
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
     
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
@@ -466,7 +466,7 @@ def home_detail(request, location_id=None):
     yaxis = 'Number of Cases'
     chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list)
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
 
     return render_to_response("cvs/stats.html",
                               {'report':report_dict,

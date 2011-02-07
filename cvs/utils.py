@@ -465,7 +465,13 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
         elif timespan =='quarter':
             time = quarters[int(time)]+ ' Quarter'
         else:
-            time=int(time)
+            dates = get_dates(request)
+            start_year, start_month, start_day = dates['start'].year, dates['start'].month, dates['start'].day
+            end_year, end_month, end_day = dates['end'].year, dates['end'].month, dates['end'].day
+            if time == start_day:
+                time= str(int(time)) +'-'+ str(start_month) +'-'+ str(start_year)
+            else:
+                time= str(int(time)) +'-'+ str(end_month) +'-'+ str(end_year)
 
 
         report_dict.setdefault(time,{})

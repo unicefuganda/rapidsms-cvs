@@ -108,7 +108,7 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
     location_list = []
 # FIXME: should also fixure out how to calculate max and min values for
 # yaxis range
-    reorganize_timespan(group_by['group_by_name'], chart_data, report_dict, location_list)
+    reorganize_timespan(group_by['group_by_name'], chart_data, report_dict, location_list, request)
     return render_to_response("cvs/partials/chart.html",
                               {'data':report_dict, 
                                'series':location_list, 
