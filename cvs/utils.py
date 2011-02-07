@@ -508,6 +508,8 @@ def get_expected_epi(location, request):
 
     datediff = dates['end'] - dates['start']
     weeks = floor((datediff.days / 7))
+    if weeks == 0:
+        weeks = 1
     return health_providers * weeks
     
    
