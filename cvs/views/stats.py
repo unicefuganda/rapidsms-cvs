@@ -71,12 +71,12 @@ def index(request, location_id=None):
     reorganize_location('percentage_safe_water', percentage_safe_water, report_dict)
     # label, link, colspan
     topColumns = (('','',1),
-                  ('Malnutrition', '/cvs/muac/', 1),
-                  ('Epi','/cvs/epi/',3),
-                  ('Birth','/cvs/birth/',1),
-                  ('Death','/cvs/death/',1),
-                  ('Home', '/cvs/home/',1),
-                  ('Reporters','/cvs/reporter/',1)
+                  ('Malnutrition', '/cvs/muac/?root=true', 1),
+                  ('Epi','/cvs/epi/?root=true',3),
+                  ('Birth','/cvs/birth/?root=true',1),
+                  ('Death','/cvs/death/?root=true',1),
+                  ('Home', '/cvs/home/?root=true',1),
+                  ('Reporters','',1)
                   )
                   
     columns = (
