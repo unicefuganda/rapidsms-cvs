@@ -224,34 +224,12 @@ def patient_label(patient):
         return "%s, %s %s" % (patient.full_name(), gender, age_string)
 
 def xform_received_handler(sender, **kwargs):
-    
-    disease_dict = {
-        'bd':'Bloody diarrhea (Dysentery)',
-        'ma':'Malaria',
-        'tb':'Tuberculosis',
-        'ab':'Animal Bites',
-        'af':'Acute Flaccid Paralysis (Polio)',
-        'mg':'Meningitis',
-        'me':'Measles',
-        'ch':'Cholera',
-        'gw':'Guinea Worm',
-        'nt':'Neonatal Tetanus',
-        'yf':'Yellow Fever',
-        'pl':'Plague',
-        'ra':'Rabies',   
-        'vf':'Other Viral Hemorrhagic Fevers',
-        'ei':'Other Emerging Infectious Diseases',
-    }
-
-    home_dict = {
-        'it':'ITTNs/LLINs',
-        'la':'Latrines',
-        'ha':'Handwashing Facilities',
-        'wa':'Safe Drinking Water',            
-    }
 
     xform = kwargs['xform']
     submission = kwargs['submission']
+
+    if submission.has_errors:
+        return
 
     # TODO: check validity
     patient = None
@@ -261,7 +239,7 @@ def xform_received_handler(sender, **kwargs):
         return
     if xform.keyword == 'reg':
         if submission.connection.contact:
-            hp = HealthProvider.objects.create(pk=submission.connection.contact.pk)
+            hp, created = HealthProvider.objects.get_or_create(pk=submission.connection.contact.pk)
         else:
             hp = HealthProvider.objects.create()
             conn = submission.connection
@@ -337,7 +315,7 @@ def xform_received_handler(sender, **kwargs):
         check_basic_validity('epi', submission, health_provider, 1)
         value_list = []
         for v in submission.eav.get_values():
-            value_list.append("%s %d" % (disease_dict[v.attribute.name], v.value_int))
+            value_list.append("%s %d" % (v.attribute.description, v.value_int))
         value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
         submission.response = "You reported %s" % ','.join(value_list)
         submission.save()
@@ -347,7 +325,7 @@ def xform_received_handler(sender, **kwargs):
         value_list = []
         for v in submission.eav.get_values():
             if v.attribute.name in home_dict:
-                value_list.append("%s %d" % (home_dict[v.attribute.name], v.value_int))
+                value_list.append("%s %d" % (v.attribute.description, v.value_int))
         value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
         submission.response = "You reported %s" % ','.join(value_list)
         submission.save()
