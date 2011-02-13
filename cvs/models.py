@@ -235,8 +235,13 @@ def xform_received_handler(sender, **kwargs):
     patient = None
     kwargs.setdefault('message', None)
     message = kwargs['message']
-    if not message:
+    try:
+        message = message.db_message
+        if not message:
+            return
+    except AttributeError:
         return
+
     if xform.keyword == 'reg':
         if submission.connection.contact:
             hp, created = HealthProvider.objects.get_or_create(pk=submission.connection.contact.pk)
@@ -324,8 +329,7 @@ def xform_received_handler(sender, **kwargs):
         check_basic_validity('home', submission, health_provider, 1)
         value_list = []
         for v in submission.eav.get_values():
-            if v.attribute.name in home_dict:
-                value_list.append("%s %d" % (v.attribute.description, v.value_int))
+            value_list.append("%s %d" % (v.attribute.description, v.value_int))
         value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
         submission.response = "You reported %s" % ','.join(value_list)
         submission.save()
