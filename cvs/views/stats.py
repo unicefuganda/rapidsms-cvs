@@ -45,13 +45,13 @@ def index(request, location_id=None):
     percentage_epi = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     expected_epi = get_expected_epi(location,request)
 
-    x = 0
-    while x < len(percentage_safe_water):
-        home_divide = float(percentage_safe_water[x]['value'])
-        total_value = float(home_total[x]['value'])
-        home_divide /= total_value
-        percentage_safe_water[x]['value'] = round(home_divide*100,1)
-        x +=1
+#    x = 0
+#    while x < len(percentage_safe_water):
+#        home_divide = float(percentage_safe_water[x]['value'])
+#        total_value = float(home_total[x]['value'])
+#        home_divide /= total_value
+#        percentage_safe_water[x]['value'] = round(home_divide*100,1)
+#        x +=1
 
     y = 0
     while y < len(percentage_epi):
@@ -69,6 +69,16 @@ def index(request, location_id=None):
     reorganize_location('death', death, report_dict)
     reorganize_location('percentage_epi', percentage_epi, report_dict)
     reorganize_location('percentage_safe_water', percentage_safe_water, report_dict)
+    reorganize_location('home_total', home_total, report_dict)
+
+    for loc, val_dict in report_dict.iteritems():
+        if 'home_total' in val_dict and 'percentage_safe_water' in val_dict:
+            home_total = val_dict['home_total']
+            percentage_safe_water = val_dict['percentage_safe_water']
+            val_dict['percentage_safe_water'] = round((percentage_safe_water / home_total)*100, 1)
+        else:
+            val_dict['percentage_safe_water'] = 'N/A'
+
     # label, link, colspan
     topColumns = (('','',1),
                   ('Malnutrition', '/cvs/muac/?root=true', 1),
