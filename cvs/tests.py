@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from eav.models import Attribute
 from django.contrib.sites.models import Site
 from rapidsms.messages.incoming import IncomingMessage
+from rapidsms.models import Contact
 from rapidsms_xforms.models import *
 from cvs.utils import init_xforms
 from healthmodels.models import *
@@ -16,6 +17,7 @@ from rapidsms.models import Contact, Connection, Backend
 from rapidsms_xforms.app import App
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms_httprouter.models import Message
+from simple_locations.models import Area
 import datetime
 
 class ModelTest(TestCase): #pragma: no cover
@@ -249,15 +251,28 @@ class ModelTest(TestCase): #pragma: no cover
         self.fakeErrorMessage('+muac foo, m, 31/12/1999, red')
         self.fakeErrorMessage('+epi ma')
         self.fakeErrorMessage('+epi ma 5 ma 10')
-        self.fakeErrorMessage('+epi MA -5')
+#        self.fakeErrorMessage('+epi MA -5')
         self.fakeErrorMessage('+epi xx 5.0')
         self.fakeErrorMessage('+epi ma five')
         self.fakeErrorMessage('+home wa')
         self.fakeErrorMessage('+home wa 5 wa 10')
-        self.fakeErrorMessage('+home WA -5')
+#        self.fakeErrorMessage('+home WA -5')
         self.fakeErrorMessage('+home xx 5.0')
         self.fakeErrorMessage('+home wa five')
         pass
+
+    def testLocationDelete(self):
+        parent_loc = Area.objects.create(name='Uganda', code='ug')
+        child_loc = Area.objects.create(name='Pader', code='pad', parent=parent_loc)
+        child_loc.save()
+        h = HealthFacility.objects.create(name="Dave's drug emporium")
+        h.catchment_areas.add(child_loc)
+        c = Contact.objects.create(name='Davey Crockett', reporting_location = parent_loc)
+        child_loc.delete()
+        c = Contact.objects.get(pk=c.pk)
+        h = HealthFacility.objects.get(pk=h.pk)
+        self.assertEquals(c.reporting_location, parent_loc)
+        self.assertEquals(h.catchment_areas.all()[0], parent_loc)
 
     def testSimpleDocTest(self):
         """

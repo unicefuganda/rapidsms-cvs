@@ -7,6 +7,8 @@ from simple_locations.models import Point, Area, AreaType
 from django.core.exceptions import ValidationError
 from code_generator.code_generator import get_code_from_model, generate_tracking_tag, generate_code
 from django.contrib.auth.models import Group
+from django.db.models.signals import pre_delete
+from rapidsms.models import Contact
 
 def parse_timedelta(command, value):
     lvalue = value.lower().strip()
@@ -223,6 +225,19 @@ def patient_label(patient):
 
         return "%s, %s %s" % (patient.full_name(), gender, age_string)
 
+def fix_location(sender, **kwargs):
+    if sender == Area:
+        location = kwargs['instance']
+    else:
+        return
+    if location.parent:
+        for c in Contact.objects.filter(reporting_location = location):
+            c.reporting_location = location.parent
+            c.save()
+        for h in HealthFacility.objects.filter(catchment_areas = location):
+            h.catchment_areas.add(location.parent)
+            h.save()
+
 def xform_received_handler(sender, **kwargs):
 
     xform = kwargs['xform']
@@ -343,4 +358,6 @@ def xform_received_handler(sender, **kwargs):
         submission.save()
         return
 
+
 xform_received.connect(xform_received_handler, weak=True)
+pre_delete.connect(fix_location, weak=True)
