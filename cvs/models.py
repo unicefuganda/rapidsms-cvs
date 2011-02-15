@@ -252,6 +252,8 @@ def xform_received_handler(sender, **kwargs):
             conn.save()
         hp.name = submission.eav.reg_name
         hp.save()
+        submission.response = "Thank you for registering, %s." % hp.name
+        submission.save()
         return
 
     try:
@@ -264,12 +266,18 @@ def xform_received_handler(sender, **kwargs):
     if xform.keyword == 'pvht':
         health_provider.groups.add(Group.objects.get(name='Peer Village Health Team'))
         health_provider.facility = submission.eav.pvht_facility
-        health_provider.save()        
+        health_provider.save()
+        submission.response = "You have joined the system as Peer Village Health Team reporting to %s. " \
+                   "Please resend if there is a mistake." % health_provider.facility.name
+        submission.save()
         return
     if xform.keyword == 'vht':
         health_provider.groups.add(Group.objects.get(name='Village Health Team'))
         health_provider.facility = submission.eav.vht_facility
         health_provider.save()
+        submission.response = "You have joined the system as Village Health Team reporting to %s." \
+                   "Please resend if there is a mistake." % health_provider.facility.name
+        submission.save()
         return
     if xform.keyword == 'muac':
         days = submission.eav.muac_age
