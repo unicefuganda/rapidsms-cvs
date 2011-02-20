@@ -102,7 +102,7 @@ def index(request, location_id=None):
     )
 
     group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('epi', location=location, attribute_keyword='ma', start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION )
+    chart = report('epi', location=location, attribute_keyword='ma', start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR )
     chart_title = 'Variation of Malaria Reports'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
