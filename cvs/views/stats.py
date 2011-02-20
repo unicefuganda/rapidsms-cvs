@@ -165,7 +165,7 @@ def muac_detail(request,location_id=None):
                   )
     
     group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('muac', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION)
+    chart = report('muac', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR )
     chart_title = 'Variation of Total Malnutrition Reports'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
@@ -236,7 +236,7 @@ def epi_detail(request, location_id=None):
         columns.append(tup)
     
     group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('epi', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION)
+    chart = report('epi', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR)
     chart_title = 'Variation of Total Epi Reports'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
@@ -311,7 +311,7 @@ def birth_detail(request, location_id=None):
                   )
 
     group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('birth', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION)
+    chart = report('birth', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR )
     chart_title = 'Variation of Total Birth Reports'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
@@ -378,7 +378,7 @@ def death_detail(request, location_id=None):
                   )
     
     group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('death', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION)
+    chart = report('death', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR)
     chart_title = 'Variation of Total Child Death Reports'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
@@ -470,7 +470,7 @@ def home_detail(request, location_id=None):
                     ('% of Total', '', 1),
                 )
     group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('home', attribute_keyword='to', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION)
+    chart = report('home', attribute_keyword='to', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR)
     chart_title = 'Variation of Total Households Visited'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
