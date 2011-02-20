@@ -66,8 +66,8 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                 x +=1
             attribute_value = {value_dict_key:value_dict_values}
         if xform_keyword == 'birth' and attribute_value == 'percentage':
-            percentage_at_home = report(xform_keyword, attribute_keyword='place', attribute_value='HOME', start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION, location=location)
-            total = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION, location=location)
+            percentage_at_home = report(xform_keyword, attribute_keyword='place', attribute_value='HOME', start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+            total = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
             x = 0
             while x < len(percentage_at_home):
                 home_divide = float(percentage_at_home[x]['value'])
@@ -77,8 +77,8 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                 x +=1
             chart_data = percentage_at_home
         elif xform_keyword == 'home' and attribute_keyword == 'wa' and attribute_value == 'percentage':
-            percentage_safe_water = report('home', attribute_keyword='wa', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
-            home_total = report('home', attribute_keyword='to', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION, start_date=start_date, end_date=end_date)
+            percentage_safe_water = report('home', attribute_keyword='wa', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
+            home_total = report('home', attribute_keyword='to', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
             x = 0
             while x < len(percentage_safe_water):
                 home_divide = float(percentage_safe_water[x]['value'])
@@ -88,10 +88,10 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                 x +=1
             chart_data = percentage_safe_water
         else:
-            chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION, location=location)
+            chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
     elif attribute_keyword and not attribute_value:
         if xform_keyword == 'epi' and attribute_keyword == 'percentage':
-            percentage_epi = report(xform_keyword, attribute_keyword=None, attribute_value=None, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION, location=location)
+            percentage_epi = report(xform_keyword, attribute_keyword=None, attribute_value=None, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
             expected_epi = get_expected_epi(location,request)
             y = 0
             while y < len(percentage_epi):
