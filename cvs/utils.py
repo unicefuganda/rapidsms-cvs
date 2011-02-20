@@ -365,7 +365,8 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         if location is None:
             joins.append('simple_locations_area locations on providers.location_id = locations.id')
         else:
-            joins.append('simple_locations_area locations on providers.location_id >= locations.lft and providers.location_id <= locations.rght')
+            joins.append('simple_locations_area provider_locations on providers.location_id = provider_locations.id')
+            joins.append('simple_locations_area locations on provider_locations.lft >= locations.lft and provider_locations.rght <= locations.rght')
 
 #    if attribute_keyword is not None:
 #        groupby_columns.append('entity')
