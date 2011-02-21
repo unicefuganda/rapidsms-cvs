@@ -49,7 +49,7 @@
         tooltip: {
             formatter: function() {
                     return '<b>'+ this.series.name +'</b><br/>'+
-                    this.x +': '+ this.y +'cases';
+                    this.x +': '+ this.y +'{{ label }}';
             }
         },
         credits:false,
@@ -79,7 +79,7 @@
     //options.yAxis.max=100;
     options.tooltip.formatter=function (){
          return '<b>'+ this.series.name +'</b><br/>{{ tooltip_prefix }}'+
-                    this.x +': '+ parseInt(this.y) +' cases';
+                    this.x +': '+ parseInt(this.y) +' {{ label }}';
     }
     chart = new Highcharts.Chart(options);
 </script>

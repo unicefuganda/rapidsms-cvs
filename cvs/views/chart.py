@@ -13,7 +13,7 @@ from cvs.forms import DateRangeForm
 import datetime
 from django.utils.datastructures import SortedDict
 
-def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, location_id=None):
+def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, location_id=None,label='cases'):
     """
         This view can handle basic functionality for all charts.  This view
         is a partial response, to be loaded within a container div for another
@@ -66,6 +66,7 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                 x +=1
             attribute_value = {value_dict_key:value_dict_values}
         if xform_keyword == 'birth' and attribute_value == 'percentage':
+            label="%"
             percentage_at_home = report(xform_keyword, attribute_keyword='place', attribute_value='HOME', start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
             total = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
             x = 0
@@ -77,6 +78,7 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                 x +=1
             chart_data = percentage_at_home
         elif xform_keyword == 'home' and attribute_value == 'percentage':
+            label="%"
             attribute_values_list = report('home', attribute_keyword=attribute_keyword, location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
             home_total = report('home', attribute_keyword='to', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
             for attribute_values_dict in attribute_values_list:
@@ -90,6 +92,7 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
             chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
     elif attribute_keyword and not attribute_value:
         if xform_keyword == 'epi' and attribute_keyword == 'percentage':
+            label="%"
             percentage_epi = report(xform_keyword, attribute_keyword=None, attribute_value=None, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
             expected_epi = get_expected_epi(location,request)
             y = 0
@@ -115,7 +118,8 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                                'end_date':end_date,
                                'chart_title':params['chart_title'],
                                'xaxis':params['xaxis'],
-                               'yaxis':params['yaxis']
+                               'yaxis':params['yaxis'],
+                               'label':label,
                                }, context_instance=RequestContext(request))
 
 def chart_params(xform_keyword, attribute_keyword, attribute_value=None):
