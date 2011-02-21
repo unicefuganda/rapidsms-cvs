@@ -8,7 +8,7 @@ from healthmodels.models.HealthProvider import HealthProvider
 from math import floor
 from rapidsms_xforms.models import *
 import datetime
-import time
+from django.http import HttpResponse
 
 def init_xforms():
     DISEASE_CHOICES = [
