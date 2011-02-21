@@ -7,11 +7,7 @@ from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
-<<<<<<< HEAD:cvs/views/stats.py
 from cvs.utils import report, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER,ExcelResponse
-=======
-from cvs.utils import report, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, get_group_by, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER
->>>>>>> a4ed9b1e2ed3c7f41bba503bf5ef34ea8fd507cb:cvs/views/stats.py
 from cvs.forms import DateRangeForm
 import datetime
 import time
