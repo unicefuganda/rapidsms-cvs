@@ -76,17 +76,16 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                 percentage_at_home[x]['value'] = round(home_divide*100,1)
                 x +=1
             chart_data = percentage_at_home
-        elif xform_keyword == 'home' and attribute_keyword == 'wa' and attribute_value == 'percentage':
-            percentage_safe_water = report('home', attribute_keyword='wa', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
+        elif xform_keyword == 'home' and attribute_value == 'percentage':
+            attribute_values_list = report('home', attribute_keyword=attribute_keyword, location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
             home_total = report('home', attribute_keyword='to', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
-            x = 0
-            while x < len(percentage_safe_water):
-                home_divide = float(percentage_safe_water[x]['value'])
-                total_value = float(home_total[x]['value'])
-                home_divide /= total_value
-                percentage_safe_water[x]['value'] = round(home_divide*100,1)
-                x +=1
-            chart_data = percentage_safe_water
+            for attribute_values_dict in attribute_values_list:
+                try:
+                    attribute_values_dict['value']=(attribute_values_dict['value']/float(home_total[attribute_values_list.index(attribute_values_dict)]['value']))*100
+                except (ZeroDivisionError, TypeError):
+                    attribute_values_dict['value']='N/A'
+
+            chart_data = attribute_values_list
         else:
             chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
     elif attribute_keyword and not attribute_value:

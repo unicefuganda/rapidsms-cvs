@@ -456,10 +456,10 @@ def home_detail(request, location_id=None):
 
     columns = (
                   ('Total Households Visited', 'javascript:void(0)', 2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/to/')"),
-                  ('Safe Drinking Water','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/')"),
-                  ('Hand Washing Facilities','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/ha/')"),
-                  ('Latrines','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/la/')"),
-                  ('ITTNs/LLINs','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/')"),
+                  ('Safe Drinking Water','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/percentage/')"),
+                  ('Hand Washing Facilities','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/ha/percentage/')"),
+                  ('Latrines','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/la/percentage/')"),
+                  ('ITTNs/LLINs','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/percentage/')"),
                   )
     bottom_columns = (('','',2),
                     ('Total', '', 1),
