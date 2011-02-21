@@ -8,9 +8,10 @@ from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
 from django.db import connection
-from cvs.utils import report, reorganize_timespan, GROUP_BY_LOCATION, GROUP_BY_WEEK, GROUP_BY_YEAR, GROUP_BY_DAY
+from cvs.utils import report, reorganize_timespan, get_expected_epi, get_group_by, GROUP_BY_LOCATION, GROUP_BY_WEEK, GROUP_BY_YEAR, GROUP_BY_DAY
 from cvs.forms import DateRangeForm
 import datetime
+from django.utils.datastructures import SortedDict
 
 def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, location_id=None):
     """
@@ -42,25 +43,14 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
         if request.session.get('start_date',None)  and request.session.get('end_date',None):
             start_date=request.session['start_date']
             end_date=request.session['end_date']
-    interval=end_date-start_date
-    if interval<=datetime.timedelta(days=21):
-        group_by=GROUP_BY_DAY
-        r='day'
-    elif datetime.timedelta(days=21) <=interval<=datetime.timedelta(days=90):
-        group_by=GROUP_BY_WEEK
-        r='week'
-    elif datetime.timedelta(days=90) <=interval<=datetime.timedelta(days=270):
-        group_by=GROUP_BY_MONTH
-        r='month'
-    else:
-        group_by=GROUP_BY_QUARTER
-        r='quarter'
+
+    group_by = get_group_by(start_date, end_date)
     if location_id:
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-    params = chart_params(xform_keyword, attribute_keyword, r, attribute_value)
-    
+
+    params = chart_params(xform_keyword, attribute_keyword, attribute_value)
     if attribute_keyword and attribute_value:
         if attribute_keyword.find('__') > 0:
             attribute_keyword = attribute_keyword.split('__')
@@ -76,8 +66,8 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                 x +=1
             attribute_value = {value_dict_key:value_dict_values}
         if xform_keyword == 'birth' and attribute_value == 'percentage':
-            percentage_at_home = report(xform_keyword, attribute_keyword='place', attribute_value='HOME', start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION, location=location)
-            total = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION, location=location)
+            percentage_at_home = report(xform_keyword, attribute_keyword='place', attribute_value='HOME', start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+            total = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
             x = 0
             while x < len(percentage_at_home):
                 home_divide = float(percentage_at_home[x]['value'])
@@ -85,18 +75,40 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                 home_divide /= total_value
                 percentage_at_home[x]['value'] = round(home_divide*100,1)
                 x +=1
-                chart_data = percentage_at_home
+            chart_data = percentage_at_home
+        elif xform_keyword == 'home' and attribute_keyword == 'wa' and attribute_value == 'percentage':
+            percentage_safe_water = report('home', attribute_keyword='wa', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
+            home_total = report('home', attribute_keyword='to', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
+            x = 0
+            while x < len(percentage_safe_water):
+                home_divide = float(percentage_safe_water[x]['value'])
+                total_value = float(home_total[x]['value'])
+                home_divide /= total_value
+                percentage_safe_water[x]['value'] = round(home_divide*100,1)
+                x +=1
+            chart_data = percentage_safe_water
         else:
-            chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION, location=location)
+            chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
     elif attribute_keyword and not attribute_value:
-        chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+        if xform_keyword == 'epi' and attribute_keyword == 'percentage':
+            percentage_epi = report(xform_keyword, attribute_keyword=None, attribute_value=None, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+            expected_epi = get_expected_epi(location,request)
+            y = 0
+            while y < len(percentage_epi):
+                epi_divide = float(percentage_epi[y]['value'])
+                epi_divide /= expected_epi
+                percentage_epi[y]['value'] = round(epi_divide*100,1)
+                y +=1
+            chart_data = percentage_epi
+        else:
+            chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
     else:
-        chart_data = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
-    report_dict = {}
+        chart_data = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+    report_dict = SortedDict()
     location_list = []
 # FIXME: should also fixure out how to calculate max and min values for
 # yaxis range
-    reorganize_timespan(r, chart_data, report_dict, location_list)
+    reorganize_timespan(group_by['group_by_name'], chart_data, report_dict, location_list, request)
     return render_to_response("cvs/partials/chart.html",
                               {'data':report_dict, 
                                'series':location_list, 
@@ -104,10 +116,10 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                                'end_date':end_date,
                                'chart_title':params['chart_title'],
                                'xaxis':params['xaxis'],
-                               'yaxis':params['yaxis'],
-                               'tooltip_prefix':params['tooltip_prefix'] }, context_instance=RequestContext(request))
+                               'yaxis':params['yaxis']
+                               }, context_instance=RequestContext(request))
 
-def chart_params(xform_keyword, attribute_keyword, r, attribute_value=None):
+def chart_params(xform_keyword, attribute_keyword, attribute_value=None):
     
     keyword_dict = {
     'ma':'Malaria',
@@ -151,20 +163,31 @@ def chart_params(xform_keyword, attribute_keyword, r, attribute_value=None):
     
     indicator = ''
     category = ''
+    yaxis = 'Number of Reports'
+    xaxis = 'weeks'
     if xform_keyword == 'epi' or xform_keyword == 'home':
-        indicator = keyword_dict[attribute_keyword]
+        yaxis = 'Percentage of Reports'
+        if xform_keyword == 'epi' and attribute_keyword == 'percentage':
+            indicator = 'Percentage of Expected Weekly EPI Reports Received'
+        elif attribute_keyword == 'wa' and attribute_value == 'percentage':
+            indicator = 'Percentage of Homesteads With Safe Drinking Water'
+        else:
+            yaxis = 'Number of Reports'
+            indicator = keyword_dict[attribute_keyword] + " Reports"
     
     if attribute_value:
+        if attribute_value == 'percentage':
+            yaxis = 'Percentage of Reports'
         if xform_keyword == 'muac':
             category = value_dict[attribute_value] + " Category "
         else:
             category = value_dict[attribute_value]
                 
-    epi_params = {"chart_title":"Variation of "+str(indicator)+" Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix": r}
-    muac_params = {"chart_title":"Variation of "+str(category)+" Malnutrition Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
-    birth_params = {"chart_title":"Variation of "+str(category)+" Birth Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
-    death_params = {"chart_title":"Variation of Death Reports for Children "+str(category)+"", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
-    home_params = {"chart_title":"Variation of "+str(indicator)+" Reports", "yaxis": "Number of Reports", "xaxis":"weeks", "tooltip_prefix":r}
+    epi_params = {"chart_title":"Variation of "+str(indicator)+" ", "yaxis": yaxis, "xaxis":xaxis}
+    muac_params = {"chart_title":"Variation of "+str(category)+" Malnutrition Reports", "yaxis": yaxis, "xaxis":xaxis}
+    birth_params = {"chart_title":"Variation of "+str(category)+" Birth Reports", "yaxis": yaxis, "xaxis":xaxis}
+    death_params = {"chart_title":"Variation of Death Reports for Children "+str(category)+"", "yaxis": yaxis, "xaxis":xaxis}
+    home_params = {"chart_title":"Variation of "+str(indicator)+" Reports", "yaxis": yaxis, "xaxis": xaxis}
 
     params = {"muac":muac_params, "epi":epi_params, "birth":birth_params, "death":death_params, "home":home_params}
     

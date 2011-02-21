@@ -7,6 +7,8 @@ from simple_locations.models import Point, Area, AreaType
 from django.core.exceptions import ValidationError
 from code_generator.code_generator import get_code_from_model, generate_tracking_tag, generate_code
 from django.contrib.auth.models import Group
+from django.db.models.signals import pre_delete
+from rapidsms.models import Contact
 
 def parse_timedelta(command, value):
     lvalue = value.lower().strip()
@@ -223,45 +225,41 @@ def patient_label(patient):
 
         return "%s, %s %s" % (patient.full_name(), gender, age_string)
 
-def xform_received_handler(sender, **kwargs):
-    
-    disease_dict = {
-        'bd':'Bloody diarrhea (Dysentery)',
-        'ma':'Malaria',
-        'tb':'Tuberculosis',
-        'ab':'Animal Bites',
-        'af':'Acute Flaccid Paralysis (Polio)',
-        'mg':'Meningitis',
-        'me':'Measles',
-        'ch':'Cholera',
-        'gw':'Guinea Worm',
-        'nt':'Neonatal Tetanus',
-        'yf':'Yellow Fever',
-        'pl':'Plague',
-        'ra':'Rabies',   
-        'vf':'Other Viral Hemorrhagic Fevers',
-        'ei':'Other Emerging Infectious Diseases',
-    }
+def fix_location(sender, **kwargs):
+    if sender == Area:
+        location = kwargs['instance']
+    else:
+        return
+    if location.parent:
+        for c in Contact.objects.filter(reporting_location = location):
+            c.reporting_location = location.parent
+            c.save()
+        for h in HealthFacility.objects.filter(catchment_areas = location):
+            h.catchment_areas.add(location.parent)
+            h.save()
 
-    home_dict = {
-        'it':'ITTNs/LLINs',
-        'la':'Latrines',
-        'ha':'Handwashing Facilities',
-        'wa':'Safe Drinking Water',            
-    }
+def xform_received_handler(sender, **kwargs):
 
     xform = kwargs['xform']
     submission = kwargs['submission']
+
+    if submission.has_errors:
+        return
 
     # TODO: check validity
     patient = None
     kwargs.setdefault('message', None)
     message = kwargs['message']
-    if not message:
+    try:
+        message = message.db_message
+        if not message:
+            return
+    except AttributeError:
         return
+
     if xform.keyword == 'reg':
         if submission.connection.contact:
-            hp = HealthProvider.objects.create(pk=submission.connection.contact.pk)
+            hp, created = HealthProvider.objects.get_or_create(pk=submission.connection.contact.pk)
         else:
             hp = HealthProvider.objects.create()
             conn = submission.connection
@@ -269,6 +267,8 @@ def xform_received_handler(sender, **kwargs):
             conn.save()
         hp.name = submission.eav.reg_name
         hp.save()
+        submission.response = "Thank you for registering, %s." % hp.name
+        submission.save()
         return
 
     try:
@@ -281,12 +281,18 @@ def xform_received_handler(sender, **kwargs):
     if xform.keyword == 'pvht':
         health_provider.groups.add(Group.objects.get(name='Peer Village Health Team'))
         health_provider.facility = submission.eav.pvht_facility
-        health_provider.save()        
+        health_provider.save()
+        submission.response = "You have joined the system as Peer Village Health Team reporting to %s. " \
+                   "Please resend if there is a mistake." % health_provider.facility.name
+        submission.save()
         return
     if xform.keyword == 'vht':
         health_provider.groups.add(Group.objects.get(name='Village Health Team'))
         health_provider.facility = submission.eav.vht_facility
         health_provider.save()
+        submission.response = "You have joined the system as Village Health Team reporting to %s." \
+                   "Please resend if there is a mistake." % health_provider.facility.name
+        submission.save()
         return
     if xform.keyword == 'muac':
         days = submission.eav.muac_age
@@ -337,7 +343,7 @@ def xform_received_handler(sender, **kwargs):
         check_basic_validity('epi', submission, health_provider, 1)
         value_list = []
         for v in submission.eav.get_values():
-            value_list.append("%s %d" % (disease_dict[v.attribute.name], v.value_int))
+            value_list.append("%s %d" % (v.attribute.description, v.value_int))
         value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
         submission.response = "You reported %s" % ','.join(value_list)
         submission.save()
@@ -346,11 +352,12 @@ def xform_received_handler(sender, **kwargs):
         check_basic_validity('home', submission, health_provider, 1)
         value_list = []
         for v in submission.eav.get_values():
-            if v.attribute.name in home_dict:
-                value_list.append("%s %d" % (home_dict[v.attribute.name], v.value_int))
+            value_list.append("%s %d" % (v.attribute.description, v.value_int))
         value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
         submission.response = "You reported %s" % ','.join(value_list)
         submission.save()
         return
 
+
 xform_received.connect(xform_received_handler, weak=True)
+pre_delete.connect(fix_location, weak=True)

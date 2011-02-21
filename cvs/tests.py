@@ -3,12 +3,13 @@ Basic tests for CVS
 """
 
 from django.test import TestCase, TransactionTestCase
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.test.client import Client
 from django.core.exceptions import ValidationError
 from eav.models import Attribute
 from django.contrib.sites.models import Site
 from rapidsms.messages.incoming import IncomingMessage
+from rapidsms.models import Contact
 from rapidsms_xforms.models import *
 from cvs.utils import init_xforms
 from healthmodels.models import *
@@ -16,6 +17,7 @@ from rapidsms.models import Contact, Connection, Backend
 from rapidsms_xforms.app import App
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms_httprouter.models import Message
+from simple_locations.models import Area
 import datetime
 
 class ModelTest(TestCase): #pragma: no cover
@@ -28,6 +30,8 @@ class ModelTest(TestCase): #pragma: no cover
         c = Connection.objects.create(identity='8675309', backend=b)
         c.contact = hp
         c.save()
+        Group.objects.create(name='Peer Village Health Team')
+        Group.objects.create(name='Village Health Team')
 #        self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
 #        self.user.save()    
 
@@ -43,6 +47,23 @@ class ModelTest(TestCase): #pragma: no cover
             submission = form.process_sms_submission(incomingmessage)
             return submission
         return None
+
+    def fakeErrorMessage(self, message, connection=None):
+        form = XForm.find_form(message)
+
+        if connection is None:
+            connection = Connection.objects.all()[0]
+        # if so, process it
+        incomingmessage = IncomingMessage(connection, message)
+        incomingmessage.db_message = Message.objects.create(direction='I', connection=Connection.objects.all()[0], text=message)
+        if form:
+            submission = form.process_sms_submission(incomingmessage)
+            self.failUnless(submission.has_errors)
+        return
+
+    def incomingResponse(self, message, expected_response, connection=None):
+        s = self.fakeIncoming(message, connection)
+        self.assertEquals(s.response, expected_response)
 
     def testBasicSubmission(self):
         self.fakeIncoming('+BIRTH Terra Weikel, F, HOME')
@@ -193,11 +214,65 @@ class ModelTest(TestCase): #pragma: no cover
         c = Connection.objects.get(identity='8675310')
         s = self.fakeIncoming('+reg David McCann', c)
         c = Connection.objects.get(identity='8675310')
+        self.assertEquals(c.contact.name, 'David McCann')
 
-#        FIXME: the following fails (problem with parsing the +reg form)
-#        self.assertEquals(c.contact.name, 'David McCann')
         s = self.fakeIncoming('+muac Sean Blaschke, M,2 dys,yellow', c)
         self.failIf(s.has_errors)
+
+    def testVHTRegistration(self):
+        ht = HealthFacilityType.objects.create(name="Drug Store", slug="ds")
+        hc = HealthFacility.objects.create(name="Dave's Drug Emporium", code="AWESOME")
+        s = self.fakeIncoming('+vht AWESOME')
+        self.assertEquals(hc,HealthProvider.objects.all()[0].facility)
+
+    def testDoubleRegister(self):
+        self.fakeIncoming('+reg newname')
+        self.assertEquals(Contact.objects.all()[0].name, 'newname')
+
+    def testResponses(self):
+        self.fakeIncoming('+reg David McCann')
+        self.incomingResponse('+BIRTH Terra Weikel, F, HOME', 'Thank you for registering the birth of Terra Weikel, female (infant). We have recorded that the birth took place at home.')
+        self.incomingResponse('+DEATH Malthe Borch, M,1DAY', 'We have recorded the death of Malthe Borch, male (infant).')
+        self.incomingResponse('+muac Matt Berg, M,5months,yellow','Matt Berg, male (5 months old) has been identified with Risk of Malnutrition')
+        self.incomingResponse('+epi ma 12, bd 5','You reported Bloody diarrhea (Dysentery) 5, and Malaria 12')
+        self.incomingResponse('+home 12, wa 1, it 6','You reported Total Homesteads Visited 12,ITTNs/LLINs 6, and Safe Drinking Water 1')
+
+    def testErrors(self):
+        #TODO make proper fields required
+        self.fakeErrorMessage('+birth apio')
+        self.fakeErrorMessage('+birth apio, f')
+        self.fakeErrorMessage('+birth api, f, bed')
+        self.fakeErrorMessage('+death apio')
+        self.fakeErrorMessage('+death apio, f')
+        self.fakeErrorMessage('+death apio, f, other')
+        self.fakeErrorMessage('+muac foo')
+        self.fakeErrorMessage('+muac foo, m')
+        self.fakeErrorMessage('+muac foo, m, 16y')
+        self.fakeErrorMessage('+muac foo, m, 31/12/1999, red')
+        self.fakeErrorMessage('+epi ma')
+        self.fakeErrorMessage('+epi ma 5 ma 10')
+#        self.fakeErrorMessage('+epi MA -5')
+        self.fakeErrorMessage('+epi xx 5.0')
+        self.fakeErrorMessage('+epi ma five')
+        self.fakeErrorMessage('+home wa')
+        self.fakeErrorMessage('+home wa 5 wa 10')
+#        self.fakeErrorMessage('+home WA -5')
+        self.fakeErrorMessage('+home xx 5.0')
+        self.fakeErrorMessage('+home wa five')
+        pass
+
+    def testLocationDelete(self):
+        parent_loc = Area.objects.create(name='Uganda', code='ug')
+        child_loc = Area.objects.create(name='Pader', code='pad', parent=parent_loc)
+        child_loc.save()
+        h = HealthFacility.objects.create(name="Dave's drug emporium")
+        h.catchment_areas.add(child_loc)
+        c = Contact.objects.create(name='Davey Crockett', reporting_location = parent_loc)
+        child_loc.delete()
+        c = Contact.objects.get(pk=c.pk)
+        h = HealthFacility.objects.get(pk=h.pk)
+        self.assertEquals(c.reporting_location, parent_loc)
+        self.assertEquals(h.catchment_areas.all()[0], parent_loc)
 
     def testSimpleDocTest(self):
         """

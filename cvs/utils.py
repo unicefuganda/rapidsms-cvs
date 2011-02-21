@@ -12,29 +12,29 @@ from django.http import HttpResponse
 
 def init_xforms():
     DISEASE_CHOICES = [
-        ('bd','int','Bloody diarrhea (Dysentery)'),
-        ('ma','int','Malaria'),
-        ('tb','int','Tuberculosis'),
-        ('ab','int','Animal Bites'),
-        ('af','int','Acute Flaccid Paralysis (Polio)'),
-        ('mg','int','Meningitis'),
-        ('me','int','Measles'),
-        ('ch','int','Cholera'),
-        ('gw','int','Guinea Worm'),
-        ('nt','int','Neonatal Tetanus'),
-        ('yf','int','Yellow Fever'),
-        ('pl','int','Plague'),
-        ('ra','int','Rabies'),
-        ('vf','int','Other Viral Hemorrhagic Fevers'),
-        ('ei','int','Other Emerging Infectious Diseases'),
+        ('bd','int','Bloody diarrhea (Dysentery)', False),
+        ('ma','int','Malaria', False),
+        ('tb','int','Tuberculosis', False),
+        ('ab','int','Animal Bites', False),
+        ('af','int','Acute Flaccid Paralysis (Polio)', False),
+        ('mg','int','Meningitis', False),
+        ('me','int','Measles', False),
+        ('ch','int','Cholera', False),
+        ('gw','int','Guinea Worm', False),
+        ('nt','int','Neonatal Tetanus', False),
+        ('yf','int','Yellow Fever', False),
+        ('pl','int','Plague', False),
+        ('ra','int','Rabies', False),
+        ('vf','int','Other Viral Hemorrhagic Fevers', False),
+        ('ei','int','Other Emerging Infectious Diseases', False),
     ]
 
     HOME_ATTRIBUTES = [
-       ('to','int','Total Homesteads Visited'),
-       ('it','int','ITTNs/LLINs'),
-       ('la','int','Latrines'),
-       ('ha','int','Handwashing Facilities'),
-       ('wa','int','Safe Drinking Water'),
+       ('to','int','Total Homesteads Visited', False),
+       ('it','int','ITTNs/LLINs', False),
+       ('la','int','Latrines', False),
+       ('ha','int','Handwashing Facilities', False),
+       ('wa','int','Safe Drinking Water', False),
     ]
 
     XFORMS = (
@@ -53,32 +53,32 @@ def init_xforms():
 
     XFORM_FIELDS = {
         'muac':[
-             ('name', 'text', 'The name of the malnourished patient'),
-             ('gender', 'cvssex','The gender of the malnourished patient'),
-             ('age', 'cvstdelt', 'The age of the malnurished patient'),
-             ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition'),
-             ('ignored','cvsodema', 'Occurence of oedema (T/F)')
+             ('name', 'text', 'The name of the malnourished patient', True),
+             ('gender', 'cvssex','The gender of the malnourished patient', True),
+             ('age', 'cvstdelt', 'The age of the malnurished patient', True),
+             ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition', True),
+             ('ignored','cvsodema', 'Occurence of oedema (T/F)', False)
          ],
         'birth':[
-             ('name', 'text', 'The name of the child born'),
-             ('gender', 'cvssex', 'The gender of the child born'),
-             ('place','cvsloc', 'At home or at a health facility'),
+             ('name', 'text', 'The name of the child born', True),
+             ('gender', 'cvssex', 'The gender of the child born', True),
+             ('place','cvsloc', 'At home or at a health facility', True),
          ],
          'death':[
-             ('name','text','The name of the person who has died'),
-             ('gender', 'cvssex', 'The gender of the person who has died'),
-             ('age', 'cvstdelt', 'The age of the person who has died'),
+             ('name','text','The name of the person who has died', True),
+             ('gender', 'cvssex', 'The gender of the person who has died', True),
+             ('age', 'cvstdelt', 'The age of the person who has died', True),
          ],
         'epi':DISEASE_CHOICES,
         'home':HOME_ATTRIBUTES,
         'reg':[
-             ('name','text','The name of the reporter registering'),
+             ('name','text','Your name', True),
         ],
         'vht':[
-             ('facility','facility','The facility of the vht signing up'),
+             ('facility','facility','Your facility code', True),
         ],
         'pvht':[
-             ('facility','facility','The facility of the pvht signing up'),
+             ('facility','facility','Your facility code', True),
         ],
     }
 
@@ -116,6 +116,14 @@ def init_xforms():
                     'description':attribute[2],
                 }
             )
+            if attribute[3]:
+                xformfieldconstraint, created = XFormFieldConstraint.objects.get_or_create(
+                    field=xformfield,
+                    defaults={
+                        'type':'req_val',
+                        'message':("Expected %s, none provided." % attribute[2])
+                    }
+                )
             order = order + 1
     return xform_dict
 
@@ -288,7 +296,7 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         where_clauses = ["xforms.keyword = '%s'" % xform_keyword] 
         joins = ['rapidsms_xforms_xform xforms on submissions.xform_id = xforms.id']
     if location is not None:
-        if kwargs.get('request',None) and kwargs['request'].GET.get('root',None):
+        if kwargs.get('request',None) and kwargs.get('request',None) and kwargs['request'].GET.get('root',None):
              group_by = group_by | GROUP_BY_LOCATION
              where_clauses.append("locations.id in (%s)" % location.id)
         else:
@@ -357,7 +365,8 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         if location is None:
             joins.append('simple_locations_area locations on providers.location_id = locations.id')
         else:
-            joins.append('simple_locations_area locations on providers.location_id >= locations.lft and providers.location_id <= locations.rght')
+            joins.append('simple_locations_area provider_locations on providers.location_id = provider_locations.id')
+            joins.append('simple_locations_area locations on provider_locations.lft >= locations.lft and provider_locations.rght <= locations.rght')
 
 #    if attribute_keyword is not None:
 #        groupby_columns.append('entity')
@@ -391,7 +400,7 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
         where_clauses = ["xforms.keyword = '%s'" % xform_keyword] 
         joins = ['rapidsms_xforms_xform xforms on submissions.xform_id = xforms.id']
     if location is not None:
-        if kwargs['request'] and kwargs['request'].GET.get('root',None):
+        if kwargs.get('request',None) and kwargs['request'] and  kwargs['request'].GET.get('root',None):
              group_by = group_by | GROUP_BY_LOCATION
              where_clauses.append("locations.id in (%s)" % location.id)
         else:
@@ -465,7 +474,13 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
         elif timespan =='quarter':
             time = quarters[int(time)]+ ' Quarter'
         else:
-            time=int(time)
+            dates = get_dates(request)
+            start_year, start_month, start_day = dates['start'].year, dates['start'].month, dates['start'].day
+            end_year, end_month, end_day = dates['end'].year, dates['end'].month, dates['end'].day
+            if time == start_day:
+                time= str(int(time)) +'-'+ str(start_month) +'-'+ str(start_year)
+            else:
+                time= str(int(time)) +'-'+ str(end_month) +'-'+ str(end_year)
 
 
         report_dict.setdefault(time,{})
@@ -508,7 +523,26 @@ def get_expected_epi(location, request):
 
     datediff = dates['end'] - dates['start']
     weeks = floor((datediff.days / 7))
+    if weeks == 0:
+        weeks = 1
     return health_providers * weeks
+
+
+def get_group_by(start_date, end_date):
+    interval=end_date-start_date
+    if interval<=datetime.timedelta(days=21):
+        group_by=GROUP_BY_DAY
+        prefix = 'day'
+    elif datetime.timedelta(days=21) <=interval<=datetime.timedelta(days=90):
+        group_by=GROUP_BY_WEEK
+        prefix = 'week'
+    elif datetime.timedelta(days=90) <=interval<=datetime.timedelta(days=270):
+        group_by=GROUP_BY_MONTH
+        prefix = 'month'
+    else:
+        group_by=GROUP_BY_QUARTER
+        prefix = 'quarter'
+    return {'group_by':group_by, 'group_by_name':prefix}
 
 
 class ExcelResponse(HttpResponse):
@@ -602,6 +636,4 @@ class ExcelResponse(HttpResponse):
         self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
             (output_name.replace('"', '\"'), file_ext)
 
-
-    
    

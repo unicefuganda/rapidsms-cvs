@@ -7,7 +7,11 @@ from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
+<<<<<<< HEAD:cvs/views/stats.py
 from cvs.utils import report, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER,ExcelResponse
+=======
+from cvs.utils import report, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, get_group_by, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER
+>>>>>>> a4ed9b1e2ed3c7f41bba503bf5ef34ea8fd507cb:cvs/views/stats.py
 from cvs.forms import DateRangeForm
 import datetime
 import time
@@ -47,13 +51,13 @@ def index(request, location_id=None):
     percentage_epi = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     expected_epi = get_expected_epi(location,request)
 
-    x = 0
-    while x < len(percentage_safe_water):
-        home_divide = float(percentage_safe_water[x]['value'])
-        total_value = float(home_total[x]['value'])
-        home_divide /= total_value
-        percentage_safe_water[x]['value'] = round(home_divide*100,1)
-        x +=1
+#    x = 0
+#    while x < len(percentage_safe_water):
+#        home_divide = float(percentage_safe_water[x]['value'])
+#        total_value = float(home_total[x]['value'])
+#        home_divide /= total_value
+#        percentage_safe_water[x]['value'] = round(home_divide*100,1)
+#        x +=1
 
     y = 0
     while y < len(percentage_epi):
@@ -71,14 +75,24 @@ def index(request, location_id=None):
     reorganize_location('death', death, report_dict)
     reorganize_location('percentage_epi', percentage_epi, report_dict)
     reorganize_location('percentage_safe_water', percentage_safe_water, report_dict)
+    reorganize_location('home_total', home_total, report_dict)
+
+    for loc, val_dict in report_dict.iteritems():
+        if 'home_total' in val_dict and 'percentage_safe_water' in val_dict:
+            home_total = val_dict['home_total']
+            percentage_safe_water = val_dict['percentage_safe_water']
+            val_dict['percentage_safe_water'] = round((percentage_safe_water / home_total)*100, 1)
+        else:
+            val_dict['percentage_safe_water'] = 'N/A'
+
     # label, link, colspan
     topColumns = (('','',1),
-                  ('Malnutrition', '/cvs/muac/', 1),
-                  ('Epi','/cvs/epi/',3),
-                  ('Birth','/cvs/birth/',1),
-                  ('Death','/cvs/death/',1),
-                  ('Home', '/cvs/home/',1),
-                  ('Reporters','/cvs/reporter/',1)
+                  ('Malnutrition', '/cvs/muac/?root=true', 1),
+                  ('Epi','/cvs/epi/?root=true',3),
+                  ('Birth','/cvs/birth/?root=true',1),
+                  ('Death','/cvs/death/?root=true',1),
+                  ('Home', '/cvs/home/?root=true',1),
+                  ('Reporters','',1)
                   )
                   
     columns = (
@@ -89,31 +103,18 @@ def index(request, location_id=None):
                ('Bloody Diarrhea','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/bd/')"),
                ('Total','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/')"),
                ('Total Child Deaths','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/')"),
-               ('Safe Drinking Water (% of homesteads)','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/')"),
-               ('% of expected weekly Epi reports received','javascript:void(0)',1,''),
+               ('Safe Drinking Water (% of homesteads)','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/percentage/')"),
+               ('% of expected weekly Epi reports received','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/percentage/')"),
     )
-    interval=dates['end']-dates['start']
-    if interval<=datetime.timedelta(days=21):
-        group_by=GROUP_BY_DAY
-        r='day'
-    elif datetime.timedelta(days=21) <=interval<=datetime.timedelta(days=90):
-        group_by=GROUP_BY_WEEK
-        r='week'
-    elif datetime.timedelta(days=90) <=interval<=datetime.timedelta(days=270):
-        group_by=GROUP_BY_MONTH
-        r='month'
-    else:
-        group_by=GROUP_BY_QUARTER
-        r='quarter'
 
-
-    chart = report('epi', location=location, attribute_keyword='ma', start_date=dates['start'], end_date=dates['end'], group_by=group_by | GROUP_BY_LOCATION )
+    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
+    chart = report('epi', location=location, attribute_keyword='ma', start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR )
     chart_title = 'Variation of Malaria Reports'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
     chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan(r, chart, chart_dict, location_list)    
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'top_columns':topColumns, 
@@ -127,7 +128,6 @@ def index(request, location_id=None):
                                'xaxis':xaxis, 
                                'yaxis':yaxis, 
                                'chart_title': chart_title,
-                               'tooltip_prefix': '',
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -170,14 +170,14 @@ def muac_detail(request,location_id=None):
                   ('Red+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__oedema/R__T/')")
                   )
     
-    chart = report('muac', location=location, start_date=dates['start'], end_date=dates['end'], group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
+    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
+    chart = report('muac', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR )
     chart_title = 'Variation of Total Malnutrition Reports'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
-    chart_dict = {}
+    chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan('week', chart, chart_dict, location_list)  
-    
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'columns':columns,  
@@ -190,7 +190,6 @@ def muac_detail(request,location_id=None):
                                'xaxis':xaxis, 
                                'yaxis':yaxis, 
                                'chart_title': chart_title,
-                               'tooltip_prefix': 'Week ', 
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -242,13 +241,14 @@ def epi_detail(request, location_id=None):
         tup = (v, link, colspan, onclick)
         columns.append(tup)
     
-    chart = report('epi', location=location, start_date=dates['start'], end_date=dates['end'], group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
+    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
+    chart = report('epi', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR)
     chart_title = 'Variation of Total Epi Reports'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
-    chart_dict = {}
+    chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan('week', chart, chart_dict, location_list)
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
     
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
@@ -262,7 +262,6 @@ def epi_detail(request, location_id=None):
                                'xaxis':xaxis, 
                                'yaxis':yaxis, 
                                'chart_title': chart_title,
-                               'tooltip_prefix': 'Week ', 
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -316,14 +315,15 @@ def birth_detail(request, location_id=None):
                   ('Delivered at Facility','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/FACILITY/')"),
                   ('% Delivered at Home','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/percentage/')")
                   )
-    
-    chart = report('birth', location=location, start_date=dates['start'], end_date=dates['end'], group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
+
+    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
+    chart = report('birth', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR )
     chart_title = 'Variation of Total Birth Reports'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
-    chart_dict = {}
+    chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan('week', chart, chart_dict, location_list)  
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
     
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
@@ -337,7 +337,6 @@ def birth_detail(request, location_id=None):
                                'xaxis':xaxis, 
                                'yaxis':yaxis, 
                                'chart_title': chart_title,
-                               'tooltip_prefix': 'Week ', 
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -384,13 +383,14 @@ def death_detail(request, location_id=None):
                   ('Deaths 1 year to 5 years','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/between_365_1825/')")
                   )
     
-    chart = report('death', location=location, start_date=dates['start'], end_date=dates['end'], group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
+    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
+    chart = report('death', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR)
     chart_title = 'Variation of Total Child Death Reports'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
-    chart_dict = {}
+    chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan('week', chart, chart_dict, location_list)  
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
     
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
@@ -404,7 +404,6 @@ def death_detail(request, location_id=None):
                                'xaxis':xaxis, 
                                'yaxis':yaxis, 
                                'chart_title': chart_title,
-                               'tooltip_prefix': 'Week ', 
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -476,14 +475,14 @@ def home_detail(request, location_id=None):
                     ('Total', '', 1),
                     ('% of Total', '', 1),
                 )
-
-    chart = report('home', attribute_keyword='to', location=location, start_date=dates['start'], end_date=dates['end'], group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION | GROUP_BY_YEAR)
+    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
+    chart = report('home', attribute_keyword='to', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR)
     chart_title = 'Variation of Total Households Visited'
     xaxis = 'Week of Year'
     yaxis = 'Number of Cases'
-    chart_dict = {}
+    chart_dict = SortedDict()
     location_list = []
-    reorganize_timespan('week', chart, chart_dict, location_list)
+    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
 
     return render_to_response("cvs/stats.html",
                               {'report':report_dict,
@@ -498,7 +497,6 @@ def home_detail(request, location_id=None):
                                'xaxis':xaxis,
                                'yaxis':yaxis,
                                'chart_title': chart_title,
-                               'tooltip_prefix': 'Week ',
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -572,6 +570,5 @@ def export_as_excel(request):
         export_data['epi_ei']=data.get('epi_ei','')
         export_data_list.append(export_data)
     return ExcelResponse(export_data_list)
-
 
 
