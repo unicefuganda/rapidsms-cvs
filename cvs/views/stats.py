@@ -7,12 +7,14 @@ from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
-from cvs.utils import report, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER
+from cvs.utils import report, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER,ExcelResponse
 from cvs.forms import DateRangeForm
 import datetime
 import time
 from django.db import connection
 from django.utils.datastructures import SortedDict
+from rapidsms_xforms.models import XFormSubmission
+from rapidsms.models import Contact
 
 def index(request, location_id=None):
     """
@@ -505,3 +507,71 @@ def home_detail(request, location_id=None):
                                'end_ts':time.mktime(dates['end'].timetuple()) * 1000,
                                'date_range_form':dates['form'],
                                 }, context_instance=RequestContext(request))
+
+
+
+def export_as_excel(request):
+    submissions =XFormSubmission.objects.all()
+    export_data_list=[]
+
+    for submission in submissions:
+        export_data=SortedDict()
+        if submission.connection.contact:
+            export_data['reporter_name']=submission.connection.contact.name
+        else:
+            export_data['reporter_name']=''
+
+        export_data['reporter_number']=submission.connection.identity
+        if submission.connection.contact.healthproviderbase.healthprovider.location:
+            export_data['location']=submission.connection.contact.healthproviderbase.healthprovider.location.name
+            export_data['district']=list(submission.connection.contact.healthproviderbase.healthprovider.location.get_ancestors())[1].name
+        else:
+             export_data['location']=''
+             export_data['district']=''
+
+        export_data['time']=str(submission.created)
+        if submission.connection.contact.healthproviderbase.healthprovider.facility:
+            export_data['facility']=submission.connection.contact.healthproviderbase.healthprovider.facility.name
+        else:
+            export_data['facility']=''
+        export_data['message']=submission.raw
+        data={}
+        for d in submission.values.all():
+            data[d.attribute.slug]=d.value
+        export_data['report_keyword']=submission.xform.keyword
+        export_data['muac_name']=data.get('muac_name','')
+        export_data['muac_gender']=data.get('muac_gender','')
+        export_data['muac_age']=data.get('muac_age','')
+        export_data['muac_category']=data.get('muac_category','')
+        export_data['muac_eodema']=data.get('muac_eodema','')
+        export_data['home_it']=data.get('home_it','')
+        export_data['home_to']=data.get('home_to','')
+        export_data['home_la']=data.get('home_la','')
+        export_data['home_ha']=data.get('home_ha','')
+        export_data['home_wa']=data.get('home_wa','')
+        export_data['death_name']=data.get('death_name','')
+        export_data['death_gender']=data.get('death_gender','')
+        export_data['death_age']=data.get('death_age','')
+        export_data['birth_name']=data.get('birth_name','')
+        export_data['birth_place']=data.get('birth_place','')
+        export_data['birth_gender']=data.get('birth_gender','')
+        export_data['epi_ma']=data.get('epi_ma','')
+        export_data['epi_bd']=data.get('epi_bd','')
+        export_data['epi_tb']=data.get('epi_tb','')
+        export_data['epi_ab']=data.get('epi_ab','')
+        export_data['epi_af']=data.get('epi_af','')
+        export_data['epi_mg']=data.get('epi_mg','')
+        export_data['epi_me']=data.get('epi_me','')
+        export_data['epi_ch']=data.get('epi_ch','')
+        export_data['epi_gw']=data.get('epi_gw','')
+        export_data['epi_nt']=data.get('epi_nt','')
+        export_data['epi_yf']=data.get('epi_yf','')
+        export_data['epi_pl']=data.get('epi_pl','')
+        export_data['epi_ra']=data.get('epi_ra','')
+        export_data['epi_vf']=data.get('epi_vf','')
+        export_data['epi_ei']=data.get('epi_ei','')
+        export_data_list.append(export_data)
+    return ExcelResponse(export_data_list)
+
+
+

@@ -15,6 +15,7 @@ urlpatterns = patterns('',
    url(r'^cvs/death/(?P<location_id>\d+)/$', death_detail),
    url(r'^cvs/home/$', home_detail),
    url(r'^cvs/home/(?P<location_id>\d+)/$', home_detail),
+   url(r'^cvs/excelexport/$', export_as_excel),
    #chart urls
    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-zA-Z_]+)/(?P<attribute_value>[0-9a-zA-Z_]+)/', chart),
    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
