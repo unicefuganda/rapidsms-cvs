@@ -83,9 +83,9 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
             home_total = report('home', attribute_keyword='to', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
             for attribute_values_dict in attribute_values_list:
                 try:
-                    attribute_values_dict['value']=(attribute_values_dict['value']/float(home_total[attribute_values_list.index(attribute_values_dict)]['value']))*100
+                    attribute_values_dict['value']=(attribute_values_dict['value']/float(home_total[attribute_values_list.index(attribute_values_dict)]['value']))*100 or "null"
                 except (ZeroDivisionError, TypeError):
-                    attribute_values_dict['value']='N/A'
+                    attribute_values_dict['value']='null'
 
             chart_data = attribute_values_list
         else:
