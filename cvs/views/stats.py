@@ -456,21 +456,22 @@ def home_detail(request, location_id=None):
 
     columns = (
                   ('Total Households Visited', 'javascript:void(0)', 2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/to/')"),
-                  ('Safe Drinking Water','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/percentage/')"),
-                  ('Hand Washing Facilities','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/ha/percentage/')"),
-                  ('Latrines','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/la/percentage/')"),
-                  ('ITTNs/LLINs','javascript:void(0)',2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/percentage/')"),
+                  ('Safe Drinking Water','',2),
+                  ('Hand Washing Facilities','',2),
+                  ('Latrines','',2),
+                  ('ITTNs/LLINs','',2),
                   )
     bottom_columns = (('','',2),
                     ('Total', '', 1),
-                    ('% of Total', '', 1),
+                    ("% of Total", "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/percentage/')", 1,""),
                     ('Total', '', 1),
-                    ('% of Total', '', 1),
+                    ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/ha/percentage/')", 1),
                     ('Total', '', 1),
-                    ('% of Total', '', 1),
+                    ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/la/percentage/')", 1),
                     ('Total', '', 1),
-                    ('% of Total', '', 1),
+                    ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/percentage/')", 1,),
                 )
+    print bottom_columns
     group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
     chart = report('home', attribute_keyword='to', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR)
     chart_title = 'Variation of Total Households Visited'
