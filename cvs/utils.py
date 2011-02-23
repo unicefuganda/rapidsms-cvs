@@ -237,6 +237,10 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
             rowoff += 1
             rowdict.update({'location_id':row[rowoff]})
             rowoff += 1
+            rowdict.update({'rght':row[rowoff]})
+            rowoff += 1
+            rowdict.update({'lft':row[rowoff]})
+            rowoff += 1
         if group_by & GROUP_BY_FACILITY:
             rowdict.update({'facility_name':row[1]})
             rowdict.update({'facility_id':row[2]})
@@ -357,8 +361,12 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
     if group_by & GROUP_BY_LOCATION:
         select_clauses.append(('locations.name', 'lname',))
         select_clauses.append(('locations.id', 'lid',))
+        select_clauses.append(('locations.lft', 'lft',))
+        select_clauses.append(('locations.rght', 'rght',))
         groupby_columns.append('lname')
         groupby_columns.append('lid')
+        groupby_columns.append('locations.lft')
+        groupby_columns.append('locations.rght')
         orderby_columns.append('lname')
         joins.append('rapidsms_connection connections on submissions.connection_id = connections.id')
         joins.append('healthmodels_healthproviderbase providers on connections.contact_id = providers.contact_ptr_id')
@@ -433,9 +441,13 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
     if group_by & GROUP_BY_LOCATION:
         select_clauses.append(('locations.name', 'lname',))
         select_clauses.append(('locations.id', 'lid',))
+        select_clauses.append(('locations.lft', 'lft',))
+        select_clauses.append(('locations.rght', 'rght',))
         groupby_columns.append('lname')
         groupby_columns.append('lid')
         orderby_columns.append('lname')
+        groupby_columns.append('locations.lft')
+        groupby_columns.append('locations.rght')
         joins.append('rapidsms_connection connections on submissions.connection_id = connections.id')
         joins.append('healthmodels_healthproviderbase providers on connections.contact_id = providers.contact_ptr_id')
         if location is None:
@@ -461,8 +473,9 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
 def reorganize_location(key, report, report_dict):
     for dict in report:
         location = dict['location_name']
-        report_dict.setdefault(location,{'location_id':dict['location_id']})
+        report_dict.setdefault(location,{'location_id':dict['location_id'],'diff':dict['lft']-dict['rght']})
         report_dict[location][key] = dict['value']
+
         
 def reorganize_timespan(timespan, report, report_dict, location_list,request=None):
     for dict in report:
@@ -481,7 +494,6 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
                 time= str(int(time)) +'-'+ str(start_month) +'-'+ str(start_year)
             else:
                 time= str(int(time)) +'-'+ str(end_month) +'-'+ str(end_year)
-
 
         report_dict.setdefault(time,{})
         location = dict['location_name']

@@ -2,6 +2,7 @@ from healthmodels.models import *
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
 from healthmodels.models.HealthFacility import HealthFacility
 from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
@@ -47,6 +48,7 @@ def index(request, location_id=None):
     percentage_epi = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     expected_epi = get_expected_epi(location,request)
 
+
 #    x = 0
 #    while x < len(percentage_safe_water):
 #        home_divide = float(percentage_safe_water[x]['value'])
@@ -72,7 +74,6 @@ def index(request, location_id=None):
     reorganize_location('percentage_epi', percentage_epi, report_dict)
     reorganize_location('percentage_safe_water', percentage_safe_water, report_dict)
     reorganize_location('home_total', home_total, report_dict)
-
     for loc, val_dict in report_dict.iteritems():
         if 'home_total' in val_dict and 'percentage_safe_water' in val_dict:
             home_total = val_dict['home_total']
@@ -111,11 +112,13 @@ def index(request, location_id=None):
     chart_dict = SortedDict()
     location_list = []
     reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
+
+
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'top_columns':topColumns, 
                                'columns':columns, 
-                               'location_id':location_id, 
+                               'location_id':location_id,
                                'report_template':'cvs/partials/stats_main.html', 
                                'data':chart_dict, 
                                'series':location_list, 
@@ -132,6 +135,7 @@ def index(request, location_id=None):
                                'end_ts':time.mktime(dates['end'].timetuple()) * 1000,
                                'date_range_form':dates['form'],
                                 }, context_instance=RequestContext(request))
+
 
 def muac_detail(request,location_id=None):
     """
@@ -471,7 +475,6 @@ def home_detail(request, location_id=None):
                     ('Total', '', 1),
                     ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/percentage/')", 1,),
                 )
-    print bottom_columns
     group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
     chart = report('home', attribute_keyword='to', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR)
     chart_title = 'Variation of Total Households Visited'

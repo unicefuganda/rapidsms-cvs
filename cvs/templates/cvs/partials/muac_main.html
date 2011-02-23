@@ -1,6 +1,12 @@
 {% for key, value in report.items %}
 <tr>
-<td><a href="{% if location_id %}../{% endif %}{{ value.location_id }}/">{{ key }}</a></td>
+<td>
+    {% if value.diff == 1%}
+             {{ key }}
+            {% else %}
+            <a href="{% if location_id %}../{% endif %}{{ value.location_id }}/">{{ key }}</a>
+       {% endif %}
+</td>
 <td>{% if value.total %} {{ value.total }} {% else %} 0 {% endif %}</td>
 <td>{% if value.green %} {{ value.green }} {% else %} 0 {% endif %}</td>
 <td>{% if value.green_oedema %} {{ value.green_oedema }} {% else %} 0 {% endif %}</td>
