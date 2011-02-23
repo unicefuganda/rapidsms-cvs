@@ -520,7 +520,7 @@ def export_as_excel(request):
             export_data['reporter_name']=''
 
         export_data['reporter_number']=submission.connection.identity
-        if submission.connection.contact.healthproviderbase.healthprovider.location:
+        if submission.connection.contact and submission.connection.contact.healthproviderbase.healthprovider.location:
             export_data['location']=submission.connection.contact.healthproviderbase.healthprovider.location.name
             export_data['district']=list(submission.connection.contact.healthproviderbase.healthprovider.location.get_ancestors())[1].name
         else:
@@ -528,7 +528,7 @@ def export_as_excel(request):
              export_data['district']=''
 
         export_data['time']=str(submission.created)
-        if submission.connection.contact.healthproviderbase.healthprovider.facility:
+        if submission.connection.contact and submission.connection.contact.healthproviderbase.healthprovider.facility:
             export_data['facility']=submission.connection.contact.healthproviderbase.healthprovider.facility.name
         else:
             export_data['facility']=''
