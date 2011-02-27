@@ -507,11 +507,20 @@ def home_detail(request, location_id=None):
                                 }, context_instance=RequestContext(request))
 
 
+def get_district(lst,lft,rght):
+    "get a district name give a location's rght and lft"
+    for d in lst:
+        if d[1][0] <=lft and d[1][1] >=rght:
+            return d[0]
+
 
 def export_as_excel(request):
-    submissions =XFormSubmission.objects.all()
+    submissions =XFormSubmission.objects.select_related('connection','connection__identity','connection__contact','connection__contact__name').all()
+    health_providers=HealthProvider.objects.select_related('location','facility','location__name','facility__name','location__lft','loction__rght')
     export_data_list=[]
-
+    districts=[]
+    for d in Area.objects.filter(kind__slug='district'):
+        districts.append((d.name,[d.lft,d.rght]))
     for submission in submissions:
         export_data=SortedDict()
         if submission.connection.contact:
@@ -520,16 +529,25 @@ def export_as_excel(request):
             export_data['reporter_name']=''
 
         export_data['reporter_number']=submission.connection.identity
-        if submission.connection.contact and submission.connection.contact.healthproviderbase.healthprovider.location:
-            export_data['location']=submission.connection.contact.healthproviderbase.healthprovider.location.name
-            export_data['district']=list(submission.connection.contact.healthproviderbase.healthprovider.location.get_ancestors())[1].name
+        if submission.connection.contact:
+            try:
+                loc=health_providers.filter(contact_ptr=submission.connection.contact.pk)[0].location
+                export_data['location']=loc.name
+                export_data['district']=get_district(districts,loc.lft,loc.rght)
+            except:
+                export_data['location']=''
+                export_data['district']=''
         else:
              export_data['location']=''
              export_data['district']=''
 
         export_data['time']=str(submission.created)
-        if submission.connection.contact and submission.connection.contact.healthproviderbase.healthprovider.facility:
-            export_data['facility']=submission.connection.contact.healthproviderbase.healthprovider.facility.name
+        if submission.connection.contact :
+            try:
+                export_data['facility']=health_providers.filter(contact_ptr=submission.connection.contact)[0].facility.name
+            except:
+                export_data['facility']=''
+
         else:
             export_data['facility']=''
         export_data['message']=submission.raw
@@ -569,6 +587,7 @@ def export_as_excel(request):
         export_data['epi_vf']=data.get('epi_vf','')
         export_data['epi_ei']=data.get('epi_ei','')
         export_data_list.append(export_data)
+  
     return ExcelResponse(export_data_list)
 
 
