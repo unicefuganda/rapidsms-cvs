@@ -13,6 +13,13 @@ setup(
         'rapidsms-polls',
         'rapidsms-httprouter',
         'rapidsms-ureport',
+        'django-extensions',
+        'django-uni-form',
+        'django-eav',
+        'simple_locations',
+        'code_generator',
+        'rapidsms-auth',
+        'rapidsms-authsites',
     ],
 
     dependency_links = [
@@ -22,6 +29,11 @@ setup(
         "http://github.com/daveycrockett/rapidsms-polls/tarball/master#egg=rapidsms-polls",
         "http://github.com/daveycrockett/rapidsms-httprouter/tarball/master#egg=rapidsms-httprouter",
         "http://github.com/daveycrockett/rapidsms-ureport/tarball/master#egg=rapidsms-ureport",
+        "http://github.com/mvpdev/django-eav/tarball/master#egg=django-eav",
+        "http://github.com/mossplix/simple_locations/tarball/master#egg=simple_locations",
+        "http://github.com/daveycrockett/code_generator/tarball/master#egg=code_generator",
+        "http://github.com/daveycrockett/rapidsms-auth/tarball/master#egg=rapidsms-auth",
+        "http://github.com/daveycrockett/rapidsms-authsites/tarball/master#egg=rapidsms-authsites",
     ],
 
     description='The community vulnerability surveillance program deployed in Uganda for the VHT program',
