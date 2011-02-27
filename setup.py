@@ -6,7 +6,7 @@ setup(
     license="BSD",
 
     requires = [
-        "rapidsms (>=0.9.6a)",
+        "rapidsms",
         'healthmodels',
         'rapidsms-xforms',
         'rapidsms-auth',
