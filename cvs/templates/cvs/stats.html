@@ -1,6 +1,5 @@
 {% extends "layout.html" %}
 {% load stats_extras %}
-
 {% block stylesheets %}
 {{ block.super }}
 <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}cvs/stylesheets/jquery-ui-1.7.3.custom.css" />
@@ -125,8 +124,6 @@
 <div id="chart_container">
     {% include "cvs/partials/chart.html" %}
 </div>
-
-    <a href='/cvs/excelexport/'>Excel Export</a>
 </form>
 {% endif %}
 {% endblock %}

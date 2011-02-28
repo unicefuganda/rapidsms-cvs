@@ -8,33 +8,33 @@ from healthmodels.models.HealthProvider import HealthProvider
 from math import floor
 from rapidsms_xforms.models import *
 import datetime
-from django.http import HttpResponse
+import time
 
 def init_xforms():
     DISEASE_CHOICES = [
-        ('bd','int','Bloody diarrhea (Dysentery)', False),
-        ('ma','int','Malaria', False),
-        ('tb','int','Tuberculosis', False),
-        ('ab','int','Animal Bites', False),
-        ('af','int','Acute Flaccid Paralysis (Polio)', False),
-        ('mg','int','Meningitis', False),
-        ('me','int','Measles', False),
-        ('ch','int','Cholera', False),
-        ('gw','int','Guinea Worm', False),
-        ('nt','int','Neonatal Tetanus', False),
-        ('yf','int','Yellow Fever', False),
-        ('pl','int','Plague', False),
-        ('ra','int','Rabies', False),
-        ('vf','int','Other Viral Hemorrhagic Fevers', False),
-        ('ei','int','Other Emerging Infectious Diseases', False),
+        ('bd','int','Bloody diarrhea (Dysentery)'),
+        ('ma','int','Malaria'),
+        ('tb','int','Tuberculosis'),
+        ('ab','int','Animal Bites'),
+        ('af','int','Acute Flaccid Paralysis (Polio)'),
+        ('mg','int','Meningitis'),
+        ('me','int','Measles'),
+        ('ch','int','Cholera'),
+        ('gw','int','Guinea Worm'),
+        ('nt','int','Neonatal Tetanus'),
+        ('yf','int','Yellow Fever'),
+        ('pl','int','Plague'),
+        ('ra','int','Rabies'),
+        ('vf','int','Other Viral Hemorrhagic Fevers'),
+        ('ei','int','Other Emerging Infectious Diseases'),
     ]
 
     HOME_ATTRIBUTES = [
-       ('to','int','Total Homesteads Visited', False),
-       ('it','int','ITTNs/LLINs', False),
-       ('la','int','Latrines', False),
-       ('ha','int','Handwashing Facilities', False),
-       ('wa','int','Safe Drinking Water', False),
+       ('to','int','Total Homesteads Visited'),
+       ('it','int','ITTNs/LLINs'),
+       ('la','int','Latrines'),
+       ('ha','int','Handwashing Facilities'),
+       ('wa','int','Safe Drinking Water'),
     ]
 
     XFORMS = (
@@ -53,32 +53,32 @@ def init_xforms():
 
     XFORM_FIELDS = {
         'muac':[
-             ('name', 'text', 'The name of the malnourished patient', True),
-             ('gender', 'cvssex','The gender of the malnourished patient', True),
-             ('age', 'cvstdelt', 'The age of the malnurished patient', True),
-             ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition', True),
-             ('ignored','cvsodema', 'Occurence of oedema (T/F)', False)
+             ('name', 'text', 'The name of the malnourished patient'),
+             ('gender', 'cvssex','The gender of the malnourished patient'),
+             ('age', 'cvstdelt', 'The age of the malnurished patient'),
+             ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition'),
+             ('ignored','cvsodema', 'Occurence of oedema (T/F)')
          ],
         'birth':[
-             ('name', 'text', 'The name of the child born', True),
-             ('gender', 'cvssex', 'The gender of the child born', True),
-             ('place','cvsloc', 'At home or at a health facility', True),
+             ('name', 'text', 'The name of the child born'),
+             ('gender', 'cvssex', 'The gender of the child born'),
+             ('place','cvsloc', 'At home or at a health facility'),
          ],
          'death':[
-             ('name','text','The name of the person who has died', True),
-             ('gender', 'cvssex', 'The gender of the person who has died', True),
-             ('age', 'cvstdelt', 'The age of the person who has died', True),
+             ('name','text','The name of the person who has died'),
+             ('gender', 'cvssex', 'The gender of the person who has died'),
+             ('age', 'cvstdelt', 'The age of the person who has died'),
          ],
         'epi':DISEASE_CHOICES,
         'home':HOME_ATTRIBUTES,
         'reg':[
-             ('name','text','Your name', True),
+             ('name','text','The name of the reporter registering'),
         ],
         'vht':[
-             ('facility','facility','Your facility code', True),
+             ('facility','facility','The facility of the vht signing up'),
         ],
         'pvht':[
-             ('facility','facility','Your facility code', True),
+             ('facility','facility','The facility of the pvht signing up'),
         ],
     }
 
@@ -116,14 +116,6 @@ def init_xforms():
                     'description':attribute[2],
                 }
             )
-            if attribute[3]:
-                xformfieldconstraint, created = XFormFieldConstraint.objects.get_or_create(
-                    field=xformfield,
-                    defaults={
-                        'type':'req_val',
-                        'message':("Expected %s, none provided." % attribute[2])
-                    }
-                )
             order = order + 1
     return xform_dict
 
@@ -163,7 +155,6 @@ def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), att
         
     """
     request=kwargs.get('request',None)
-
     if group_by is not None:
         return report_raw(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility,**kwargs)
     if attribute_keyword is None:
@@ -236,10 +227,6 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
             rowdict.update({'location_name':row[rowoff]})
             rowoff += 1
             rowdict.update({'location_id':row[rowoff]})
-            rowoff += 1
-            rowdict.update({'rght':row[rowoff]})
-            rowoff += 1
-            rowdict.update({'lft':row[rowoff]})
             rowoff += 1
         if group_by & GROUP_BY_FACILITY:
             rowdict.update({'facility_name':row[1]})
@@ -361,20 +348,15 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
     if group_by & GROUP_BY_LOCATION:
         select_clauses.append(('locations.name', 'lname',))
         select_clauses.append(('locations.id', 'lid',))
-        select_clauses.append(('locations.lft', 'lft',))
-        select_clauses.append(('locations.rght', 'rght',))
         groupby_columns.append('lname')
         groupby_columns.append('lid')
-        groupby_columns.append('locations.lft')
-        groupby_columns.append('locations.rght')
         orderby_columns.append('lname')
         joins.append('rapidsms_connection connections on submissions.connection_id = connections.id')
         joins.append('healthmodels_healthproviderbase providers on connections.contact_id = providers.contact_ptr_id')
         if location is None:
             joins.append('simple_locations_area locations on providers.location_id = locations.id')
         else:
-            joins.append('simple_locations_area provider_locations on providers.location_id = provider_locations.id')
-            joins.append('simple_locations_area locations on provider_locations.lft >= locations.lft and provider_locations.rght <= locations.rght')
+            joins.append('simple_locations_area locations on providers.location_id >= locations.lft and providers.location_id <= locations.rght')
 
 #    if attribute_keyword is not None:
 #        groupby_columns.append('entity')
@@ -441,13 +423,9 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
     if group_by & GROUP_BY_LOCATION:
         select_clauses.append(('locations.name', 'lname',))
         select_clauses.append(('locations.id', 'lid',))
-        select_clauses.append(('locations.lft', 'lft',))
-        select_clauses.append(('locations.rght', 'rght',))
         groupby_columns.append('lname')
         groupby_columns.append('lid')
         orderby_columns.append('lname')
-        groupby_columns.append('locations.lft')
-        groupby_columns.append('locations.rght')
         joins.append('rapidsms_connection connections on submissions.connection_id = connections.id')
         joins.append('healthmodels_healthproviderbase providers on connections.contact_id = providers.contact_ptr_id')
         if location is None:
@@ -473,9 +451,8 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
 def reorganize_location(key, report, report_dict):
     for dict in report:
         location = dict['location_name']
-        report_dict.setdefault(location,{'location_id':dict['location_id'],'diff':dict['lft']-dict['rght']})
+        report_dict.setdefault(location,{'location_id':dict['location_id']})
         report_dict[location][key] = dict['value']
-
         
 def reorganize_timespan(timespan, report, report_dict, location_list,request=None):
     for dict in report:
@@ -494,6 +471,7 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
                 time= str(int(time)) +'-'+ str(start_month) +'-'+ str(start_year)
             else:
                 time= str(int(time)) +'-'+ str(end_month) +'-'+ str(end_year)
+
 
         report_dict.setdefault(time,{})
         location = dict['location_name']
@@ -539,7 +517,6 @@ def get_expected_epi(location, request):
         weeks = 1
     return health_providers * weeks
 
-
 def get_group_by(start_date, end_date):
     interval=end_date-start_date
     if interval<=datetime.timedelta(days=21):
@@ -556,96 +533,8 @@ def get_group_by(start_date, end_date):
         prefix = 'quarter'
     return {'group_by':group_by, 'group_by_name':prefix}
 
-
-class ExcelResponse(HttpResponse):
-    def __init__(self,data, output_name='excel_report',headers=None,force_csv=False, encoding='utf8'):
-        # Make sure we've got the right type of data to work with
-        valid_data = False
-        if hasattr(data, '__getitem__'):
-            if isinstance(data[0], dict):
-                if headers is None:
-                    headers = data[0].keys()
-                data = [[row[col] for col in headers] for row in data]
-                data.insert(0, headers)
-            if hasattr(data[0], '__getitem__'):
-                valid_data = True
-        import StringIO
-        output = StringIO.StringIO()
-        # Excel has a limit on number of rows; if we have more than that, make a csv
-        use_xls = False
-        if len(data) <= 65536 and force_csv is not True:
-            try:
-                import xlwt
-            except ImportError:
-                # xlwt doesn't exist; fall back to csv
-                pass
-            else:
-                use_xls = True
-        if use_xls:
-            ##formatting of the cells
-            # Grey background for the header row
-            BkgPat = xlwt.Pattern()
-            BkgPat.pattern = xlwt.Pattern.SOLID_PATTERN
-            BkgPat.pattern_fore_colour = 22
-
-            # Bold Fonts for the header row
-            font = xlwt.Font()
-            font.name = 'Calibri'
-            font.bold = True
-
-            # Non-Bold fonts for the body
-            font0 = xlwt.Font()
-            font0.name = 'Calibri'
-            font0.bold = False
-
-            # style and write field labels
-            style = xlwt.XFStyle()
-            style.font = font
-            style.pattern = BkgPat
-
-            style0 = xlwt.XFStyle()
-            style0.font = font0
-            book = xlwt.Workbook(encoding=encoding)
-            sheet = book.add_sheet('Sheet 1')
-            styles = {'datetime': xlwt.easyxf(num_format_str='yyyy-mm-dd hh:mm:ss'),
-                      'date': xlwt.easyxf(num_format_str='yyyy-mm-dd'),
-                      'time': xlwt.easyxf(num_format_str='hh:mm:ss'),
-                      'default': style0,
-                      'header':style}
-
-            for rowx, row in enumerate(data):
-                for colx, value in enumerate(row):
-                    if isinstance(value, datetime.datetime):
-                        cell_style = styles['datetime']
-                    elif isinstance(value, datetime.date):
-                        cell_style = styles['date']
-                    elif isinstance(value, datetime.time):
-                        cell_style = styles['time']
-                    elif rowx==0:
-                        cell_style = styles['header']
-                    else:
-                        cell_style = styles['default']
-
-                    sheet.write(rowx, colx, value, style=cell_style)
-            book.save(output)
-            mimetype = 'application/vnd.ms-excel'
-            file_ext = 'xls'
-        else:
-            for row in data:
-                out_row = []
-                for value in row:
-                    if not isinstance(value, basestring):
-                        value = unicode(value)
-                    value = value.encode(encoding)
-                    out_row.append(value.replace('"', '""'))
-                output.write('"%s"\n' %
-                             '","'.join(out_row))
-            mimetype = 'text/csv'
-            file_ext = 'csv'
-        output.seek(0)
-        super(ExcelResponse, self).__init__(content=output.getvalue(),
-                                            mimetype=mimetype)
-        self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
-            (output_name.replace('"', '\"'), file_ext)
-
+def get_reporters():
+    return HealthProvider.objects.raw("select h.*, c.*, count(subs.id) as num_reports from healthmodels_healhtprovider h join rapidsms_contact c on h.contact_ptr_id = c.id join rapidsms_connection conn on conn.contact_id = c.id join rapidsms_xforms_xformsubmission subs on subs.connection_id = conn.id")
+#    for h in HealthProvider.objects.all(
+#        print h.num_reports
    
