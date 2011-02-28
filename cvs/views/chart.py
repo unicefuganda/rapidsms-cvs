@@ -128,7 +128,7 @@ def chart_params(xform_keyword, attribute_keyword, attribute_value=None):
     
     keyword_dict = {
     'ma':'Malaria',
-    'tb':'TuberClosis',
+    'tb':'Tuberclosis',
     'bd': 'Bloody Diarrhea',
     'ab':'Animal Bites',
     'af':'Polio',
