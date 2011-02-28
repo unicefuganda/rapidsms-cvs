@@ -81,6 +81,8 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
             label="%"
             attribute_values_list = report('home', attribute_keyword=attribute_keyword, location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
             home_total = report('home', attribute_keyword='to', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
+            print attribute_values_list
+            print home_total
             for attribute_values_dict in attribute_values_list:
                 try:
                     attribute_values_dict['value']=(attribute_values_dict['value']/float(home_total[attribute_values_list.index(attribute_values_dict)]['value']))*100 or "null"
@@ -126,7 +128,7 @@ def chart_params(xform_keyword, attribute_keyword, attribute_value=None):
     
     keyword_dict = {
     'ma':'Malaria',
-    'tb':'Tuber Closis',
+    'tb':'TuberClosis',
     'bd': 'Bloody Diarrhea',
     'ab':'Animal Bites',
     'af':'Polio',
