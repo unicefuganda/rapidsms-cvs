@@ -7,7 +7,7 @@ def dict(input, property):
         return None
 
 def items_sorted(input):
-    return [(key, input[key],) for key in sorted(input.keys())]
+    return [(key, input[key],) for key in input.keys()]
 
 register = template.Library()
 register.filter('dict', dict)
