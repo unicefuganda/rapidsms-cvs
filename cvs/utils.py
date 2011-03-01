@@ -4,7 +4,7 @@ from django.db.models import Q, Sum
 from django.utils.datastructures import SortedDict
 from cvs.forms import DateRangeForm
 from django.contrib.auth.models import Group
-from healthmodels.models.HealthProvider import HealthProvider
+from healthmodels.models.HealthProvider import HealthProvider, HealthProviderBase
 from math import floor
 from rapidsms_xforms.models import *
 import datetime
@@ -547,7 +547,7 @@ def get_group_by(start_date, end_date):
     return {'group_by':group_by, 'group_by_name':prefix}
 
 def get_reporters():
-    return HealthProvider.objects.raw("select h.*, c.*, count(subs.id) as num_reports from healthmodels_healhtprovider h join rapidsms_contact c on h.contact_ptr_id = c.id join rapidsms_connection conn on conn.contact_id = c.id join rapidsms_xforms_xformsubmission subs on subs.connection_id = conn.id")
+    return HealthProviderBase.objects.raw("select h.*, c.name, conn.identity, max(subs.created) as last_date, count(subs.id) as num_reports from healthmodels_healthproviderbase h join rapidsms_contact c on h.contact_ptr_id = c.id join rapidsms_connection conn on conn.contact_id = c.id join rapidsms_xforms_xformsubmission subs on subs.connection_id = conn.id group by h.contact_ptr_id, h.facility_id, h.location_id, c.name, conn.identity")
 #    for h in HealthProvider.objects.all(
 #        print h.num_reports
    

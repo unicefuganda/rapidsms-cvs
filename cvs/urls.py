@@ -6,6 +6,7 @@ from healthmodels import *
 from generic.views import generic
 from contact.forms import FreeSearchForm, FilterGroupsForm, MassTextForm
 from cvs.utils import get_reporters
+from healthmodels.models.HealthProvider import HealthProviderBase
 
 urlpatterns = patterns('',
    url(r'^cvs/stats/$', index,name='stats'),
@@ -20,7 +21,6 @@ urlpatterns = patterns('',
    url(r'^cvs/death/(?P<location_id>\d+)/$', death_detail),
    url(r'^cvs/home/$', home_detail),
    url(r'^cvs/home/(?P<location_id>\d+)/$', home_detail),
-   url(r'^cvs/excelexport/$', export_as_excel),
    #chart urls
    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-zA-Z_]+)/(?P<attribute_value>[0-9a-zA-Z_]+)/', chart),
    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
@@ -36,7 +36,7 @@ urlpatterns = patterns('',
    url(r'^cvs/map/malnutrition', map.malnutrition),
    url(r'^cvs/map/deaths', map.deaths),
    #reporters
-   url(r'^cvs/reporter/index/$', generic, {'queryset':get_reporters, 'filter_forms':[FreeSearchForm, FilterGroupsForm], 'action_forms':[MassTextForm],'objects_per_page':25, 'partial_header':'cvs/partials/reporter_header.html', 'partial_row':'cvs/partials/reporter_row.html'})
+   url(r'^cvs/reporter/$', generic, { 'model':HealthProviderBase, 'queryset':get_reporters(), 'filter_forms':[FreeSearchForm, FilterGroupsForm], 'action_forms':[MassTextForm],'objects_per_page':25, 'partial_header':'cvs/partials/reporter_header.html', 'partial_row':'cvs/partials/reporter_row.html'})
 )
 
 

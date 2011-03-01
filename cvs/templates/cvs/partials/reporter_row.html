@@ -1,0 +1,8 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% block remaining_row_content %}
+    <td>{{ object.identity }}</td>
+    <td>{{ object.last_date|date:"d-m-Y" }}</td>
+    <td>{{ object.num_reports }}</td>
+    <td>{{ object.facility }}</td>
+    <td>{{ object.location.name }}</td>
+{% endblock %}
