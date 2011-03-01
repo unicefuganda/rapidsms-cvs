@@ -8,7 +8,7 @@ from healthmodels.models.HealthProvider import HealthProvider
 from math import floor
 from rapidsms_xforms.models import *
 import datetime
-import time
+from django.http import HttpResponse
 
 def init_xforms():
     DISEASE_CHOICES = [
@@ -228,6 +228,10 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
             rowoff += 1
             rowdict.update({'location_id':row[rowoff]})
             rowoff += 1
+            rowdict.update({'rght':row[rowoff]})
+            rowoff += 1
+            rowdict.update({'lft':row[rowoff]})
+            rowoff += 1
         if group_by & GROUP_BY_FACILITY:
             rowdict.update({'facility_name':row[1]})
             rowdict.update({'facility_id':row[2]})
@@ -348,15 +352,20 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
     if group_by & GROUP_BY_LOCATION:
         select_clauses.append(('locations.name', 'lname',))
         select_clauses.append(('locations.id', 'lid',))
+        select_clauses.append(('locations.lft', 'lft',))
+        select_clauses.append(('locations.rght', 'rght',))
         groupby_columns.append('lname')
         groupby_columns.append('lid')
+        groupby_columns.append('locations.lft')
+        groupby_columns.append('locations.rght')
         orderby_columns.append('lname')
         joins.append('rapidsms_connection connections on submissions.connection_id = connections.id')
         joins.append('healthmodels_healthproviderbase providers on connections.contact_id = providers.contact_ptr_id')
         if location is None:
             joins.append('simple_locations_area locations on providers.location_id = locations.id')
         else:
-            joins.append('simple_locations_area locations on providers.location_id >= locations.lft and providers.location_id <= locations.rght')
+            joins.append('simple_locations_area provider_locations on providers.location_id = provider_locations.id')
+            joins.append('simple_locations_area locations on provider_locations.lft >= locations.lft and provider_locations.rght <= locations.rght')
 
 #    if attribute_keyword is not None:
 #        groupby_columns.append('entity')
@@ -423,9 +432,13 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
     if group_by & GROUP_BY_LOCATION:
         select_clauses.append(('locations.name', 'lname',))
         select_clauses.append(('locations.id', 'lid',))
+        select_clauses.append(('locations.lft', 'lft',))
+        select_clauses.append(('locations.rght', 'rght',))
         groupby_columns.append('lname')
         groupby_columns.append('lid')
         orderby_columns.append('lname')
+        groupby_columns.append('locations.lft')
+        groupby_columns.append('locations.rght')
         joins.append('rapidsms_connection connections on submissions.connection_id = connections.id')
         joins.append('healthmodels_healthproviderbase providers on connections.contact_id = providers.contact_ptr_id')
         if location is None:
@@ -538,3 +551,95 @@ def get_reporters():
 #    for h in HealthProvider.objects.all(
 #        print h.num_reports
    
+class ExcelResponse(HttpResponse):
+    def __init__(self,data, output_name='excel_report',headers=None,force_csv=False, encoding='utf8'):
+        # Make sure we've got the right type of data to work with
+        valid_data = False
+        if hasattr(data, '__getitem__'):
+            if isinstance(data[0], dict):
+                if headers is None:
+                    headers = data[0].keys()
+                data = [[row[col] for col in headers] for row in data]
+                data.insert(0, headers)
+            if hasattr(data[0], '__getitem__'):
+                valid_data = True
+        import StringIO
+        output = StringIO.StringIO()
+        # Excel has a limit on number of rows; if we have more than that, make a csv
+        use_xls = False
+        if len(data) <= 65536 and force_csv is not True:
+            try:
+                import xlwt
+            except ImportError:
+                # xlwt doesn't exist; fall back to csv
+                pass
+            else:
+                use_xls = True
+        if use_xls:
+            ##formatting of the cells
+            # Grey background for the header row
+            BkgPat = xlwt.Pattern()
+            BkgPat.pattern = xlwt.Pattern.SOLID_PATTERN
+            BkgPat.pattern_fore_colour = 22
+
+            # Bold Fonts for the header row
+            font = xlwt.Font()
+            font.name = 'Calibri'
+            font.bold = True
+
+            # Non-Bold fonts for the body
+            font0 = xlwt.Font()
+            font0.name = 'Calibri'
+            font0.bold = False
+
+            # style and write field labels
+            style = xlwt.XFStyle()
+            style.font = font
+            style.pattern = BkgPat
+
+            style0 = xlwt.XFStyle()
+            style0.font = font0
+            book = xlwt.Workbook(encoding=encoding)
+            sheet = book.add_sheet('Sheet 1')
+            styles = {'datetime': xlwt.easyxf(num_format_str='yyyy-mm-dd hh:mm:ss'),
+                      'date': xlwt.easyxf(num_format_str='yyyy-mm-dd'),
+                      'time': xlwt.easyxf(num_format_str='hh:mm:ss'),
+                      'default': style0,
+                      'header':style}
+
+            for rowx, row in enumerate(data):
+                for colx, value in enumerate(row):
+                    if isinstance(value, datetime.datetime):
+                        cell_style = styles['datetime']
+                    elif isinstance(value, datetime.date):
+                        cell_style = styles['date']
+                    elif isinstance(value, datetime.time):
+                        cell_style = styles['time']
+                    elif rowx==0:
+                        cell_style = styles['header']
+                    else:
+                        cell_style = styles['default']
+
+                    sheet.write(rowx, colx, value, style=cell_style)
+            book.save(output)
+            mimetype = 'application/vnd.ms-excel'
+            file_ext = 'xls'
+        else:
+            for row in data:
+                out_row = []
+                for value in row:
+                    if not isinstance(value, basestring):
+                        value = unicode(value)
+                    value = value.encode(encoding)
+                    out_row.append(value.replace('"', '""'))
+                output.write('"%s"\n' %
+                             '","'.join(out_row))
+            mimetype = 'text/csv'
+            file_ext = 'csv'
+        output.seek(0)
+        super(ExcelResponse, self).__init__(content=output.getvalue(),
+                                            mimetype=mimetype)
+        self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
+            (output_name.replace('"', '\"'), file_ext)
+
+
