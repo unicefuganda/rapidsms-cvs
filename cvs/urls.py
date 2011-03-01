@@ -4,7 +4,7 @@ from cvs.views.chart import *
 from cvs.views import map
 from healthmodels import *
 from generic.views import generic
-from contact.forms import FreeSearchForm, FilterGroupsForm, MassTextForm
+from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm,FacilityFilterForm
 from cvs.utils import get_reporters
 from healthmodels.models.HealthProvider import HealthProviderBase
 
@@ -36,7 +36,7 @@ urlpatterns = patterns('',
    url(r'^cvs/map/malnutrition', map.malnutrition),
    url(r'^cvs/map/deaths', map.deaths),
    #reporters
-   url(r'^cvs/reporter/$', generic, { 'model':HealthProviderBase, 'queryset':get_reporters(), 'filter_forms':[FreeSearchForm, FilterGroupsForm], 'action_forms':[MassTextForm],'objects_per_page':25, 'partial_header':'cvs/partials/reporter_header.html', 'partial_row':'cvs/partials/reporter_row.html'})
+   url(r'^cvs/reporter/$', generic, { 'model':HealthProviderBase, 'queryset':get_reporters(), 'filter_forms':[FreeSearchForm,DistictFilterForm,FacilityFilterForm], 'action_forms':[MassTextForm],'objects_per_page':25, 'partial_header':'cvs/partials/reporter_header.html', 'partial_row':'cvs/partials/reporter_row.html'})
 )
 
 
