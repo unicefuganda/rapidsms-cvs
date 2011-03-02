@@ -33,7 +33,10 @@ def name(location):
 
 def latest(obj):
     try:
-        return obj.default_connection.submissions.latest('created').created
+        if obj.default_connection:
+            return obj.default_connection.submissions.latest('created').created
+        else:
+            return 'N/A'
     except ObjectDoesNotExist:
         return 'N/A'
 
