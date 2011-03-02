@@ -4,7 +4,7 @@ from django.db.models import Q, Sum
 from django.utils.datastructures import SortedDict
 from cvs.forms import DateRangeForm
 from django.contrib.auth.models import Group
-from healthmodels.models.HealthProvider import HealthProvider
+from healthmodels.models.HealthProvider import HealthProvider, HealthProviderBase
 from math import floor
 from rapidsms_xforms.models import *
 import datetime
@@ -12,29 +12,29 @@ from django.http import HttpResponse
 
 def init_xforms():
     DISEASE_CHOICES = [
-        ('bd','int','Bloody diarrhea (Dysentery)', False),
-        ('ma','int','Malaria', False),
-        ('tb','int','Tuberculosis', False),
-        ('ab','int','Animal Bites', False),
-        ('af','int','Acute Flaccid Paralysis (Polio)', False),
-        ('mg','int','Meningitis', False),
-        ('me','int','Measles', False),
-        ('ch','int','Cholera', False),
-        ('gw','int','Guinea Worm', False),
-        ('nt','int','Neonatal Tetanus', False),
-        ('yf','int','Yellow Fever', False),
-        ('pl','int','Plague', False),
-        ('ra','int','Rabies', False),
-        ('vf','int','Other Viral Hemorrhagic Fevers', False),
-        ('ei','int','Other Emerging Infectious Diseases', False),
+        ('bd','int','Bloody diarrhea (Dysentery)'),
+        ('ma','int','Malaria'),
+        ('tb','int','Tuberculosis'),
+        ('ab','int','Animal Bites'),
+        ('af','int','Acute Flaccid Paralysis (Polio)'),
+        ('mg','int','Meningitis'),
+        ('me','int','Measles'),
+        ('ch','int','Cholera'),
+        ('gw','int','Guinea Worm'),
+        ('nt','int','Neonatal Tetanus'),
+        ('yf','int','Yellow Fever'),
+        ('pl','int','Plague'),
+        ('ra','int','Rabies'),
+        ('vf','int','Other Viral Hemorrhagic Fevers'),
+        ('ei','int','Other Emerging Infectious Diseases'),
     ]
 
     HOME_ATTRIBUTES = [
-       ('to','int','Total Homesteads Visited', False),
-       ('it','int','ITTNs/LLINs', False),
-       ('la','int','Latrines', False),
-       ('ha','int','Handwashing Facilities', False),
-       ('wa','int','Safe Drinking Water', False),
+       ('to','int','Total Homesteads Visited'),
+       ('it','int','ITTNs/LLINs'),
+       ('la','int','Latrines'),
+       ('ha','int','Handwashing Facilities'),
+       ('wa','int','Safe Drinking Water'),
     ]
 
     XFORMS = (
@@ -53,32 +53,32 @@ def init_xforms():
 
     XFORM_FIELDS = {
         'muac':[
-             ('name', 'text', 'The name of the malnourished patient', True),
-             ('gender', 'cvssex','The gender of the malnourished patient', True),
-             ('age', 'cvstdelt', 'The age of the malnurished patient', True),
-             ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition', True),
-             ('ignored','cvsodema', 'Occurence of oedema (T/F)', False)
+             ('name', 'text', 'The name of the malnourished patient'),
+             ('gender', 'cvssex','The gender of the malnourished patient'),
+             ('age', 'cvstdelt', 'The age of the malnurished patient'),
+             ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition'),
+             ('ignored','cvsodema', 'Occurence of oedema (T/F)')
          ],
         'birth':[
-             ('name', 'text', 'The name of the child born', True),
-             ('gender', 'cvssex', 'The gender of the child born', True),
-             ('place','cvsloc', 'At home or at a health facility', True),
+             ('name', 'text', 'The name of the child born'),
+             ('gender', 'cvssex', 'The gender of the child born'),
+             ('place','cvsloc', 'At home or at a health facility'),
          ],
          'death':[
-             ('name','text','The name of the person who has died', True),
-             ('gender', 'cvssex', 'The gender of the person who has died', True),
-             ('age', 'cvstdelt', 'The age of the person who has died', True),
+             ('name','text','The name of the person who has died'),
+             ('gender', 'cvssex', 'The gender of the person who has died'),
+             ('age', 'cvstdelt', 'The age of the person who has died'),
          ],
         'epi':DISEASE_CHOICES,
         'home':HOME_ATTRIBUTES,
         'reg':[
-             ('name','text','Your name', True),
+             ('name','text','The name of the reporter registering'),
         ],
         'vht':[
-             ('facility','facility','Your facility code', True),
+             ('facility','facility','The facility of the vht signing up'),
         ],
         'pvht':[
-             ('facility','facility','Your facility code', True),
+             ('facility','facility','The facility of the pvht signing up'),
         ],
     }
 
@@ -116,14 +116,6 @@ def init_xforms():
                     'description':attribute[2],
                 }
             )
-            if attribute[3]:
-                xformfieldconstraint, created = XFormFieldConstraint.objects.get_or_create(
-                    field=xformfield,
-                    defaults={
-                        'type':'req_val',
-                        'message':("Expected %s, none provided." % attribute[2])
-                    }
-                )
             order = order + 1
     return xform_dict
 
@@ -163,7 +155,6 @@ def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), att
         
     """
     request=kwargs.get('request',None)
-
     if group_by is not None:
         return report_raw(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility,**kwargs)
     if attribute_keyword is None:
@@ -473,9 +464,8 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
 def reorganize_location(key, report, report_dict):
     for dict in report:
         location = dict['location_name']
-        report_dict.setdefault(location,{'location_id':dict['location_id'],'diff':dict['lft']-dict['rght']})
+        report_dict.setdefault(location,{'location_id':dict['location_id']})
         report_dict[location][key] = dict['value']
-
         
 def reorganize_timespan(timespan, report, report_dict, location_list,request=None):
     for dict in report:
@@ -494,6 +484,7 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
                 time= str(int(time)) +'-'+ str(start_month) +'-'+ str(start_year)
             else:
                 time= str(int(time)) +'-'+ str(end_month) +'-'+ str(end_year)
+
 
         report_dict.setdefault(time,{})
         location = dict['location_name']
@@ -539,7 +530,6 @@ def get_expected_epi(location, request):
         weeks = 1
     return health_providers * weeks
 
-
 def get_group_by(start_date, end_date):
     interval=end_date-start_date
     if interval<=datetime.timedelta(days=21):
@@ -556,6 +546,9 @@ def get_group_by(start_date, end_date):
         prefix = 'quarter'
     return {'group_by':group_by, 'group_by_name':prefix}
 
+def get_reporters():
+#    return HealthProviderBase.objects.raw("select h.*, c.name, conn.identity, max(subs.created) as last_date, count(subs.id) as num_reports from healthmodels_healthproviderbase h join rapidsms_contact c on h.contact_ptr_id = c.id join rapidsms_connection conn on conn.contact_id = c.id join rapidsms_xforms_xformsubmission subs on subs.connection_id = conn.id group by h.contact_ptr_id, h.facility_id, h.location_id, c.name, conn.identity")
+    return HealthProvider.objects.select_related(depth=4).all()
 
 class ExcelResponse(HttpResponse):
     def __init__(self,data, output_name='excel_report',headers=None,force_csv=False, encoding='utf8'):
@@ -648,4 +641,4 @@ class ExcelResponse(HttpResponse):
         self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
             (output_name.replace('"', '\"'), file_ext)
 
-   
+

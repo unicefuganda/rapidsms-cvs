@@ -1,0 +1,9 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% load stats_extras %}
+{% block remaining_row_content %}
+    <td>{{ object.default_connection.identity }}</td>
+    <td>{{ object|latest|date:"d-m-Y" }}</td>
+    <td>{{ object.default_connection.submissions.count }}</td>
+    <td>{{ object.facility }}</td>
+    <td>{{ object.location.name }}</td>
+{% endblock %}

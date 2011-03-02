@@ -49,13 +49,13 @@ def index(request, location_id=None):
     expected_epi = get_expected_epi(location,request)
 
 
-#    x = 0
-#    while x < len(percentage_safe_water):
-#        home_divide = float(percentage_safe_water[x]['value'])
-#        total_value = float(home_total[x]['value'])
-#        home_divide /= total_value
-#        percentage_safe_water[x]['value'] = round(home_divide*100,1)
-#        x +=1
+    x = 0
+    while x < len(percentage_safe_water):
+        home_divide = float(percentage_safe_water[x]['value'])
+        total_value = float(home_total[x]['value'])
+        home_divide /= total_value
+        percentage_safe_water[x]['value'] = round(home_divide*100,1)
+        x +=1
 
     y = 0
     while y < len(percentage_epi):
@@ -74,13 +74,13 @@ def index(request, location_id=None):
     reorganize_location('percentage_epi', percentage_epi, report_dict)
     reorganize_location('percentage_safe_water', percentage_safe_water, report_dict)
     reorganize_location('home_total', home_total, report_dict)
-    for loc, val_dict in report_dict.iteritems():
-        if 'home_total' in val_dict and 'percentage_safe_water' in val_dict:
-            home_total = val_dict['home_total']
-            percentage_safe_water = val_dict['percentage_safe_water']
-            val_dict['percentage_safe_water'] = round((percentage_safe_water / home_total)*100, 1)
-        else:
-            val_dict['percentage_safe_water'] = 'N/A'
+#    for loc, val_dict in report_dict.iteritems():
+#        if 'home_total' in val_dict and 'percentage_safe_water' in val_dict:
+#            home_total = val_dict['home_total']
+#            percentage_safe_water = val_dict['percentage_safe_water']
+#            val_dict['percentage_safe_water'] = round((percentage_safe_water / home_total)*100, 1)
+#        else:
+#            val_dict['percentage_safe_water'] = 'N/A'
 
     # label, link, colspan
     topColumns = (('','',1),
@@ -89,7 +89,7 @@ def index(request, location_id=None):
                   ('Birth','/cvs/birth/?root=true',1),
                   ('Death','/cvs/death/?root=true',1),
                   ('Home', '/cvs/home/?root=true',1),
-                  ('Reporters','',1)
+                  ('Reporters','/cvs/reporter/',1)
                   )
                   
     columns = (
@@ -290,6 +290,9 @@ def birth_detail(request, location_id=None):
     at_clinic = report('birth', attribute_keyword='place', attribute_value='CLINIC', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     x = 0
+    for facility in at_facility:
+        facility['value']=(facility['value']+at_clinic[at_facility.index(facility)]['value'])
+
     while x < len(percentage_at_home):
         home_divide = float(percentage_at_home[x]['value'])
         total_value = float(total[x]['value'])
@@ -311,7 +314,7 @@ def birth_detail(request, location_id=None):
                   ('Boys','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/gender/M/')"),
                   ('Girls','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/gender/F/')"),
                   ('Delivered at Home','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/HOME/')"),
-                  ('Delivered at Clinic','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/CLINIC/')"),
+                  #('Delivered at Clinic','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/CLINIC/')"),
                   ('Delivered at Facility','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/FACILITY/')"),
                   ('% Delivered at Home','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/percentage/')")
                   )
@@ -455,6 +458,7 @@ def home_detail(request, location_id=None):
             total_value = float(total[x]['value'])
             dictx_divide /= total_value
             dictx[x]['value'] = round(dictx_divide*100,1)
+            print dictx[x]['value']
             x +=1
         reorganize_location(dictx_name, dictx, report_dict)
 
