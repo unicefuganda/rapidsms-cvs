@@ -4,7 +4,11 @@ from cvs.views.chart import *
 from cvs.views import map
 from healthmodels import *
 from generic.views import generic
+<<<<<<< HEAD
 from contact.forms import FreeSearchForm, DistictFilterForm, FacilityFilterForm, FilterGroupsForm, MassTextForm
+=======
+from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm,FacilityFilterForm
+>>>>>>> 4359c0c98c46560f72a950d650ad96ac74c987d4
 from cvs.utils import get_reporters
 from healthmodels.models.HealthProvider import HealthProviderBase
 
