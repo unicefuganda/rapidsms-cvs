@@ -112,7 +112,7 @@ def init_xforms():
                     'order':order,
                     'field_type':attribute[1],
                     'type':attribute[1],
-                    'name':attribute[0],
+                    'name':attribute[2],
                     'description':attribute[2],
                 }
             )
