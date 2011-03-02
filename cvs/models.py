@@ -343,7 +343,7 @@ def xform_received_handler(sender, **kwargs):
         check_basic_validity('epi', submission, health_provider, 1)
         value_list = []
         for v in submission.eav.get_values():
-            value_list.append("%s %d" % (v.attribute.description, v.value_int))
+            value_list.append("%s %d" % (v.attribute.name, v.value_int))
         value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
         submission.response = "You reported %s" % ','.join(value_list)
         submission.save()
@@ -352,7 +352,7 @@ def xform_received_handler(sender, **kwargs):
         check_basic_validity('home', submission, health_provider, 1)
         value_list = []
         for v in submission.eav.get_values():
-            value_list.append("%s %d" % (v.attribute.description, v.value_int))
+            value_list.append("%s %d" % (v.attribute.name, v.value_int))
         value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
         submission.response = "You reported %s" % ','.join(value_list)
         submission.save()
