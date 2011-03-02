@@ -1,6 +1,7 @@
 from django import template
 from django.shortcuts import get_object_or_404
 from simple_locations.models import Area
+from django.core.exceptions import ObjectDoesNotExist
 
 def get_section(path):
     pos = path.split('/')
@@ -30,9 +31,16 @@ def get_ancestors(location_id):
 def name(location):
     return location.name
 
+def latest(obj):
+    try:
+        return obj.default_connection.submissions.latest('created').created
+    except ObjectDoesNotExist:
+        return 'N/A'
+
 register = template.Library()
 register.filter('section', get_section)
 register.filter('parent', get_parent)
 register.filter('parentId', get_parentId)
 register.filter('ancestors',get_ancestors)
 register.filter('name', name)
+register.filter('latest', latest)
