@@ -5,5 +5,18 @@
     <td>{{ object|latest|date:"d-m-Y" }}</td>
     <td>{{ object.default_connection.submissions.count }}</td>
     <td>{{ object.facility }}</td>
-    <td>{{ object.location.name }}</td>
+    <td id="row_{{ object.pk }}">{{ object.location.name }}</td>
+    <td class="button_col">
+    <div class="buttons">
+
+            <a href="javascript:void(0)" onclick="deleteReporter('{{ object.pk }}','{{ object.name }}')">
+                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
+            </a>
+
+             <a href="javascript:void(0)" onclick="editReporter('{{ object.pk }}')">
+                <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" />
+            </a>
+        </div>
+   
+    </td>
 {% endblock %}
