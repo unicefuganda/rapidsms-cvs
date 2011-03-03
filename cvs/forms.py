@@ -1,5 +1,6 @@
 from django import forms
 import datetime
+from healthmodels.models.HealthProvider import HealthProvider
 
 class DateRangeForm(forms.Form): # pragma: no cover
     start_ts = forms.IntegerField(required=True, widget=forms.HiddenInput())
@@ -14,3 +15,9 @@ class DateRangeForm(forms.Form): # pragma: no cover
         end_ts = cleaned_data.get('end_ts')
         cleaned_data['end_ts'] = datetime.datetime.fromtimestamp(float(end_ts) / 1000.0)
         return cleaned_data
+
+class EditReporterForm(forms.ModelForm):
+    class Meta:
+        model=HealthProvider
+
+    

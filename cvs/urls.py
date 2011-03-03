@@ -1,14 +1,11 @@
 from django.conf.urls.defaults import *
 from cvs.views.stats import *
 from cvs.views.chart import *
+from cvs.views import reporters
 from cvs.views import map
 from healthmodels import *
 from generic.views import generic
-<<<<<<< HEAD
-from contact.forms import FreeSearchForm, DistictFilterForm, FacilityFilterForm, FilterGroupsForm, MassTextForm
-=======
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm,FacilityFilterForm
->>>>>>> 4359c0c98c46560f72a950d650ad96ac74c987d4
 from cvs.utils import get_reporters
 from healthmodels.models.HealthProvider import HealthProviderBase
 
@@ -40,8 +37,11 @@ urlpatterns = patterns('',
    url(r'^cvs/map/malnutrition', map.malnutrition),
    url(r'^cvs/map/deaths', map.deaths),
    #reporters
-   url(r'^cvs/reporter/$', generic, { 'model':HealthProviderBase, 'queryset':get_reporters(), 'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm], 'action_forms':[MassTextForm],'objects_per_page':25, 'partial_header':'cvs/partials/reporter_header.html', 'partial_row':'cvs/partials/reporter_row.html'})
-)
+    url(r'^cvs/reporter/$', generic, { 'model':HealthProviderBase, 'queryset':get_reporters(), 'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm], 'action_forms':[MassTextForm],'objects_per_page':25, 'partial_header':'cvs/partials/reporter_header.html', 'partial_row':'cvs/partials/reporter_row.html','base_template':'cvs/contacts_base.html'}),
+    url(r'^cvs/reporter/(?P<reporter_pk>\d+)/edit', reporters.editReporter),
+    url(r'^cvs/reporter/(?P<reporter_pk>\d+)/delete', reporters.deleteReporter),
+    url(r'^cvs/reporter/(?P<reporter_pk>\d+)/show', reporters.showReporter),
+   )
 
 
 

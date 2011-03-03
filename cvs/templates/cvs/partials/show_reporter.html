@@ -1,0 +1,27 @@
+{% load stats_extras %}
+
+
+    <td> <input {% if selected %}checked="true"{% endif %} type="checkbox" onclick="$('#id_select_all').attr('checked', false)" name="results" value="{{ reporter.pk }}"/>{{ reporter.name }}</td>
+    <td>{{ reporter.default_connection.identity }}</td>
+    <td>{{ reporter|latest|date:"d-m-Y" }}</td>
+    <td id="row_{{ reporter.pk }}">{{ reporter.default_connection.submissions.count }}</td>
+    <td>{{ reporter.facility }}</td>
+    <td>{{ reporter.location }}</td>
+
+<td class="button_col">
+    <div class="buttons">
+
+            <a href="javascript:void(0)" onclick="deleteReporter('{{ reporter.pk }}','{{ reporter.name }}')">
+                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
+            </a>
+
+             <a href="javascript:void(0)" onclick="editReporter('{{ reporter.pk }}')">
+                <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" />
+            </a>
+        </div>
+
+    </td>
+
+
+
+
