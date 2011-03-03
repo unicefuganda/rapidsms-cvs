@@ -3,6 +3,7 @@ import datetime
 from healthmodels.models.HealthProvider import HealthProvider
 from generic.forms import ActionForm, FilterForm
 from healthmodels.models.HealthFacility import HealthFacility
+from mptt.forms import TreeNodeChoiceField
 
 class DateRangeForm(forms.Form): # pragma: no cover
     start_ts = forms.IntegerField(required=True, widget=forms.HiddenInput())
@@ -19,12 +20,16 @@ class DateRangeForm(forms.Form): # pragma: no cover
         return cleaned_data
 
 class EditReporterForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+           super(EditReporterForm, self).__init__(*args, **kwargs)
+           self.fields['location'] = TreeNodeChoiceField(queryset=self.fields['location'].queryset,level_indicator=u'++')
+
     class Meta:
         model=HealthProvider
 
 class FacilityFilterForm(FilterForm):
     """ filter form for cvs facilities """
-    facility=forms.ChoiceField(choices=(('','-----'),)+((-1,'Has No Facility'),)+tuple([(int(f.pk),f.name) for f in HealthFacility.objects.all() ]))
+    facility=forms.ChoiceField(choices=(('','-----'),(-1,'Has No Facility'),)+tuple([(int(f.pk),f.name) for f in HealthFacility.objects.all().order_by('type','name') ]))
     def filter(self, request, queryset):
         facility_pk = self.cleaned_data['facility']
         if facility_pk == '':
