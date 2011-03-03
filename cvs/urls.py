@@ -5,7 +5,8 @@ from cvs.views import reporters
 from cvs.views import map
 from healthmodels import *
 from generic.views import generic
-from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm,FacilityFilterForm
+from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
+from cvs.forms import FacilityFilterForm
 from cvs.utils import get_reporters
 from healthmodels.models.HealthProvider import HealthProviderBase
 
