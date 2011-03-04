@@ -239,6 +239,7 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
             rowdict.update({'latitude':row[4]})
             rowdict.update({'longitude':row[5]})
         list_toret.append(rowdict)
+    print list_toret
     return list_toret
 
 def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None,**kwargs):
@@ -323,7 +324,8 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         groupby_columns.append('month')
         orderby_columns.append('month')
     if group_by & GROUP_BY_DAY:
-        select_clauses.append(('extract(day from submissions.created)', 'day'))
+#        select_clauses.append(('extract(day from submissions.created)', 'day'))
+        select_clauses.append(('submissions.created' , 'day',))
         groupby_columns.append('day')
         orderby_columns.append('day')
     if group_by & GROUP_BY_QUARTER:
@@ -429,7 +431,8 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
         groupby_columns.append('month')
         orderby_columns.append('month')
     if group_by & GROUP_BY_DAY:
-        select_clauses.append(('extract(day from submissions.created)', 'day'))
+#        select_clauses.append(('extract(day from submissions.created)', 'day'))
+        select_clauses.append(('submissions.created' , 'day',))
         groupby_columns.append('day')
         orderby_columns.append('day')
     if group_by & GROUP_BY_LOCATION:
@@ -480,13 +483,15 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
         elif timespan =='quarter':
             time = quarters[int(time)]+ ' Quarter'
         else:
-            dates = get_dates(request)
-            start_year, start_month, start_day = dates['start'].year, dates['start'].month, dates['start'].day
-            end_year, end_month, end_day = dates['end'].year, dates['end'].month, dates['end'].day
-            if time == start_day:
-                time= str(int(time)) +'-'+ str(start_month) +'-'+ str(start_year)
-            else:
-                time= str(int(time)) +'-'+ str(end_month) +'-'+ str(end_year)
+            format = '%d-%m-%Y'
+            time = time.strftime(format)
+#            dates = get_dates(request)
+#            start_year, start_month, start_day = dates['start'].year, dates['start'].month, dates['start'].day
+#            end_year, end_month, end_day = dates['end'].year, dates['end'].month, dates['end'].day
+#            if time == start_day:
+#                time= str(int(time)) +'-'+ str(start_month) +'-'+ str(start_year)
+#            else:
+#                time= str(int(time)) +'-'+ str(end_month) +'-'+ str(end_year)
 
 
         report_dict.setdefault(time,{})
