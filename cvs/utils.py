@@ -280,6 +280,9 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
                     where_clauses.append("values.value_int > %d" % attribute_values)
                 else:
                     where_clauses.append("values.value_int between %d and %d" % attribute_values)
+            elif isinstance(attribute_value, tuple):
+                select_clauses = [('count(value_text)', 'value',)]
+                where_clauses.append("values.value_text in ('%s','%s')" % attribute_value)
             else:
                 select_clauses = [('count(value_text)', 'value',)]
                 where_clauses.append("values.value_text = '%s'" % attribute_value)
