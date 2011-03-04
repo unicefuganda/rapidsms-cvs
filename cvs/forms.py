@@ -22,7 +22,7 @@ class DateRangeForm(forms.Form): # pragma: no cover
 class EditReporterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
            super(EditReporterForm, self).__init__(*args, **kwargs)
-           self.fields['location'] = TreeNodeChoiceField(queryset=self.fields['location'].queryset,level_indicator=u'++')
+           self.fields['location'] = TreeNodeChoiceField(queryset=self.fields['location'].queryset,level_indicator=u'.')
 
     class Meta:
         model=HealthProvider
