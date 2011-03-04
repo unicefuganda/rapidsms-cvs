@@ -18,10 +18,6 @@ def deleteReporter(request, reporter_pk):
 
 def editReporter(request, reporter_pk):
     reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
-    try:
-        location_name = reporter.location.name
-    except AttributeError:
-        location_name = ''
     reporter_form = EditReporterForm(instance=reporter)
     if request.method == 'POST':
         reporter_form = EditReporterForm(instance=reporter,
@@ -33,19 +29,11 @@ def editReporter(request, reporter_pk):
                     , {'reporter_form': reporter_form, 'reporter'
                     : reporter},
                     context_instance=RequestContext(request))
-        return HttpResponseRedirect('/cvs/reporter/%s/show/'
-                                    % reporter_pk)
+        return render_to_response('/cvs/partials/reporter_row.html',
+                                  {'object':HealthProviderBase.objects.get(pk=reporter_pk)},
+                                  context_instance=RequestContext(request))
     else:
         return render_to_response('cvs/partials/edit_reporter.html',
                                   {'reporter_form': reporter_form,
                                   'reporter': reporter},
                                   context_instance=RequestContext(request))
-
-
-def showReporter(request, reporter_pk):
-    reporter = get_object_or_404(HealthProvider, pk=reporter_pk)
-    return render_to_response('cvs/partials/show_reporter.html',
-                              {'reporter': reporter},
-                              context_instance=RequestContext(request))
-
-

@@ -4,7 +4,7 @@ from cvs.views.chart import *
 from cvs.views import reporters
 from cvs.views import map
 from healthmodels import *
-from generic.views import generic
+from generic.views import generic, generic_row
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
 from cvs.forms import FacilityFilterForm
 from cvs.utils import get_reporters
@@ -38,10 +38,25 @@ urlpatterns = patterns('',
    url(r'^cvs/map/malnutrition', map.malnutrition),
    url(r'^cvs/map/deaths', map.deaths),
    #reporters
-    url(r'^cvs/reporter/$', generic, { 'model':HealthProviderBase, 'queryset':get_reporters(), 'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm], 'action_forms':[MassTextForm],'objects_per_page':25, 'partial_header':'cvs/partials/reporter_header.html', 'partial_row':'cvs/partials/reporter_row.html','base_template':'cvs/contacts_base.html'}),
+    url(r'^cvs/reporter/$', generic, {
+      'model':HealthProviderBase,
+      'queryset':get_reporters(),
+      'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm],
+      'action_forms':[MassTextForm],
+      'objects_per_page':25,
+      'partial_row':'cvs/partials/reporter_row.html',
+      'base_template':'cvs/contacts_base.html',
+      'columns':[('Name', False, ''),
+                 ('Number', False, ''),
+                 ('Last Reporting Date', False, ''),
+                 ('Total Reports', False, ''),
+                 ('Facility',False,''),
+                 ('Location',False,''),
+                 ('',False,'')],
+    }),
     url(r'^cvs/reporter/(?P<reporter_pk>\d+)/edit', reporters.editReporter),
     url(r'^cvs/reporter/(?P<reporter_pk>\d+)/delete', reporters.deleteReporter),
-    url(r'^cvs/reporter/(?P<reporter_pk>\d+)/show', reporters.showReporter),
+    url(r'^cvs/reporter/(?P<pk>\d+)/show', generic_row, {'model':HealthProviderBase, 'partial_row':'cvs/partials/reporter_row.html'}),
    )
 
 
