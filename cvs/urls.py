@@ -5,7 +5,9 @@ from cvs.views import reporters
 from cvs.views import map
 from healthmodels import *
 from generic.views import generic, generic_row
+from generic.sorters import SimpleSorter, QuickSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
+from contact.utils import DefaultConnectionSorter
 from cvs.forms import FacilityFilterForm
 from cvs.utils import get_reporters
 from healthmodels.models.HealthProvider import HealthProviderBase
@@ -40,19 +42,19 @@ urlpatterns = patterns('',
    #reporters
     url(r'^cvs/reporter/$', generic, {
       'model':HealthProviderBase,
-      'queryset':get_reporters(),
+      'queryset':get_reporters,
       'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm],
       'action_forms':[MassTextForm],
       'objects_per_page':25,
       'partial_row':'cvs/partials/reporter_row.html',
       'base_template':'cvs/contacts_base.html',
-      'columns':[('Name', False, ''),
-                 ('Number', False, ''),
-                 ('Last Reporting Date', False, ''),
-                 ('Total Reports', False, ''),
-                 ('Facility',False,''),
-                 ('Location',False,''),
-                 ('',False,'')],
+      'columns':[('Name', True, 'name', SimpleSorter()),
+                 ('Number', True, 'number', DefaultConnectionSorter(),),
+                 ('Last Reporting Date', False, '', None,),
+                 ('Total Reports', False, '', None,),
+                 ('Facility',True,'facility__name', SimpleSorter(),),
+                 ('Location',True,'location__name', SimpleSorter(),),
+                 ('',False,'',None,)],
     }, name="cvs-contact"),
     url(r'^cvs/reporter/(?P<reporter_pk>\d+)/edit', reporters.editReporter),
     url(r'^cvs/reporter/(?P<reporter_pk>\d+)/delete', reporters.deleteReporter),

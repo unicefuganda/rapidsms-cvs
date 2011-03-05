@@ -2,7 +2,15 @@
 {% load stats_extras %}
 {% block remaining_row_content %}
     <td><a href="/ureport/{{ object.default_connection.pk }}/message_history/">{{ object.name }}</a></td>
-    <td>{{ object.default_connection.identity }}</td>
+    <td>
+        <ul>
+            {% for c in object.connection_set.all %}
+                <li>
+                    {{ c.identity }}
+                </li>
+            {% endfor %}
+        </ul>
+    </td>
     <td>{{ object|latest|date:"d-m-Y" }}</td>
     <td>{{ object.default_connection.submissions.count }}</td>
     <td>{{ object.facility }}</td>
