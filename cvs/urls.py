@@ -7,9 +7,9 @@ from healthmodels import *
 from generic.views import generic, generic_row
 from generic.sorters import SimpleSorter, QuickSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
-from contact.utils import DefaultConnectionSorter
 from cvs.forms import FacilityFilterForm
 from cvs.utils import get_reporters
+from cvs.sorters import LatestSubmissionSorter
 from healthmodels.models.HealthProvider import HealthProviderBase
 
 urlpatterns = patterns('',
@@ -50,8 +50,8 @@ urlpatterns = patterns('',
       'base_template':'cvs/contacts_base.html',
       'columns':[('Name', True, 'name', SimpleSorter()),
                  ('Number', True, 'connection__identity', SimpleSorter(),),
-                 ('Last Reporting Date', False, '', None,),
-                 ('Total Reports', False, '', None,),
+                 ('Last Reporting Date', True, 'latest_submission_date', LatestSubmissionSorter(),),
+                 ('Total Reports', True, 'connection__submissions__count', SimpleSorter(),),
                  ('Facility',True,'facility__name', SimpleSorter(),),
                  ('Location',True,'location__name', SimpleSorter(),),
                  ('',False,'',None,)],

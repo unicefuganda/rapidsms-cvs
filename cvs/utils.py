@@ -9,6 +9,7 @@ from math import floor
 from rapidsms_xforms.models import *
 import datetime
 from django.http import HttpResponse
+from django.db.models import Count
 
 def init_xforms():
     DISEASE_CHOICES = [
@@ -556,7 +557,7 @@ def get_group_by(start_date, end_date):
 
 def get_reporters():
 #    return HealthProviderBase.objects.raw("select h.*, c.name, conn.identity, max(subs.created) as last_date, count(subs.id) as num_reports from healthmodels_healthproviderbase h join rapidsms_contact c on h.contact_ptr_id = c.id join rapidsms_connection conn on conn.contact_id = c.id join rapidsms_xforms_xformsubmission subs on subs.connection_id = conn.id group by h.contact_ptr_id, h.facility_id, h.location_id, c.name, conn.identity")
-    return HealthProvider.objects.select_related(depth=4).all()
+    return HealthProvider.objects.select_related('facility', 'location').annotate(Count('connection__submissions')).all()
 
 class ExcelResponse(HttpResponse):
     def __init__(self,data, output_name='excel_report',headers=None,force_csv=False, encoding='utf8'):

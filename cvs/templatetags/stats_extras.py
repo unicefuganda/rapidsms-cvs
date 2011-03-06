@@ -1,6 +1,7 @@
 from django import template
 from django.shortcuts import get_object_or_404
 from simple_locations.models import Area
+from rapidsms_xforms.models import XFormSubmission
 from django.core.exceptions import ObjectDoesNotExist
 
 def get_section(path):
@@ -33,12 +34,9 @@ def name(location):
 
 def latest(obj):
     try:
-        if obj.default_connection:
-            return obj.default_connection.submissions.latest('created').created
-        else:
-            return 'N/A'
-    except ObjectDoesNotExist:
-        return 'N/A'
+        return XFormSubmission.objects.filter(connection__in=obj.connection_set.all()).latest('created').created
+    except:
+        return None
 
 register = template.Library()
 register.filter('section', get_section)

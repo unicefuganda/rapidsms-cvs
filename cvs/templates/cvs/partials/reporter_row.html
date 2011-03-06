@@ -12,7 +12,7 @@
         </ul>
     </td>
     <td>{{ object|latest|date:"d-m-Y" }}</td>
-    <td>{{ object.default_connection.submissions.count }}</td>
+    <td>{{ object.connection__submissions__count }}</td>
     <td>{{ object.facility }}</td>
     <td id="row_{{ object.pk }}">{{ object.location.name }}</td>
     <td class="button_col">
