@@ -4,6 +4,7 @@ from healthmodels.models.HealthProvider import HealthProvider
 from generic.forms import ActionForm, FilterForm
 from healthmodels.models.HealthFacility import HealthFacility
 from mptt.forms import TreeNodeChoiceField
+from simple_locations.models import Area
 
 class DateRangeForm(forms.Form): # pragma: no cover
     start_ts = forms.IntegerField(required=True, widget=forms.HiddenInput())
@@ -22,7 +23,7 @@ class DateRangeForm(forms.Form): # pragma: no cover
 class EditReporterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
            super(EditReporterForm, self).__init__(*args, **kwargs)
-           self.fields['location'] = TreeNodeChoiceField(level_indicator=u'.',required=False, empty_label='----')
+           self.fields['location'] = TreeNodeChoiceField(queryset=Area.tree.all(), level_indicator=u'.',required=False, empty_label='----')
 
     class Meta:
         model=HealthProvider
