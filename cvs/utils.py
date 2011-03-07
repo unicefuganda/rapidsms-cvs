@@ -240,7 +240,6 @@ def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribut
             rowdict.update({'latitude':row[4]})
             rowdict.update({'longitude':row[5]})
         list_toret.append(rowdict)
-    print list_toret
     return list_toret
 
 def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None,**kwargs):

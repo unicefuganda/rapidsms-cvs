@@ -13,7 +13,7 @@ from cvs.forms import DateRangeForm
 import datetime
 from django.utils.datastructures import SortedDict
 
-def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, location_id=None,label='cases'):
+def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, location_id=None,label='cases', **kwargs):
     """
         This view can handle basic functionality for all charts.  This view
         is a partial response, to be loaded within a container div for another
@@ -49,7 +49,7 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-
+        
     params = chart_params(xform_keyword, attribute_keyword, attribute_value)
     if attribute_keyword and attribute_value:
         if attribute_keyword.find('__') > 0:
@@ -65,18 +65,18 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                 value_dict_values.append(int(vlist[x]))
                 x +=1
             attribute_value = {value_dict_key:value_dict_values}
-        if xform_keyword == 'birth' and attribute_value == 'percentage':
+        if xform_keyword == 'birth' and kwargs.get('extra_param') == 'percentage':
             label="%"
-            percentage_at_home = report(xform_keyword, attribute_keyword='place', attribute_value='HOME', start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+            percentage_values = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
             total = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
             x = 0
-            while x < len(percentage_at_home):
-                home_divide = float(percentage_at_home[x]['value'])
+            while x < len(percentage_values):
+                percentage_divisor = float(percentage_values[x]['value'])
                 total_value = float(total[x]['value'])
-                home_divide /= total_value
-                percentage_at_home[x]['value'] = round(home_divide*100,1)
+                percentage_divisor /= total_value
+                percentage_values[x]['value'] = round(percentage_divisor*100,1)
                 x +=1
-            chart_data = percentage_at_home
+            chart_data = percentage_values
         elif xform_keyword == 'home' and attribute_value == 'percentage':
             label="%"
             attribute_values_list = report('home', attribute_keyword=attribute_keyword, location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
