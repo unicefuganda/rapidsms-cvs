@@ -288,12 +288,21 @@ def birth_detail(request, location_id=None):
     at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     percentage_at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    percentage_at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     x = 0
     while x < len(percentage_at_home):
         home_divide = float(percentage_at_home[x]['value'])
         total_value = float(total[x]['value'])
         home_divide /= total_value
         percentage_at_home[x]['value'] = round(home_divide*100,1)
+        x +=1
+
+    x = 0
+    while x < len(percentage_at_facility):
+        facility_divisor = float(percentage_at_facility[x]['value'])
+        total_value = float(total[x]['value'])
+        facility_divisor /= total_value
+        percentage_at_facility[x]['value'] = round(facility_divisor*100,1)
         x +=1
    
     report_dict = {}
@@ -303,6 +312,7 @@ def birth_detail(request, location_id=None):
     reorganize_location('at_home', at_home, report_dict)
     reorganize_location('at_facility', at_facility, report_dict)
     reorganize_location('percentage_at_home', percentage_at_home, report_dict)
+    reorganize_location('percentage_at_facility', percentage_at_facility, report_dict)
     
     columns = (('','',1),
                   ('Total Births', '', 1),
@@ -310,7 +320,8 @@ def birth_detail(request, location_id=None):
                   ('Girls','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/gender/F/')"),
                   ('Delivered at Home','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/HOME/')"),
                   ('Delivered at Facility','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/FACILITY/')"),
-                  ('% Delivered at Home','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/percentage/')")
+                  ('% Delivered at Home','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/HOME/percentage/')"),
+                  ('% Delivered at Facility','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/FACILITY/percentage/')")
                   )
 
     group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
@@ -452,7 +463,6 @@ def home_detail(request, location_id=None):
             total_value = float(total[x]['value'])
             dictx_divide /= total_value
             dictx[x]['value'] = round(dictx_divide*100,1)
-            print dictx[x]['value']
             x +=1
         reorganize_location(dictx_name, dictx, report_dict)
 
