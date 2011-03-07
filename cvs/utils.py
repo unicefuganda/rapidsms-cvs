@@ -13,29 +13,29 @@ from django.db.models import Count
 
 def init_xforms():
     DISEASE_CHOICES = [
-        ('bd','int','Bloody diarrhea (Dysentery)'),
-        ('ma','int','Malaria'),
-        ('tb','int','Tuberculosis'),
-        ('ab','int','Animal Bites'),
-        ('af','int','Acute Flaccid Paralysis (Polio)'),
-        ('mg','int','Meningitis'),
-        ('me','int','Measles'),
-        ('ch','int','Cholera'),
-        ('gw','int','Guinea Worm'),
-        ('nt','int','Neonatal Tetanus'),
-        ('yf','int','Yellow Fever'),
-        ('pl','int','Plague'),
-        ('ra','int','Rabies'),
-        ('vf','int','Other Viral Hemorrhagic Fevers'),
-        ('ei','int','Other Emerging Infectious Diseases'),
+        ('bd','int','Bloody diarrhea (Dysentery)', False),
+        ('ma','int','Malaria', False),
+        ('tb','int','Tuberculosis', False),
+        ('ab','int','Animal Bites', False),
+        ('af','int','Acute Flaccid Paralysis (Polio)', False),
+        ('mg','int','Meningitis', False),
+        ('me','int','Measles', False),
+        ('ch','int','Cholera', False),
+        ('gw','int','Guinea Worm', False),
+        ('nt','int','Neonatal Tetanus', False),
+        ('yf','int','Yellow Fever', False),
+        ('pl','int','Plague', False),
+        ('ra','int','Rabies', False),
+        ('vf','int','Other Viral Hemorrhagic Fevers', False),
+        ('ei','int','Other Emerging Infectious Diseases', False),
     ]
 
     HOME_ATTRIBUTES = [
-       ('to','int','Total Homesteads Visited'),
-       ('it','int','ITTNs/LLINs'),
-       ('la','int','Latrines'),
-       ('ha','int','Handwashing Facilities'),
-       ('wa','int','Safe Drinking Water'),
+       ('to','int','Total Homesteads Visited', False),
+       ('it','int','ITTNs/LLINs', False),
+       ('la','int','Latrines', False),
+       ('ha','int','Handwashing Facilities', False),
+       ('wa','int','Safe Drinking Water', False),
     ]
 
     XFORMS = (
@@ -54,32 +54,32 @@ def init_xforms():
 
     XFORM_FIELDS = {
         'muac':[
-             ('name', 'text', 'The name of the malnourished patient'),
-             ('gender', 'cvssex','The gender of the malnourished patient'),
-             ('age', 'cvstdelt', 'The age of the malnurished patient'),
-             ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition'),
-             ('ignored','cvsodema', 'Occurence of oedema (T/F)')
+             ('name', 'text', 'The name of the malnourished patient', True),
+             ('gender', 'cvssex','The gender of the malnourished patient', True),
+             ('age', 'cvstdelt', 'The age of the malnurished patient', True),
+             ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition', True),
+             ('ignored','cvsodema', 'Occurence of oedema (T/F)', False)
          ],
         'birth':[
-             ('name', 'text', 'The name of the child born'),
-             ('gender', 'cvssex', 'The gender of the child born'),
-             ('place','cvsloc', 'At home or at a health facility'),
+             ('name', 'text', 'The name of the child born', True),
+             ('gender', 'cvssex', 'The gender of the child born', True),
+             ('place','cvsloc', 'At home or at a health facility', True),
          ],
          'death':[
-             ('name','text','The name of the person who has died'),
-             ('gender', 'cvssex', 'The gender of the person who has died'),
-             ('age', 'cvstdelt', 'The age of the person who has died'),
+             ('name','text','The name of the person who has died', True),
+             ('gender', 'cvssex', 'The gender of the person who has died', True),
+             ('age', 'cvstdelt', 'The age of the person who has died', True),
          ],
         'epi':DISEASE_CHOICES,
         'home':HOME_ATTRIBUTES,
         'reg':[
-             ('name','text','The name of the reporter registering'),
+             ('name','text','Your name', True),
         ],
         'vht':[
-             ('facility','facility','The facility of the vht signing up'),
+             ('facility','facility','Your facility code', True),
         ],
         'pvht':[
-             ('facility','facility','The facility of the pvht signing up'),
+             ('facility','facility','Your facility code', True),
         ],
     }
 
@@ -116,6 +116,14 @@ def init_xforms():
                     'name':attribute[2],
                     'description':attribute[2],
                 }
+            )
+            if attribute[3]:
+                xformfieldconstraint, created = XFormFieldConstraint.objects.get_or_create(
+                    field=xformfield,
+                    defaults={
+                        'type':'req_val',
+                         'message':("Expected %s, none provided." % attribute[2])
+                    }
             )
             order = order + 1
     return xform_dict
@@ -451,7 +459,8 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
         if location is None:
             joins.append('simple_locations_area locations on providers.location_id = locations.id')
         else:
-            joins.append('simple_locations_area locations on providers.location_id >= locations.lft and providers.location_id <= locations.rght')
+            joins.append('simple_locations_area provider_locations on providers.location_id = provider_locations.id')
+            joins.append('simple_locations_area locations on provider_locations.lft >= locations.lft and provider_locations.rght <= locations.rght')
 
     if attribute_keyword is not None:
         groupby_columns.append('entity')
@@ -471,7 +480,7 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
 def reorganize_location(key, report, report_dict):
     for dict in report:
         location = dict['location_name']
-        report_dict.setdefault(location,{'location_id':dict['location_id']})
+        report_dict.setdefault(location,{'location_id':dict['location_id'],'diff':(dict['lft']-dict['rght'])})
         report_dict[location][key] = dict['value']
         
 def reorganize_timespan(timespan, report, report_dict, location_list,request=None):
