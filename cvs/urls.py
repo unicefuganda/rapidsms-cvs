@@ -11,6 +11,7 @@ from cvs.forms import FacilityFilterForm
 from cvs.utils import get_reporters
 from cvs.sorters import LatestSubmissionSorter
 from healthmodels.models.HealthProvider import HealthProviderBase
+from django.contrib.auth.decorators import login_required
 
 urlpatterns = patterns('',
    url(r'^cvs/stats/$', index,name='stats'),
@@ -41,7 +42,7 @@ urlpatterns = patterns('',
    url(r'^cvs/map/malnutrition', map.malnutrition),
    url(r'^cvs/map/deaths', map.deaths),
    #reporters
-    url(r'^cvs/reporter/$', generic, {
+    url(r'^cvs/reporter/$', login_required(generic), {
       'model':HealthProviderBase,
       'queryset':get_reporters,
       'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm],

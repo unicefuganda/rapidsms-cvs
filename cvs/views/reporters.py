@@ -15,7 +15,7 @@ def deleteReporter(request, reporter_pk):
     if request.method == 'POST':
         reporter.delete()
 
-
+@login_required
 def editReporter(request, reporter_pk):
     reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
     reporter_form = EditReporterForm(instance=reporter)
