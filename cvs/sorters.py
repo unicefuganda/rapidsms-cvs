@@ -5,7 +5,7 @@ from rapidsms_xforms.models import XFormSubmission
 class LatestSubmissionSorter(Sorter):
     def sort(self, column, object_list, ascending=True):
         connections = list(Connection.objects.filter(contact__in=object_list))
-        submissions = XFormSubmission.objects.filter(connection__in=connections).order_by('-created').select_related('connection__contact__healthproviderbase__facility','connection__contact__healthproviderbase__location')
+        submissions = list(XFormSubmission.objects.filter(connection__in=connections).order_by('-created').select_related('connection__contact__healthproviderbase__facility','connection__contact__healthproviderbase__location'))
         full_contact_list = list(object_list)
         toret = []
         for sub in submissions:

@@ -20,13 +20,18 @@ class DateRangeForm(forms.Form): # pragma: no cover
         cleaned_data['end_ts'] = datetime.datetime.fromtimestamp(float(end_ts) / 1000.0)
         return cleaned_data
 
+AREAS = Area.tree.all().select_related('kind')
+
 class EditReporterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-           super(EditReporterForm, self).__init__(*args, **kwargs)
-           self.fields['location'] = TreeNodeChoiceField(queryset=Area.tree.all(), level_indicator=u'.',required=False, empty_label='----')
+        global AREAS
+        super(EditReporterForm, self).__init__(*args, **kwargs)
+        len(AREAS)
+        self.fields['location'] = TreeNodeChoiceField(queryset=AREAS, level_indicator=u'.',required=False, empty_label='----')
 
     class Meta:
         model=HealthProvider
+        fields = ('name', 'facility', 'location')
 
 class FacilityFilterForm(FilterForm):
     """ filter form for cvs facilities """
