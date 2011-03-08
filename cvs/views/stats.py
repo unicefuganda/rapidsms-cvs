@@ -441,7 +441,7 @@ def home_detail(request, location_id=None):
     percentage_latrines = report('home', attribute_keyword='la', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     ittns = report('home', attribute_keyword='it', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     percentage_ittns = report('home', attribute_keyword='it', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-        
+
     report_dict = {}
     reorganize_location('total', total, report_dict)
     reorganize_location('safe_drinking_water', safe_drinking_water, report_dict)
@@ -453,16 +453,16 @@ def home_detail(request, location_id=None):
                     "percentage_safe_drinking_water":percentage_safe_drinking_water,
                     "percentage_hand_washing_facilities":percentage_hand_washing_facilities,
                     "percentage_latrines":percentage_latrines,
-                    "percentage_ittns":percentage_ittns
+                    "percentage_ittns":percentage_ittns,
                     }
 
     for dictx_name, dictx in percentage_dictionaries.items():
         x = 0
         while x < len(dictx):
-            dictx_divide = float(dictx[x]['value'])
+            dictx_divisor = float(dictx[x]['value'])
             total_value = float(total[x]['value'])
-            dictx_divide /= total_value
-            dictx[x]['value'] = round(dictx_divide*100,1)
+            dictx_divisor /= total_value
+            dictx[x]['value'] = round(dictx_divisor*100,1)
             x +=1
         reorganize_location(dictx_name, dictx, report_dict)
 
