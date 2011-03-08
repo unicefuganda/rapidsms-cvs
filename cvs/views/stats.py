@@ -16,6 +16,9 @@ from django.db import connection
 from django.utils.datastructures import SortedDict
 from rapidsms_xforms.models import XFormSubmission
 from rapidsms.models import Contact
+import re
+
+Num_REG=re.compile('\d+')
 
 def index(request, location_id=None):
     """
@@ -36,7 +39,12 @@ def index(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-
+    chart=request.session.get('stats',None)
+    if chart :
+        chart_path=Num_REG.sub(str(location.pk),chart)
+        request.session['stats']=chart_path
+    else:
+        request.session['stats']="/cvs/charts/"+str(location.pk)+"/muac/"
     muac = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     ma = report('epi', attribute_keyword='ma', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     tb = report('epi', attribute_keyword='tb', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
@@ -104,29 +112,14 @@ def index(request, location_id=None):
                ('% of expected weekly Epi reports received','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/percentage/')"),
     )
 
-    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('epi', location=location, attribute_keyword='ma', start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR )
-    chart_title = 'Variation of Malaria Reports'
-    xaxis = 'Week of Year'
-    yaxis = 'Number of Cases'
-    chart_dict = SortedDict()
-    location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
-
-
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'top_columns':topColumns, 
                                'columns':columns, 
                                'location_id':location_id,
                                'report_template':'cvs/partials/stats_main.html', 
-                               'data':chart_dict, 
-                               'series':location_list, 
-                               'start_date':dates['start'], 
+                               'start_date':dates['start'],
                                'end_date':dates['end'], 
-                               'xaxis':xaxis, 
-                               'yaxis':yaxis, 
-                               'chart_title': chart_title,
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -134,6 +127,7 @@ def index(request, location_id=None):
                                'start_ts':time.mktime(dates['start'].timetuple()) * 1000,
                                'end_ts':time.mktime(dates['end'].timetuple()) * 1000,
                                'date_range_form':dates['form'],
+                               'page':'stats',
                                 }, context_instance=RequestContext(request))
 
 
@@ -147,6 +141,12 @@ def muac_detail(request,location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+    chart=request.session.get('muac',None)
+    if chart :
+        chart_path=Num_REG.sub(str(location.pk),chart)
+        request.session['muac']=chart_path
+    else:
+        request.session['muac']="/cvs/charts/"+str(location.pk)+"/muac/"
     total = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     green = report('muac', attribute_keyword='category', attribute_value='G', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     green_oedema = report('muac', attribute_keyword=['category', 'oedema'], attribute_value=['G','T'], location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -170,26 +170,13 @@ def muac_detail(request,location_id=None):
                   ('Red+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__oedema/R__T/')")
                   )
     
-    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('muac', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR )
-    chart_title = 'Variation of Total Malnutrition Reports'
-    xaxis = 'Week of Year'
-    yaxis = 'Number of Cases'
-    chart_dict = SortedDict()
-    location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'columns':columns,  
                                'location_id':location_id, 
                                'report_template':'cvs/partials/muac_main.html',
-                               'data':chart_dict, 
-                               'series':location_list, 
-                               'start_date':dates['start'], 
+                               'start_date':dates['start'],
                                'end_date':dates['end'], 
-                               'xaxis':xaxis, 
-                               'yaxis':yaxis, 
-                               'chart_title': chart_title,
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -197,6 +184,7 @@ def muac_detail(request,location_id=None):
                                'start_ts':time.mktime(dates['start'].timetuple()) * 1000,
                                'end_ts':time.mktime(dates['end'].timetuple()) * 1000,
                                'date_range_form':dates['form'],
+                               'page':'muac',
                                 }, context_instance=RequestContext(request))
 
 def epi_detail(request, location_id=None):
@@ -209,6 +197,13 @@ def epi_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+    chart=request.session.get('epi',None)
+    if chart:
+        chart_path=Num_REG.sub(str(location.pk),chart)
+        request.session['epi']=chart_path
+    else:
+        request.session['epi']="/cvs/charts/"+str(location.pk)+"/epi/ma/"
+
     categories = (
                   ('bd','Bloody Diarrhea'),
                   ('ma','Malaria'), 
@@ -241,27 +236,14 @@ def epi_detail(request, location_id=None):
         tup = (v, link, colspan, onclick)
         columns.append(tup)
     
-    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('epi', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR)
-    chart_title = 'Variation of Total Epi Reports'
-    xaxis = 'Week of Year'
-    yaxis = 'Number of Cases'
-    chart_dict = SortedDict()
-    location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
-    
+
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'columns':columns,  
                                'location_id':location_id, 
                                'report_template':'cvs/partials/epi_main.html',
-                               'data':chart_dict, 
-                               'series':location_list, 
-                               'start_date':dates['start'], 
+                               'start_date':dates['start'],
                                'end_date':dates['end'], 
-                               'xaxis':xaxis, 
-                               'yaxis':yaxis, 
-                               'chart_title': chart_title,
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -269,7 +251,8 @@ def epi_detail(request, location_id=None):
                                'start_ts':time.mktime(dates['start'].timetuple()) * 1000,
                                'end_ts':time.mktime(dates['end'].timetuple()) * 1000,
                                'date_range_form':dates['form'],
-                                }, context_instance=RequestContext(request))    
+                               'page':'epi',
+                                }, context_instance=RequestContext(request))
 
 def birth_detail(request, location_id=None):
     """
@@ -282,6 +265,12 @@ def birth_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+    chart=request.session.get('birth',None)
+    if chart :
+        chart_path=Num_REG.sub(str(location.pk),chart)
+        request.session['birth']=chart_path
+    else:
+        request.session['birth']="/cvs/charts/"+str(location.pk)+"/birth/"
     total = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     boys = report('birth', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     girls = report('birth', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -324,27 +313,13 @@ def birth_detail(request, location_id=None):
                   ('% Delivered at Facility','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/FACILITY/percentage/')")
                   )
 
-    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('birth', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR )
-    chart_title = 'Variation of Total Birth Reports'
-    xaxis = 'Week of Year'
-    yaxis = 'Number of Cases'
-    chart_dict = SortedDict()
-    location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
-    
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'columns':columns,  
                                'location_id':location_id, 
                                'report_template':'cvs/partials/birth_main.html',
-                               'data':chart_dict, 
-                               'series':location_list, 
-                               'start_date':dates['start'], 
+                               'start_date':dates['start'],
                                'end_date':dates['end'], 
-                               'xaxis':xaxis, 
-                               'yaxis':yaxis, 
-                               'chart_title': chart_title,
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -352,6 +327,7 @@ def birth_detail(request, location_id=None):
                                'start_ts':time.mktime(dates['start'].timetuple()) * 1000,
                                'end_ts':time.mktime(dates['end'].timetuple()) * 1000,
                                'date_range_form':dates['form'],
+                               'page':'birth',
                                 }, context_instance=RequestContext(request))
     
 def death_detail(request, location_id=None):
@@ -365,6 +341,12 @@ def death_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+    chart=request.session.get('death',None)
+    if chart :
+        chart_path=Num_REG.sub(str(location.pk),chart)
+        request.session['death']=chart_path
+    else:
+        request.session['death']="/cvs/charts/"+str(location.pk)+"/death/"
     total = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     boys = report('death', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     girls = report('death', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -391,27 +373,13 @@ def death_detail(request, location_id=None):
                   ('Deaths 1 year to 5 years','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/between_365_1825/')")
                   )
     
-    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('death', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR)
-    chart_title = 'Variation of Total Child Death Reports'
-    xaxis = 'Week of Year'
-    yaxis = 'Number of Cases'
-    chart_dict = SortedDict()
-    location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
-    
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'columns':columns,  
                                'location_id':location_id, 
                                'report_template':'cvs/partials/death_main.html',
-                               'data':chart_dict, 
-                               'series':location_list, 
-                               'start_date':dates['start'], 
+                               'start_date':dates['start'],
                                'end_date':dates['end'], 
-                               'xaxis':xaxis, 
-                               'yaxis':yaxis, 
-                               'chart_title': chart_title,
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -419,6 +387,7 @@ def death_detail(request, location_id=None):
                                'start_ts':time.mktime(dates['start'].timetuple()) * 1000,
                                'end_ts':time.mktime(dates['end'].timetuple()) * 1000,
                                'date_range_form':dates['form'],
+                               'page':'death',
                                 }, context_instance=RequestContext(request))
 
 def home_detail(request, location_id=None):
@@ -432,6 +401,12 @@ def home_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+    chart=request.session.get('home',None)
+    if chart:
+        chart_path=Num_REG.sub(str(location.pk),chart)
+        request.session['home']=chart_path
+    else:
+        request.session['home']="/cvs/charts/"+str(location.pk)+"//home/to/"
     total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     percentage_safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -483,14 +458,6 @@ def home_detail(request, location_id=None):
                     ('Total', '', 1),
                     ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/percentage/')", 1,),
                 )
-    group_by = get_group_by(start_date=dates['start'], end_date=dates['end'])
-    chart = report('home', attribute_keyword='to', location=location, start_date=dates['start'], end_date=dates['end'], group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR)
-    chart_title = 'Variation of Total Households Visited'
-    xaxis = 'Week of Year'
-    yaxis = 'Number of Cases'
-    chart_dict = SortedDict()
-    location_list = []
-    reorganize_timespan(group_by['group_by_name'], chart, chart_dict, location_list, request)
 
     return render_to_response("cvs/stats.html",
                               {'report':report_dict,
@@ -498,13 +465,8 @@ def home_detail(request, location_id=None):
                                'bottom_columns':bottom_columns,
                                'location_id':location_id,
                                'report_template':'cvs/partials/home_main.html',
-                               'data':chart_dict,
-                               'series':location_list,
                                'start_date':dates['start'],
                                'end_date':dates['end'],
-                               'xaxis':xaxis,
-                               'yaxis':yaxis,
-                               'chart_title': chart_title,
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -512,6 +474,7 @@ def home_detail(request, location_id=None):
                                'start_ts':time.mktime(dates['start'].timetuple()) * 1000,
                                'end_ts':time.mktime(dates['end'].timetuple()) * 1000,
                                'date_range_form':dates['form'],
+                               'page':'home',
                                 }, context_instance=RequestContext(request))
 
 
