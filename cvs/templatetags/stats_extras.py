@@ -38,6 +38,12 @@ def latest(obj):
     except:
         return None
 
+def hash(h, key):
+    try:
+        val =h[key]
+    except KeyError:
+        val=None
+    return val
 register = template.Library()
 register.filter('section', get_section)
 register.filter('parent', get_parent)
@@ -45,3 +51,4 @@ register.filter('parentId', get_parentId)
 register.filter('ancestors',get_ancestors)
 register.filter('name', name)
 register.filter('latest', latest)
+register.filter('hash', hash)

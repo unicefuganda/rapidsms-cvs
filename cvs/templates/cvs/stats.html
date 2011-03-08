@@ -120,12 +120,12 @@
 {% endif %}
 {% include report_template %}
 </table>
-{% if data %}
+
 <div id="chart_container">
-    {% include "cvs/partials/chart.html" %}
+<script type="text/javascript">
+    $('#chart_container').load('{{ request.session|hash:page }}')
+</script>
 </div>
 
     <a href='/cvs/excelexport/'>Excel Export</a>
-</form>
-{% endif %}
 {% endblock %}
