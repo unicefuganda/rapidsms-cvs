@@ -57,13 +57,13 @@ def index(request, location_id=None):
     expected_epi = get_expected_epi(location,request)
 
 
-    x = 0
-    while x < len(percentage_safe_water):
-        home_divide = float(percentage_safe_water[x]['value'])
-        total_value = float(home_total[x]['value'])
-        home_divide /= total_value
-        percentage_safe_water[x]['value'] = round(home_divide*100,1)
-        x +=1
+#    x = 0
+#    while x < len(percentage_safe_water):
+#        home_divide = float(percentage_safe_water[x]['value'])
+#        total_value = float(home_total[x]['value'])
+#        home_divide /= total_value
+#        percentage_safe_water[x]['value'] = round(home_divide*100,1)
+#        x +=1
 
     y = 0
     while y < len(percentage_epi):
@@ -82,13 +82,13 @@ def index(request, location_id=None):
     reorganize_location('percentage_epi', percentage_epi, report_dict)
     reorganize_location('percentage_safe_water', percentage_safe_water, report_dict)
     reorganize_location('home_total', home_total, report_dict)
-#    for loc, val_dict in report_dict.iteritems():
-#        if 'home_total' in val_dict and 'percentage_safe_water' in val_dict:
-#            home_total = val_dict['home_total']
-#            percentage_safe_water = val_dict['percentage_safe_water']
-#            val_dict['percentage_safe_water'] = round((percentage_safe_water / home_total)*100, 1)
-#        else:
-#            val_dict['percentage_safe_water'] = 'N/A'
+    for loc, val_dict in report_dict.iteritems():
+        if 'home_total' in val_dict and 'percentage_safe_water' in val_dict:
+            home_total = float(val_dict['home_total'])
+            percentage_safe_water = float(val_dict['percentage_safe_water'])
+            val_dict['percentage_safe_water'] = round(((percentage_safe_water / home_total)*100), 1)
+        else:
+            val_dict['percentage_safe_water'] = 'N/A'
 
     # label, link, colspan
     topColumns = (('','',1),
@@ -278,21 +278,21 @@ def birth_detail(request, location_id=None):
     percentage_at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     percentage_at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    x = 0
-    while x < len(percentage_at_home):
-        home_divide = float(percentage_at_home[x]['value'])
-        total_value = float(total[x]['value'])
-        home_divide /= total_value
-        percentage_at_home[x]['value'] = round(home_divide*100,1)
-        x +=1
-
-    x = 0
-    while x < len(percentage_at_facility):
-        facility_divisor = float(percentage_at_facility[x]['value'])
-        total_value = float(total[x]['value'])
-        facility_divisor /= total_value
-        percentage_at_facility[x]['value'] = round(facility_divisor*100,1)
-        x +=1
+#    x = 0
+#    while x < len(percentage_at_home):
+#        home_divide = float(percentage_at_home[x]['value'])
+#        total_value = float(total[x]['value'])
+#        home_divide /= total_value
+#        percentage_at_home[x]['value'] = round(home_divide*100,1)
+#        x +=1
+#
+#    x = 0
+#    while x < len(percentage_at_facility):
+#        facility_divisor = float(percentage_at_facility[x]['value'])
+#        total_value = float(total[x]['value'])
+#        facility_divisor /= total_value
+#        percentage_at_facility[x]['value'] = round(facility_divisor*100,1)
+#        x +=1
    
     report_dict = {}
     reorganize_location('total', total, report_dict)
@@ -302,6 +302,21 @@ def birth_detail(request, location_id=None):
     reorganize_location('at_facility', at_facility, report_dict)
     reorganize_location('percentage_at_home', percentage_at_home, report_dict)
     reorganize_location('percentage_at_facility', percentage_at_facility, report_dict)
+    for loc, val_dict in report_dict.iteritems():
+        if 'total' in val_dict and 'percentage_at_home' in val_dict:
+            total = float(val_dict['total'])
+            percentage_at_home = float(val_dict['percentage_at_home'])
+            val_dict['percentage_at_home'] = round(((percentage_at_home / total)*100), 1)
+        else:
+            val_dict['percentage_at_home'] = 'N/A'
+
+    for loc, val_dict in report_dict.iteritems():
+        if 'total' in val_dict and 'percentage_at_facility' in val_dict:
+            total = float(val_dict['total'])
+            percentage_at_facility = float(val_dict['percentage_at_facility'])
+            val_dict['percentage_at_facility'] = round(((percentage_at_facility / total)*100), 1)
+        else:
+            val_dict['percentage_at_facility'] = 'N/A'
     
     columns = (('','',1),
                   ('Total Births', '', 1),
@@ -423,6 +438,10 @@ def home_detail(request, location_id=None):
     reorganize_location('hand_washing_facilities', hand_washing_facilities, report_dict)
     reorganize_location('latrines', latrines, report_dict)
     reorganize_location('ittns', ittns, report_dict)
+    reorganize_location('percentage_safe_drinking_water', percentage_safe_drinking_water, report_dict)
+    reorganize_location('percentage_hand_washing_facilities', percentage_hand_washing_facilities, report_dict)
+    reorganize_location('percentage_latrines', percentage_latrines, report_dict)
+    reorganize_location('percentage_ittns', percentage_ittns, report_dict)
 
     percentage_dictionaries = {
                     "percentage_safe_drinking_water":percentage_safe_drinking_water,
@@ -431,15 +450,24 @@ def home_detail(request, location_id=None):
                     "percentage_ittns":percentage_ittns,
                     }
 
+#    for dictx_name, dictx in percentage_dictionaries.items():
+#        x = 0
+#        while x < len(dictx):
+#            dictx_divisor = float(dictx[x]['value'])
+#            total_value = float(total[x]['value'])
+#            dictx_divisor /= total_value
+#            dictx[x]['value'] = round(dictx_divisor*100,1)
+#            x +=1
+#        reorganize_location(dictx_name, dictx, report_dict)
+
     for dictx_name, dictx in percentage_dictionaries.items():
-        x = 0
-        while x < len(dictx):
-            dictx_divisor = float(dictx[x]['value'])
-            total_value = float(total[x]['value'])
-            dictx_divisor /= total_value
-            dictx[x]['value'] = round(dictx_divisor*100,1)
-            x +=1
-        reorganize_location(dictx_name, dictx, report_dict)
+        for loc, val_dict in report_dict.iteritems():
+            if 'total' in val_dict and str(dictx_name) in val_dict:
+                total = float(val_dict['total'])
+                percentage_divisor = float(val_dict.get(dictx_name))
+                val_dict[dictx_name] = round(((percentage_divisor / total)*100), 1)
+            else:
+                val_dict[dictx_name] = 'N/A'
 
     columns = (
                   ('Total Households Visited', 'javascript:void(0)', 2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/to/')"),
