@@ -27,6 +27,12 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
         values passed in (see the FIXMEs) below.
 
     """
+
+    if 'stats' in request.environ['HTTP_REFERER']:
+        request.session['stats']=request.path
+    else:
+        request.session[xform_keyword]=request.path
+
     if request.POST:
         form = DateRangeForm(request.POST)
         if form.is_valid():
@@ -68,27 +74,19 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
         if xform_keyword == 'birth' and kwargs.get('extra_param') == 'percentage':
             label="%"
             percentage_values = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
-            total = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
-            x = 0
-            while x < len(percentage_values):
-                percentage_divisor = float(percentage_values[x]['value'])
-                total_value = float(total[x]['value'])
-                percentage_divisor /= total_value
-                percentage_values[x]['value'] = round(percentage_divisor*100,1)
-                x +=1
+            total = report(xform_keyword, start_date=start_date, end_date=end_date, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+            percentage_values = get_percentages(percentage_values, total, group_by, 'birth')
             chart_data = percentage_values
         elif xform_keyword == 'home' and attribute_value == 'percentage':
             label="%"
             attribute_values_list = report('home', attribute_keyword=attribute_keyword, location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
             home_total = report('home', attribute_keyword='to', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
-            print attribute_values_list
-            print home_total
-            for attribute_values_dict in attribute_values_list:
-                try:
-                    attribute_values_dict['value']=(attribute_values_dict['value']/float(home_total[attribute_values_list.index(attribute_values_dict)]['value']))*100 or "null"
-                except (ZeroDivisionError, TypeError):
-                    attribute_values_dict['value']='null'
-
+            attribute_values_list = get_percentages(attribute_values_list, home_total, group_by, 'home')
+#            for attribute_values_dict in attribute_values_list:
+#                try:
+#                    attribute_values_dict['value']=(attribute_values_dict['value']/float(home_total[attribute_values_list.index(attribute_values_dict)]['value']))*100 or "null"
+#                except (ZeroDivisionError, TypeError):
+#                    attribute_values_dict['value']='null'
             chart_data = attribute_values_list
         else:
             chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
@@ -197,3 +195,20 @@ def chart_params(xform_keyword, attribute_keyword, attribute_value=None):
     params = {"muac":muac_params, "epi":epi_params, "birth":birth_params, "death":death_params, "home":home_params}
     
     return params[xform_keyword]
+
+def get_percentages(percentage_values, totals, group_by, section):
+    new_values = []
+    for dictx  in percentage_values:
+        percentage_divisor = float(dictx['value'])
+        lid = dictx.get('location_id')
+        date = (group_by.get('group_by_name'),dictx.get(group_by.get('group_by_name')),dictx.get('year'))
+        total_value = get_divider(lid, date, totals)
+        percentage_divisor /= total_value
+        dictx['value'] = round(percentage_divisor*100,1)
+        new_values.append(dictx)
+    return new_values
+
+def get_divider(lid, date, totals):
+    for total in totals:
+        if total.get('location_id') == lid and total.get(date[0]) == date[1] and total.get('year') == date[2]:
+            return float(total.get('value'))
