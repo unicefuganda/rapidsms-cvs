@@ -122,3 +122,7 @@ div.module {
     top:3em;
     left:0;
 }
+
+.filter_form_help {
+    display:none;
+}
