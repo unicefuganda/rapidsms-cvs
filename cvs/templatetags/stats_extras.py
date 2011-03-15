@@ -29,6 +29,12 @@ def get_ancestors(location_id):
         location = Area.tree.root_nodes()[0]
     return location.get_ancestors()
 
+def get_district(location):
+    try:
+        return location.get_ancestors().get(kind__name='district').name
+    except:
+        return None
+
 def name(location):
     return location.name
 
@@ -52,3 +58,4 @@ register.filter('ancestors',get_ancestors)
 register.filter('name', name)
 register.filter('latest', latest)
 register.filter('hash', hash)
+register.filter('get_district', get_district)
