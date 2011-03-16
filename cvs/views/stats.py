@@ -228,7 +228,10 @@ def epi_detail(request, location_id=None):
         dictx = report('epi', attribute_keyword=attrib_keyword, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
         reorganize_location(attrib_keyword, dictx, report_dict)
 
-    columns = [('','',1),('Total','',1)]
+    columns = [
+        ('','',1),
+        ('Total','javascript:void(0)',1, "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/')")
+    ]
     for k, v in categories:
         link = 'javascript:void(0)'
         colspan = 1
@@ -422,6 +425,7 @@ def home_detail(request, location_id=None):
         request.session['home']=chart_path
     else:
         request.session['home']="/cvs/charts/"+str(location.pk)+"//home/to/"
+    total_reports = report('home', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     percentage_safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -433,6 +437,7 @@ def home_detail(request, location_id=None):
     percentage_ittns = report('home', attribute_keyword='it', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
 
     report_dict = {}
+    reorganize_location('total_reports', total_reports, report_dict)
     reorganize_location('total', total, report_dict)
     reorganize_location('safe_drinking_water', safe_drinking_water, report_dict)
     reorganize_location('hand_washing_facilities', hand_washing_facilities, report_dict)
@@ -470,22 +475,25 @@ def home_detail(request, location_id=None):
                 val_dict[dictx_name] = 'N/A'
 
     columns = (
-                  ('Total Households Visited', 'javascript:void(0)', 2,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/to/')"),
-                  ('Safe Drinking Water','',2),
-                  ('Hand Washing Facilities','',2),
-                  ('Latrines','',2),
-                  ('ITTNs/LLINs','',2),
-                  )
-    bottom_columns = (('','',2),
-                    ('Total', '', 1),
-                    ("% of Total", "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/percentage/')", 1,""),
-                    ('Total', '', 1),
-                    ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/ha/percentage/')", 1),
-                    ('Total', '', 1),
-                    ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/la/percentage/')", 1),
-                    ('Total', '', 1),
-                    ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/percentage/')", 1,),
-                )
+        ('', '', 3),
+        ('Safe Drinking Water','',2),
+        ('Hand Washing Facilities','',2),
+        ('Latrines','',2),
+        ('ITTNs/LLINs','',2),
+    )
+    bottom_columns = (
+        ('','',1),
+        ('Total Reports', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/')", 1),
+        ('Total Households Visited', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/to/')", 1),
+        ('Total', '', 1),
+        ("% of Total", "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/percentage/')", 1,""),
+        ('Total', '', 1),
+        ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/ha/percentage/')", 1),
+        ('Total', '', 1),
+        ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/la/percentage/')", 1),
+        ('Total', '', 1),
+        ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/percentage/')", 1,),
+    )
 
     return render_to_response("cvs/stats.html",
                               {'report':report_dict,
