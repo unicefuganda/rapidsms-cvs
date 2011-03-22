@@ -145,7 +145,9 @@ def chart_params(xform_keyword, attribute_keyword, attribute_value=None):
     'wa':'Safe Drinking Water',
     'ha':'Hand Washing Facilites',
     'la':'Latrines',
-    'it':'ITTNs/LLINs'
+    'it':'ITTNs/LLINs',
+    'epi':'Total Epi',
+    'home':'Total Home',
     }   
     value_dict = {
                   'G':'Green',
@@ -177,7 +179,7 @@ def chart_params(xform_keyword, attribute_keyword, attribute_value=None):
             indicator = 'Percentage of Homesteads With Safe Drinking Water'
         else:
             yaxis = 'Number of Reports'
-            indicator = keyword_dict[attribute_keyword] + " Reports"
+            indicator = keyword_dict[(attribute_keyword or xform_keyword)] + " Reports"
     
     if attribute_value:
         if attribute_value == 'percentage':

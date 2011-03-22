@@ -7,6 +7,7 @@
             <a href="{% if location_id %}../{% endif %}{{ value.location_id }}/">{{ key }}</a>
        {% endif %}
     </td>
+    <td>{% if value.total_reports %} {{ value.total_reports }} {% else %} 0 {% endif %}</td>
     <td>{% if value.total %} {{ value.total }} {% else %} 0 {% endif %}</td>
     <td>{% if value.safe_drinking_water %} {{ value.safe_drinking_water }} {% else %} 0 {% endif %}</td>
     <td>{% if value.percentage_safe_drinking_water %} {{ value.percentage_safe_drinking_water }} {% else %} 0 {% endif %}</td>
