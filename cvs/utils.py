@@ -379,9 +379,6 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         else:
             joins.append('simple_locations_area provider_locations on providers.location_id = provider_locations.id')
             joins.append('simple_locations_area locations on provider_locations.lft >= locations.lft and provider_locations.rght <= locations.rght')
-
-#    if attribute_keyword is not None:
-#        groupby_columns.append('entity')
     
     sql = "select " + ' , '.join(["%s as %s" % (column, alias) for column, alias in select_clauses])
     sql += " from " + root_table
@@ -481,20 +478,16 @@ def reorganize_location(key, report, report_dict):
         location = dict['location_name']
         report_dict.setdefault(location,{'location_id':dict['location_id'],'diff':(dict['lft']-dict['rght'])})
         report_dict[location][key] = dict['value']
-        
+
 def reorganize_timespan(timespan, report, report_dict, location_list,request=None):
     for dict in report:
         time = dict[timespan]
         if timespan =='month':
-            time = months[int(time)]
+            time = datetime.datetime(int(dict['year']), int(time), 1)
         elif timespan =='week':
-            time = 'Week '+str(int(time))
+            time = datetime.datetime(int(dict['year']), 1, 1) + datetime.timedelta(days = (int(time)*7))
         elif timespan =='quarter':
-            time = quarters[int(time)]+ ' Quarter'
-        else:
-            format = '%d-%m-%Y'
-            time = time.strftime(format)
-
+            time = datetime.datetime(int(dict['year']), int(time)*3, 1)
 
         report_dict.setdefault(time,{})
         location = dict['location_name']
@@ -502,6 +495,27 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
 
         if not location in location_list:
             location_list.append(location)
+        
+#def reorganize_timespan(timespan, report, report_dict, location_list,request=None):
+#    for dict in report:
+#        time = dict[timespan]
+#        if timespan =='month':
+#            time = months[int(time)]
+#        elif timespan =='week':
+#            time = 'Week '+str(int(time))
+#        elif timespan =='quarter':
+#            time = quarters[int(time)]+ ' Quarter'
+#        else:
+#            format = '%d-%m-%Y'
+#            time = time.strftime(format)
+#
+#
+#        report_dict.setdefault(time,{})
+#        location = dict['location_name']
+#        report_dict[time][location] = dict['value']
+#
+#        if not location in location_list:
+#            location_list.append(location)
     
 def get_dates(request):
     """
