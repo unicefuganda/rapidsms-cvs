@@ -9,6 +9,7 @@
 {% block javascripts %}
 {{ block.super }}
 <script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/jquery-ui-1.7.3.custom.min.js"></script>
+<script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/selectToUiSlider.jquery.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/highcharts.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/cvs_stats.js"></script>
 {% endblock %}
@@ -41,37 +42,51 @@
 <p>Date Range:<span id="date_slider_value" class="daterange">From {{ start_date|date:"Y-m-d" }} to {{ end_date|date:"Y-m-d" }}</span>
 <a href="javascript:void(0)" onclick="document.forms[0].submit()" style="float:right">update</a>
 {{ date_range_form }}
-<div id="date_slider" style="margin: 5px 5px 20px 5px"></div>
+
+<div id="date_slider" style="margin: 5px 5px 80px 5px">
+    <form action="#">
+       {% date_range  min_ts max_ts start_ts end_ts%}
+       </form>
+
+</div>
 <script language="javascript">
-    $( "#date_slider" ).slider({
-        range: true,
-        min: {{ min_ts }},
-        max: {{ max_ts }},
-        step: 1,
-        values: [{{ start_ts }}, {{ end_ts }}],
-        slide: function(event, ui) {
-            start_date = new Date(ui.values[0]);
-            start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
-            end_date = new Date(ui.values[1]);
-            end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
-            $('#id_start_ts').val('' + ui.values[0]);
-            $('#id_end_ts').val('' + ui.values[1]);
-            $( "#date_slider_value" ).text( "From " + start_str + " to " + end_str );
-        }
-    });
+$(function(){
+
+    //initialise ui slider
+	$('select#start, select#end').selectToUISlider({
+        labels: 0,
+
+		sliderOptions: {
+		change:function(e, ui) {
+		start_date=new Date(parseInt($('select#start option').eq(ui.values[0])[0].value));
+            console.log(ui.values[0]);
+        start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
+		end_date=new Date(parseInt($('select#end option').eq(ui.values[1])[0].value));
+        end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
+        $('#id_start_ts').val('' + $('select#start option').eq(ui.values[0])[0].value);
+        $('#id_end_ts').val('' + $('select#end option').eq(ui.values[0])[0].value);
+        $( "#date_slider_value" ).text( "From " + start_str + " to " + end_str );
+
+
+
+	}}
+	});
+
+});
+
     start_date = new Date({{ start_ts }});
     start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
     end_date = new Date({{ end_ts }});
     end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
     $('#id_start_ts').val('' + {{ start_ts }});
-    $('#id_end_ts').val('' + {{ end_ts }});    
+    $('#id_end_ts').val('' + {{ end_ts }});
     $( "#date_slider_value" ).text( "From " + start_str +
         " to " + end_str );
 </script>
 <table width="100%">
 {% if top_columns or columns %}
     <thead>
-    {% if top_columns %}    
+    {% if top_columns %}
         <tr>
         {% for name, link, colspan in top_columns %}
             <th colspan="{{ colspan }}">
@@ -128,4 +143,5 @@
 </div>
 
    <a href='/cvs/data/excelexport/'><img src="{{MEDIA_URL  }}cvs/icons/excel.png" border=0 width=40 ></a>
+
 {% endblock %}
