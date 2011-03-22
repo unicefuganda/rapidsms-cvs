@@ -45,7 +45,15 @@ class FacilityFilterForm(FilterForm):
         else:
             return queryset.filter(facility=facility_pk)
 
+class FacilityResponseForm(forms.Form):
+    def __init__(self, data=None, **kwargs):
+        response = kwargs.pop('response')
+        if data:
+            forms.Form.__init__(self, data, **kwargs)
+        else:
+            forms.Form.__init__(self, **kwargs)
 
+    value = forms.ModelChoiceField(queryset=HealthFacility.objects.order_by('name'))
 
 
 
