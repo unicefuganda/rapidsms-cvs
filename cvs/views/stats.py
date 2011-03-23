@@ -424,7 +424,7 @@ def home_detail(request, location_id=None):
         chart_path=Num_REG.sub(str(location.pk),chart)
         request.session['home']=chart_path
     else:
-        request.session['home']="/cvs/charts/"+str(location.pk)+"//home/to/"
+        request.session['home']="/cvs/charts/"+str(location.pk)+"/home/to/"
     total_reports = report('home', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
