@@ -12,6 +12,9 @@
 <script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/selectToUiSlider.jquery.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/highcharts.js"></script>
 <script type="text/javascript" src="{{ MEDIA_URL }}cvs/javascripts/cvs_stats.js"></script>
+    <script type="text/javascript ">
+    var handle=9;
+    </script>
 {% endblock %}
 
 {% block content %}
@@ -52,27 +55,27 @@
 <script language="javascript">
 $(function(){
 
+
     //initialise ui slider
 	$('select#start, select#end').selectToUISlider({
         labels: 0,
 
 		sliderOptions: {
 		change:function(e, ui) {
+        handle = $(ui.handle);
+            console.log(ui.handle);
 		start_date=new Date(parseInt($('select#start option').eq(ui.values[0])[0].value));
-            console.log(ui.values[0]);
         start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
 		end_date=new Date(parseInt($('select#end option').eq(ui.values[1])[0].value));
         end_str = end_date.getDate() + "-" + (end_date.getMonth() + 1) + "-" + end_date.getFullYear();
         $('#id_start_ts').val('' + $('select#start option').eq(ui.values[0])[0].value);
-        $('#id_end_ts').val('' + $('select#end option').eq(ui.values[0])[0].value);
+        $('#id_end_ts').val('' + $('select#end option').eq(ui.values[1])[0].value);
         $( "#date_slider_value" ).text( "From " + start_str + " to " + end_str );
 
 
 
 	}}
 	});
-
-});
 
     start_date = new Date({{ start_ts }});
     start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
@@ -82,6 +85,10 @@ $(function(){
     $('#id_end_ts').val('' + {{ end_ts }});
     $( "#date_slider_value" ).text( "From " + start_str +
         " to " + end_str );
+
+});
+
+
 </script>
 <table width="100%">
 {% if top_columns or columns %}
