@@ -9,6 +9,9 @@ from code_generator.code_generator import get_code_from_model, generate_tracking
 from django.contrib.auth.models import Group
 from django.db.models.signals import pre_delete
 from rapidsms.models import Contact
+from poll.models import Poll
+from eav.models import Attribute
+from cvs.forms import FacilityResponseForm
 
 def parse_timedelta(command, value):
     lvalue = value.lower().strip()
@@ -109,12 +112,15 @@ def parse_oedema(command, value):
         return 'T'
     else:
         return 'F'
-    
-def parse_facility(command, value):
+
+def parse_facility_value(value):
     try:
         return HealthFacility.objects.get(code=value)
     except:
-        raise ValidationError("Expected an HMIS facility code (got: %s)." % value)       
+        raise ValidationError("Expected an HMIS facility code (got: %s)." % value)
+
+def parse_facility(command, value):
+    return parse_facility_value(value)
 
 XFormField.register_field_type('cvssex', 'Gender', parse_gender,
                                db_type=XFormField.TYPE_TEXT, xforms_type='string')
@@ -133,6 +139,8 @@ XFormField.register_field_type('cvsodema', 'Oedema Occurrence', parse_oedema,
 
 XFormField.register_field_type('facility', 'Facility Code', parse_facility,
                                db_type=XFormField.TYPE_OBJECT, xforms_type='string')
+
+Poll.register_poll_type('facility', 'Facility Code Response', parse_facility_value, db_type=Attribute.TYPE_OBJECT, view_template='cvs/partials/response_facility_view.html',edit_template='polls/response_location_edit.html',report_columns=(('Health Facility','facility',),),edit_form=FacilityResponseForm)
 
 def split_name(patient_name):
     names = patient_name.split(' ')

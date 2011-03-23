@@ -99,7 +99,7 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
             while y < len(percentage_epi):
                 epi_divide = float(percentage_epi[y]['value'])
                 epi_divide /= expected_epi
-                percentage_epi[y]['value'] = round(epi_divide*100,1)
+                percentage_epi[y]['value'] = round((epi_divide*100),1)
                 y +=1
             chart_data = percentage_epi
         else:
@@ -120,6 +120,7 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
                                'xaxis':params['xaxis'],
                                'yaxis':params['yaxis'],
                                'label':label,
+                               'timespan': group_by['group_by_name'],
                                }, context_instance=RequestContext(request))
 
 def chart_params(xform_keyword, attribute_keyword, attribute_value=None):
