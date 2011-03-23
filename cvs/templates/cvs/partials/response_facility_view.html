@@ -9,7 +9,10 @@
       {% endif %} 
        at {{ response.message.date|date:"d/m/Y H:i" }}
     </td>
-    <td class="response_location_col">
+    <td class="center response_text_col">
+        {{ response.message.text }}
+    </td>
+    <td class="response_custom_col">
         {{ response.eav.poll_location_value.name }}
     </td>
     <td class="response_options_col">
