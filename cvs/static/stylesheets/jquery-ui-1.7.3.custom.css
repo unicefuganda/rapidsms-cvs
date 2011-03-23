@@ -413,6 +413,7 @@
 	left: 0;
 	height: .8em;
 	top: -1.3em;
+    display: none;
 }
 
 .ui-slider li span.ui-widget-content,.ui-slider dd span.ui-widget-content
