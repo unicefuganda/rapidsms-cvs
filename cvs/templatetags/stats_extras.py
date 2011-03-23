@@ -6,6 +6,7 @@ import datetime
 from django.utils.safestring import mark_safe
 import calendar
 import time
+import re
 
 def get_section(path):
     pos = path.split('/')
@@ -130,13 +131,17 @@ class DateRangeNode(template.Node):
 
             start_opts = start_opts + '</optgroup>'
         start_opts = start_opts + '</select>'
-        js="""<script type="text/javascript>"$('select#start option[value=%d]').attr('selected','selected');
-            $('select#end option[value=%d]').attr('selected','selected');
-        </script>"""%(time.mktime(start_date.date().timetuple())*1000,time.mktime(end_date.date().timetuple())*1000)
+        start_ts=time.mktime(start_date.date().timetuple())*1000
+        end_ts=time.mktime(end_date.date().timetuple())*1000
+        start_re=re.compile("<option value=%d>"%start_ts)
+        end_re=re.compile("<option value=%d>"%end_ts)
+        start_selected_str="<option value=%d' selected='selected'>"%start_ts
+        end_selected_str="<option value=%d' selected='selected'>"%end_ts
         start_html = start_opts % ('start', '', 'start', 'start')
         end_html = start_opts % ('end', '', 'end', 'end')
-        print start_html + end_html+js
-        return mark_safe(start_html + end_html+js)
+        start_html=start_re.sub(start_selected_str,start_html)
+        end_html=end_re.sub(end_selected_str,end_html)
+        return mark_safe(start_html + end_html)
 
 
 
