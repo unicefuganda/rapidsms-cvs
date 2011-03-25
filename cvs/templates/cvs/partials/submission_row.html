@@ -1,0 +1,33 @@
+    <td class="center">
+      {% ifequal object.type "odk-www" %}
+      <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/application_form.png" title="XForms Submission" >
+      {% endifequal %}
+      {% ifequal object.type "sms" %}
+      <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/phone.png" title="SMS Submission" >
+      {% endifequal %}
+    </td>
+    <td>
+      {% if object.has_errors %}
+      <font color='red'>
+      {% else %}
+      <font color='green'>
+      {% endif %}
+      {{ object.created|date:"m/j/y G:i:s"}}</td>
+    </font>
+    </td>
+    {% for field in fields.all %}
+    <td>
+      {% for value in object.values.all %}
+      {% ifequal field.pk value.attribute.pk %}
+      {{ value.value }}
+      {% endifequal %}
+      {% endfor %}
+    </td>
+    {% endfor %}
+    <td>
+      <div class="buttons">
+    <a href="/xforms/submissions/{{ object.pk }}/edit/">
+          <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/pencil.png" alt=""/> Edit
+    </a>
+      </div>
+    </td>

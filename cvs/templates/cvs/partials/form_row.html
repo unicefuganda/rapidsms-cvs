@@ -1,0 +1,21 @@
+<td>
+    <b>
+    {% if object.active %}
+        {{ object.name }}
+    {% else %}
+        <font color="grey">{{ object.name }}</font>
+    {% endif %}
+    </b>
+</td>
+<td>{{ object.description }}</td>
+<td>
+    <a style="float:right;padding-top:7px;" href="javascript:void(0);" onclick="deleteForm('{{object.pk}}','{{object.name|addslashes}}');"><img border="0" src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png"/></a>
+    <div class="buttons"> 
+        <a href="/cvs/forms/{{ object.pk }}/submissions/">
+            <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/database_table.png" alt=""/> Submissions ({{ object.submissions.all.count }})
+        </a>
+        <a href="/xforms/{{ object.pk }}/view/">
+            <img src="{{ MEDIA_URL }}rapidsms_xforms/icons/silk/zoom.png" alt=""/> View
+        </a>
+    </div>
+</td>
