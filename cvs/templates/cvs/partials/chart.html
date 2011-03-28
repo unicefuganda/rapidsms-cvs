@@ -117,7 +117,7 @@
                  'data': [
                     {% for time, loc_dict in data|items_sorted %}
                         {% if loc_dict|dict:s %}
-                            [Date.UTC({{ time.year }}, {{ time.month }}, {{ time.day }}),{{ loc_dict|dict:s }} {{ data|close_bracket:time }}
+                            [Date.UTC({{ time.year }}, {{ time.month }} - 1, {{ time.day }}, 0, 0, 0, 0),{{ loc_dict|dict:s }} {{ data|close_bracket:time }}
                         {% endif %}
                     {% endfor %} 
                  ]},

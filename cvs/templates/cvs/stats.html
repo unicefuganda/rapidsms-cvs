@@ -40,7 +40,9 @@
 <form id="date_range_form" method="POST">
 {% csrf_token %}
 <p>Date Range:<span id="date_slider_value" class="daterange">From {{ start_date|date:"Y-m-d" }} to {{ end_date|date:"Y-m-d" }}</span>
-<a href="javascript:void(0)" onclick="document.forms[0].submit()" style="float:right">update</a>
+<a href="javascript:void(0)" onclick="previous_date_range('w');"> &laquo; previous week</a> |
+<a href="javascript:void(0)" onclick="previous_date_range('m');"> &laquo; previous month</a>
+<a href="javascript:void(0)" onclick="document.forms[0].submit()" style="float:right">update</a> 
 {{ date_range_form }}
 
 <div id="date_slider" style="margin: 5px 5px 80px 5px">
@@ -71,7 +73,15 @@ $(function(){
 
 	}}
 	});
-    tickEvery(7);
+	var min_timestamp = {{ min_ts }};
+	var min_sdt = new Date(min_timestamp);
+	if(min_sdt.getDay() !== 1){
+		offset = 7 - min_sdt.getDay();
+	}else{
+		offset = 0;
+		
+	}
+    tickEvery(7, offset);
 
     start_date = new Date({{ start_ts }});
     start_str = start_date.getDate() + "-" + (start_date.getMonth() + 1) + "-" + start_date.getFullYear();
