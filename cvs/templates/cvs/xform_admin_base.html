@@ -1,0 +1,24 @@
+{% extends "generic/base.html" %}
+{% block title %}
+    Forms - {{ block.super }}
+{% endblock %}
+{% block stylesheets %}
+    {{ block.super }}
+    <link type="text/css" rel="stylesheet" href="{{ MEDIA_URL }}rapidsms_xforms/stylesheets/style.css" />
+{% endblock %}
+{% block content %}
+{{ block.super }}
+<div class="buttons"> 
+    <a href="/xforms/new/" style="float:left"> 
+      <img border="0" src="/static/rapidsms/icons/silk/add.png" alt=""/>Add New Form
+    </a> 
+</div>
+<script type="text/javascript">
+    function deleteForm(form_id, form_name) {
+        if (confirm("Are you sure you want to delete \"" + form_name + "\" ?")) {
+            document.form.action += form_id + "/delete/";
+            document.form.submit();
+        }
+    }
+</script> 
+{% endblock %}

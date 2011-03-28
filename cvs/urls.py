@@ -1,8 +1,7 @@
 from django.conf.urls.defaults import *
 from cvs.views.stats import *
 from cvs.views.chart import *
-from cvs.views import reporters
-from cvs.views import map
+from cvs.views import basic, reporters, map
 from healthmodels import *
 from generic.views import generic, generic_row
 from generic.sorters import SimpleSorter, QuickSorter
@@ -12,6 +11,7 @@ from cvs.utils import get_reporters
 from cvs.sorters import LatestSubmissionSorter
 from healthmodels.models.HealthProvider import HealthProviderBase
 from django.contrib.auth.decorators import login_required
+from rapidsms_xforms.models import XForm
 
 urlpatterns = patterns('',
    url(r'^cvs/stats/$', index,name='stats'),
@@ -51,6 +51,7 @@ urlpatterns = patterns('',
       'objects_per_page':25,
       'partial_row':'cvs/partials/reporter_row.html',
       'base_template':'cvs/contacts_base.html',
+      'results_title':'Reporters',
       'columns':[('Name', True, 'name', SimpleSorter()),
                  ('Number', True, 'connection__identity', SimpleSorter(),),
                  ('Role(s)', True, 'groups__name', SimpleSorter(),),
@@ -64,7 +65,22 @@ urlpatterns = patterns('',
     url(r'^cvs/reporter/(?P<reporter_pk>\d+)/edit', reporters.editReporter),
     url(r'^cvs/reporter/(?P<reporter_pk>\d+)/delete', reporters.deleteReporter),
     url(r'^cvs/reporter/(?P<pk>\d+)/show', generic_row, {'model':HealthProviderBase, 'partial_row':'cvs/partials/reporter_row.html'}),
-   )
+    url(r'^cvs/forms/$', login_required(generic),  {
+        'model':XForm,
+#        'queryset':get_contacts,
+#        'filter_forms':[FreeSearchForm, DistictFilterForm, FilterGroupsForm],
+#        'action_forms':[MassTextForm, AssignGroupForm, BlacklistForm],
+        'objects_per_page':10,
+        'selectable':False,
+        'partial_row':'cvs/partials/form_row.html',
+        'base_template':'cvs/xform_admin_base.html',
+        'results_title':'Forms',
+        'columns':[('Name', True, 'name', SimpleSorter()),
+                 ('Description', True, 'description', SimpleSorter(),),
+                 ('',False,'',None)],
+    }, name="cvs-forms"),
+    url(r"^cvs/forms/(\d+)/submissions/$", login_required(basic.view_submissions)),
+)
 
 
 
