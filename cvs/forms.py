@@ -1,7 +1,7 @@
 from django import forms
 import datetime
 from healthmodels.models.HealthProvider import HealthProvider
-from generic.forms import ActionForm, FilterForm
+from generic.forms import ActionForm, FilterForm, ModuleForm
 from healthmodels.models.HealthFacility import HealthFacility
 from mptt.forms import TreeNodeChoiceField
 from simple_locations.models import Area
@@ -55,5 +55,31 @@ class FacilityResponseForm(forms.Form):
 
     value = forms.ModelChoiceField(queryset=HealthFacility.objects.order_by('name'))
 
+class ChartModuleForm(ModuleForm):
+    type=forms.ChoiceField(choices=(
+        ('epi___ma','Variation of Malaria reports'),
+        ('epi___tb','Variation of Tuberculosis reports'),
+        ('epi___bd','Variation of Bloody Diarrhea reports'),
+        ('muac','Variation of Malnutrition reports'),
+        ('birth','Variation of Birth reports'),
+        ('birth___gender___M','Variation of male birth reports'),
+        ('birth___gender___F','Variation of female birth reports'),
+        ('death','Variation of Death reports'),
+        ('home___wa___percentage', 'Variation of Homesteads with safe drinking water'),
+        ('epi___percentage', 'Variation of percentage of expected weekly epi reports received'),
+    ), label="Data to chart")
+    district = forms.ModelChoiceField(queryset=Area.objects.filter(kind__slug='district').order_by('name'))
 
+    def setModuleParams(self, dashboard, module=None):
+        module = module or self.createModule(dashboard)
+        module.view_name = 'cvs.views.chart.chart'
+        module.params.create(module=module, param_name='location_id', param_value=str(self.cleaned_data['district'].pk))
+        param_list = self.cleaned_data['type']
+        if len(param_list) > 0:
+            module.params.create(module=module, param_name='xform_keyword', param_value=param_list[0])
+        if len(param_list) > 1:
+            module.params.create(module=module, param_name='attribute_keyword', param_value=param_list[1])
+        if len(param_list) > 2:
+            module.params.create(module=module, param_name='attribute_value', param_value=param_list[2])
 
+        return module
