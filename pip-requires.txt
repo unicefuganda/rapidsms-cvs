@@ -1,0 +1,11 @@
+-e git+http://github.com/daveycrockett/healthmodels.git#egg=healthmodels
+-e git+http://github.com/daveycrockett/rapidsms-xforms.git#egg=rapidsms-xforms
+-e git+http://github.com/daveycrockett/auth.git#egg=rapidsms-auth
+-e git+http://github.com/daveycrockett/rapidsms-polls.git#egg=rapidsms-polls
+-e git+http://github.com/daveycrockett/rapidsms-httprouter.git#egg=rapidsms-httprouter
+-e git+http://github.com/daveycrockett/rapidsms-ureport.git#egg=rapidsms-ureport
+-e git+http://github.com/mvpdev/django-eav.git#egg=django-eav
+-e git+http://github.com/mossplix/simple_locations.git#egg=simple_locations
+-e git+http://github.com/daveycrockett/code_generator.git#egg=code_generator
+-e git+http://github.com/daveycrockett/rapidsms-auth.git#egg=rapidsms-auth
+-e git+http://github.com/daveycrockett/rapidsms-authsites.git#egg=rapidsms-authsites
