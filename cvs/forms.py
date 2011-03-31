@@ -74,7 +74,7 @@ class ChartModuleForm(ModuleForm):
         module = module or self.createModule(dashboard)
         module.view_name = 'cvs.views.chart.chart'
         module.params.create(module=module, param_name='location_id', param_value=str(self.cleaned_data['district'].pk), is_url_param=True)
-        param_list = self.cleaned_data['type']
+        param_list = self.cleaned_data['type'].split('___')
         if len(param_list) > 0:
             module.params.create(module=module, param_name='xform_keyword', param_value=param_list[0], is_url_param=True)
         if len(param_list) > 1:
