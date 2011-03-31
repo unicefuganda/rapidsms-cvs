@@ -71,8 +71,7 @@ class ChartModuleForm(ModuleForm):
     district = forms.ModelChoiceField(queryset=Area.objects.filter(kind__slug='district').order_by('name'))
 
     def setModuleParams(self, dashboard, module=None):
-        module = module or self.createModule(dashboard)
-        module.view_name = 'cvs.views.chart.chart'
+        module = module or self.createModule(dashboard, 'cvs.views.chart.chart')
         module.params.create(module=module, param_name='location_id', param_value=str(self.cleaned_data['district'].pk), is_url_param=True)
         param_list = self.cleaned_data['type'].split('___')
         if len(param_list) > 0:
