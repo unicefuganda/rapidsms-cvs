@@ -82,7 +82,7 @@ urlpatterns = patterns('',
     url(r"^cvs/forms/(\d+)/submissions/$", login_required(basic.view_submissions)),
     url(r'^cvs/dashboard/$', generic_dashboard,{
            'slug':'cvs',
-        'module_types':[(chart, ChartModuleForm, 'CVS Chart Module',)],
+        'module_types':[('chart', ChartModuleForm, 'CVS Chart Module',)],
         'base_template':'generic/dashboard_base.html',
 
    }),
