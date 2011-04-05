@@ -40,7 +40,11 @@ def chart(request, template,xform_keyword, attribute_keyword=None, attribute_val
             end_date = form.cleaned_data['end_ts']
             request.session['start_date'] = start_date
             request.session['end_date'] = end_date
-        
+    if request.GET.get('start_date',None):
+        request.session['start_date'] = start_date
+    if request.GET.get('end_date',None):
+        request.session['end_date'] = end_date
+             
     else:
         cursor = connection.cursor()
         cursor.execute("select max(created) from rapidsms_xforms_xformsubmission")
