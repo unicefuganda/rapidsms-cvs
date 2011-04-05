@@ -13,7 +13,7 @@ from cvs.forms import DateRangeForm
 import datetime
 from django.utils.datastructures import SortedDict
 
-def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, location_id=None,label='cases', **kwargs):
+def chart(request, template,xform_keyword, attribute_keyword=None, attribute_value=None, location_id=None,label='cases', **kwargs):
     """
         This view can handle basic functionality for all charts.  This view
         is a partial response, to be loaded within a container div for another
@@ -111,7 +111,7 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
 # FIXME: should also fixure out how to calculate max and min values for
 # yaxis range
     reorganize_timespan(group_by['group_by_name'], chart_data, report_dict, location_list, request)
-    return render_to_response("cvs/partials/chart.html",
+    return render_to_response(template,
                               {'data':report_dict, 
                                'series':location_list, 
                                'start_date':start_date, 
