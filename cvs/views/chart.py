@@ -12,8 +12,9 @@ from cvs.utils import report, reorganize_timespan, get_expected_epi, get_group_b
 from cvs.forms import DateRangeForm
 import datetime
 from django.utils.datastructures import SortedDict
+from cvs.utils import get_dates
 
-def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, location_id=None,label='cases', **kwargs):
+def chart(request,xform_keyword, attribute_keyword=None, attribute_value=None, location_id=None,label='cases',template='cvs/partials/chart.html', start_date=None,end_date=None,**kwargs):
     """
         This view can handle basic functionality for all charts.  This view
         is a partial response, to be loaded within a container div for another
@@ -28,7 +29,7 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
 
     """
 
-    if 'stats' in request.environ['HTTP_REFERER']:
+    if  request.environ.get('HTTP_REFERER',None):
         request.session['stats']=request.path
     else:
         request.session[xform_keyword]=request.path
@@ -40,7 +41,13 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
             end_date = form.cleaned_data['end_ts']
             request.session['start_date'] = start_date
             request.session['end_date'] = end_date
-        
+    if request.GET.get('start_date',None):
+        request.session['start_date'] = request.GET['start_date']
+    if request.GET.get('end_date',None):
+        request.session['end_date'] = request.GET['end_date']
+    if request.GET.get('module'):
+        template="cvs/partials/chart_module.html"
+             
     else:
         cursor = connection.cursor()
         cursor.execute("select max(created) from rapidsms_xforms_xformsubmission")
@@ -49,6 +56,10 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
         if request.session.get('start_date',None)  and request.session.get('end_date',None):
             start_date=request.session['start_date']
             end_date=request.session['end_date']
+    if not end_date:
+        end_date=datetime.datetime.now()
+    if not start_date:
+        start_date=get_dates(request)['min']
 
     group_by = get_group_by(start_date, end_date)
     if location_id:
@@ -111,7 +122,7 @@ def chart(request, xform_keyword, attribute_keyword=None, attribute_value=None, 
 # FIXME: should also fixure out how to calculate max and min values for
 # yaxis range
     reorganize_timespan(group_by['group_by_name'], chart_data, report_dict, location_list, request)
-    return render_to_response("cvs/partials/chart.html",
+    return render_to_response(template,
                               {'data':report_dict, 
                                'series':location_list, 
                                'start_date':start_date, 
