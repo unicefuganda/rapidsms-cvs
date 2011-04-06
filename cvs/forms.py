@@ -68,10 +68,11 @@ class ChartModuleForm(ModuleForm):
         ('home___wa___percentage', 'Variation of Homesteads with safe drinking water'),
         ('epi___percentage', 'Variation of percentage of expected weekly epi reports received'),
     ), label="Data to chart")
+    title = forms.CharField(max_length=40)
     district = forms.ModelChoiceField(queryset=Area.objects.filter(kind__slug='district').order_by('name'))
 
-    def setModuleParams(self, dashboard, module=None):
-        module = module or self.createModule(dashboard, 'cvs.views.chart.chart')
+    def setModuleParams(self, dashboard, module=None, title=title):
+        module = module or self.createModule(dashboard, 'cvs.views.chart.chart', title=title)
         module.params.create(module=module, param_name='location_id', param_value=str(self.cleaned_data['district'].pk), is_url_param=True)
         param_list = self.cleaned_data['type'].split('___')
         if len(param_list) > 0:
