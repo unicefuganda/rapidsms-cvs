@@ -83,3 +83,27 @@ class ChartModuleForm(ModuleForm):
             module.params.create(module=module, param_name='attribute_value', param_value=param_list[2], is_url_param=True)
 
         return module
+    
+class StatsModuleForm(ModuleForm):
+    type=forms.ChoiceField(choices=(
+        ('epi_detail','Variation of EPI reports'),
+        ('muac_detail','Variation of Malnutrition reports'),
+        ('birth_detail','Variation of Birth reports'),
+        ('death_detail','Variation of Death reports'),
+        ('home_detail', 'Variation of Homesteads reports'),
+    ), label="Statistics to Show")
+    title = forms.CharField(max_length=40)
+    root_node = Area.tree.root_nodes()[0]
+    district = forms.ChoiceField(choices=(('', '----------'), (int(root_node.pk),
+                                 'All Districts')) + tuple([(int(d.pk),
+                                 d.name) for d in
+                                 Area.objects.filter(kind__slug='district'
+                                 ).order_by('name')]))
+    
+    def setModuleParams(self, dashboard, module=None, title=None):
+        import pdb; pdb.set_trace()
+        module = module or self.createModule(dashboard, 'cvs.views.stats.module_stats', title=title)
+        module.params.create(module=module, param_name='location_id', param_value=str(self.cleaned_data['district']), is_url_param=True)
+        module.params.create(module=module, param_name='view_name', param_value=self.cleaned_data['type'], is_url_param=True)
+
+        return module
