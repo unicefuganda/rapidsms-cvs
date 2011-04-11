@@ -6,7 +6,11 @@ from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard
 from generic.sorters import SimpleSorter, QuickSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
+<<<<<<< HEAD
 from cvs.forms import FacilityFilterForm, ChartModuleForm,MapModuleForm
+=======
+from cvs.forms import FacilityFilterForm, ChartModuleForm, StatsModuleForm
+>>>>>>> 223f3da99d5bb84a83290eb71d98a14107f61376
 from cvs.utils import get_reporters
 from cvs.sorters import LatestSubmissionSorter
 from healthmodels.models.HealthProvider import HealthProviderBase
@@ -81,10 +85,11 @@ urlpatterns = patterns('',
                  ('Description', True, 'description', SimpleSorter(),),
                  ('',False,'',None)],
     }, name="cvs-forms"),
+    url(r'^cvs/module_stats/(?P<location_id>\d+)/(?P<view_name>[a-z_]+)/$', module_stats),
     url(r"^cvs/forms/(\d+)/submissions/$", login_required(basic.view_submissions)),
     url(r'^cvs/dashboard/$', generic_dashboard,{
            'slug':'cvs',
-        'module_types':[('map',MapModuleForm,'Cvs Map Module'),('chart', ChartModuleForm, 'CVS Chart Module',)],
+        'module_types':[('chart', ChartModuleForm, 'CVS Chart Module',),('map',MapModuleForm,'Cvs Map Module',),('module_stats', StatsModuleForm, 'CVS Statistics Module',),],
         'base_template':'generic/dashboard_base.html',
 
    }),

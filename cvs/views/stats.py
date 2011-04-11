@@ -141,12 +141,14 @@ def muac_detail(request,location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-    chart=request.session.get('muac',None)
-    if chart :
-        chart_path=Num_REG.sub(str(location.pk),chart)
-        request.session['muac']=chart_path
-    else:
-        request.session['muac']="/cvs/charts/"+str(location.pk)+"/muac/"
+    module = request.GET.get('module', False)
+    if not module:
+        chart=request.session.get('muac',None)
+        if chart :
+            chart_path=Num_REG.sub(str(location.pk),chart)
+            request.session['muac']=chart_path
+        else:
+            request.session['muac']="/cvs/charts/"+str(location.pk)+"/muac/"
     total = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     green = report('muac', attribute_keyword='category', attribute_value='G', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     green_oedema = report('muac', attribute_keyword=['category', 'oedema'], attribute_value=['G','T'], location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -170,7 +172,8 @@ def muac_detail(request,location_id=None):
                   ('Red+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__oedema/R__T/')")
                   )
     
-    return render_to_response("cvs/stats.html",
+    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html" 
+    return render_to_response(stats_template,
                               {'report':report_dict, 
                                'columns':columns,  
                                'location_id':location_id, 
@@ -197,12 +200,14 @@ def epi_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-    chart=request.session.get('epi',None)
-    if chart:
-        chart_path=Num_REG.sub(str(location.pk),chart)
-        request.session['epi']=chart_path
-    else:
-        request.session['epi']="/cvs/charts/"+str(location.pk)+"/epi/ma/"
+    module = request.GET.get('module', False)
+    if not module:
+        chart=request.session.get('epi',None)
+        if chart:
+            chart_path=Num_REG.sub(str(location.pk),chart)
+            request.session['epi']=chart_path
+        else:
+            request.session['epi']="/cvs/charts/"+str(location.pk)+"/epi/ma/"
 
     categories = (
                   ('bd','Bloody Diarrhea'),
@@ -238,15 +243,16 @@ def epi_detail(request, location_id=None):
         onclick = "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/"+k+"/')"
         tup = (v, link, colspan, onclick)
         columns.append(tup)
-    
 
-    return render_to_response("cvs/stats.html",
+    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html" 
+    return render_to_response(stats_template,
                               {'report':report_dict, 
                                'columns':columns,  
                                'location_id':location_id, 
                                'report_template':'cvs/partials/epi_main.html',
                                'start_date':dates['start'],
-                               'end_date':dates['end'], 
+                               'end_date':dates['end'],
+                               'module':module, 
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -268,12 +274,14 @@ def birth_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-    chart=request.session.get('birth',None)
-    if chart :
-        chart_path=Num_REG.sub(str(location.pk),chart)
-        request.session['birth']=chart_path
-    else:
-        request.session['birth']="/cvs/charts/"+str(location.pk)+"/birth/"
+    module = request.GET.get('module', False)
+    if not module:
+        chart=request.session.get('birth',None)
+        if chart :
+            chart_path=Num_REG.sub(str(location.pk),chart)
+            request.session['birth']=chart_path
+        else:
+            request.session['birth']="/cvs/charts/"+str(location.pk)+"/birth/"
     total = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     boys = report('birth', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     girls = report('birth', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -281,21 +289,6 @@ def birth_detail(request, location_id=None):
     percentage_at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     percentage_at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-#    x = 0
-#    while x < len(percentage_at_home):
-#        home_divide = float(percentage_at_home[x]['value'])
-#        total_value = float(total[x]['value'])
-#        home_divide /= total_value
-#        percentage_at_home[x]['value'] = round(home_divide*100,1)
-#        x +=1
-#
-#    x = 0
-#    while x < len(percentage_at_facility):
-#        facility_divisor = float(percentage_at_facility[x]['value'])
-#        total_value = float(total[x]['value'])
-#        facility_divisor /= total_value
-#        percentage_at_facility[x]['value'] = round(facility_divisor*100,1)
-#        x +=1
    
     report_dict = {}
     reorganize_location('total', total, report_dict)
@@ -331,7 +324,8 @@ def birth_detail(request, location_id=None):
                   ('% Delivered at Facility','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/FACILITY/percentage/')")
                   )
 
-    return render_to_response("cvs/stats.html",
+    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html" 
+    return render_to_response(stats_template,
                               {'report':report_dict, 
                                'columns':columns,  
                                'location_id':location_id, 
@@ -359,12 +353,14 @@ def death_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-    chart=request.session.get('death',None)
-    if chart :
-        chart_path=Num_REG.sub(str(location.pk),chart)
-        request.session['death']=chart_path
-    else:
-        request.session['death']="/cvs/charts/"+str(location.pk)+"/death/"
+    module = request.GET.get('module', False)
+    if not module:
+        chart=request.session.get('death',None)
+        if chart :
+            chart_path=Num_REG.sub(str(location.pk),chart)
+            request.session['death']=chart_path
+        else:
+            request.session['death']="/cvs/charts/"+str(location.pk)+"/death/"
     total = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     boys = report('death', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     girls = report('death', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -391,7 +387,8 @@ def death_detail(request, location_id=None):
                   ('Deaths 1 year to 5 years','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/between_365_1825/')")
                   )
     
-    return render_to_response("cvs/stats.html",
+    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html" 
+    return render_to_response(stats_template,
                               {'report':report_dict, 
                                'columns':columns,  
                                'location_id':location_id, 
@@ -419,12 +416,14 @@ def home_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-    chart=request.session.get('home',None)
-    if chart:
-        chart_path=Num_REG.sub(str(location.pk),chart)
-        request.session['home']=chart_path
-    else:
-        request.session['home']="/cvs/charts/"+str(location.pk)+"/home/to/"
+    module = request.GET.get('module', False)
+    if not module:
+        chart=request.session.get('home',None)
+        if chart:
+            chart_path=Num_REG.sub(str(location.pk),chart)
+            request.session['home']=chart_path
+        else:
+            request.session['home']="/cvs/charts/"+str(location.pk)+"/home/to/"
     total_reports = report('home', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -454,16 +453,6 @@ def home_detail(request, location_id=None):
                     "percentage_latrines":percentage_latrines,
                     "percentage_ittns":percentage_ittns,
                     }
-
-#    for dictx_name, dictx in percentage_dictionaries.items():
-#        x = 0
-#        while x < len(dictx):
-#            dictx_divisor = float(dictx[x]['value'])
-#            total_value = float(total[x]['value'])
-#            dictx_divisor /= total_value
-#            dictx[x]['value'] = round(dictx_divisor*100,1)
-#            x +=1
-#        reorganize_location(dictx_name, dictx, report_dict)
 
     for dictx_name, dictx in percentage_dictionaries.items():
         for loc, val_dict in report_dict.iteritems():
@@ -495,7 +484,8 @@ def home_detail(request, location_id=None):
         ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/percentage/')", 1,),
     )
 
-    return render_to_response("cvs/stats.html",
+    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html" 
+    return render_to_response(stats_template,
                               {'report':report_dict,
                                'columns':columns,
                                'bottom_columns':bottom_columns,
@@ -596,5 +586,8 @@ def export_as_excel(request):
         export_data_list.append(export_data)
   
     return ExcelResponse(export_data_list)
+
+def module_stats(request, view_name, location_id):
+    return globals()[str(view_name)](request, location_id)
 
 
