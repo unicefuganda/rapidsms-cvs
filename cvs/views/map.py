@@ -26,17 +26,6 @@ def get_dates():
 
     return (start_date, end_date, min_date, max_date)
 
-def map_index(request):
-    map_key = MAP_KEY
-    map_layers = mark_safe(simplejson.dumps(MAP_LAYERS))
-    (minLon, maxLon, minLat, maxLat) = (mark_safe(MIN_LON),
-                                        mark_safe(MAX_LON), mark_safe(MIN_LAT), mark_safe(MAX_LAT))
-    start_date, end_date, min_date, max_date = get_dates()
-    return render_to_response('cvs/map.html',
-                              dict(start_ts=start_date, end_ts=end_date,min_ts=min_date, max_ts=max_date, minLon=minLon, maxLon=maxLon, minLat=minLat
-                                   , maxLat=maxLat, map_key=map_key, map_layers=map_layers, base_layer=BASELAYER),
-                              context_instance=RequestContext(request))
-
 class JsonResponse(HttpResponse):
     """ return json content type   """
 
@@ -48,17 +37,40 @@ class JsonResponse(HttpResponse):
     def serialize(self):
         return simplejson.dumps(self.original_obj)
 
+def map_index(request,layer=None,kind=None,template="cvs/map.html"):
 
-
-
-def epi_kind(request, kind):
-    start_date = datetime.datetime.fromtimestamp(int(request.GET.get('start', get_dates()[0]))//1000)
-    end_date = datetime.datetime.fromtimestamp(int(request.GET.get('end', get_dates()[1]))//1000)
+    map_key = MAP_KEY
+    map_layers = mark_safe(simplejson.dumps(MAP_LAYERS))
+    health_facilities = HealthFacility.objects.all()
+    data_list=[]
     minLat = request.GET.get('minLat', MIN_LAT)
     maxLat = request.GET.get('maxLat', MAX_LAT)
     minLon = request.GET.get('minLon', MIN_LON)
     maxLon = request.GET.get('maxLon', MAX_LON)
-    other = [
+    min_date, max_date = get_dates()[2],get_dates()[3]
+
+    start_date = datetime.datetime.fromtimestamp(int(request.GET.get('start', get_dates()[0]))//1000)
+    end_date = datetime.datetime.fromtimestamp(int(request.GET.get('end', get_dates()[1]))//1000)
+
+
+    (minLon, maxLon, minLat, maxLat) = (mark_safe(MIN_LON),
+                                        mark_safe(MAX_LON), mark_safe(MIN_LAT), mark_safe(MAX_LAT))
+
+    if request.GET.get('module',None):
+            template="cvs/partials/map_module.html"
+    if layer == 'health_facilities' :
+        for facility in health_facilities:
+            if facility.location:
+                fac = {}
+                fac['title'] = str(facility.name)
+                fac['lat'] = float(facility.location.latitude)
+                fac['lon'] = float(facility.location.longitude)
+                fac['icon'] = settings.MEDIA_URL + "cvs/icons/" + facility.type.name.upper() + '.png'
+                fac['desc'] = facility.name
+                #fac['color'] = MAP_LAYERS['health_facilities'][2]
+                data_list.append(fac)
+    elif layer == 'epi':
+        other = [
             'me',
             'ab',
             'af',
@@ -69,115 +81,64 @@ def epi_kind(request, kind):
             'nt',
             'pl',
             'rb',
-    ]
-    
-    epi_facility_reports=report('epi',attribute_keyword=kind,  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
-    if kind == 'other':
-        other_epis = {}
-        epi_rep=[]
-        for epi in other:
-            rep=report('epi',attribute_keyword=epi,  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
-            other_epis[epi] =rep
-            epi_rep=epi_rep+rep
-
-        #sort the list of dictionaries in descending order on value
-        epi_facility_reports=sorted(epi_rep, key=lambda k: k['value'],reverse=True)
-
-    epi_reports = []
-    for facility in epi_facility_reports:
-        epi = {}
-        epi['title'] = facility['facility_name']
-        epi['lat'] = float(facility['latitude'])
-        epi['lon'] = float(facility['longitude'])
+        ]
+        epi_facility_reports=report('epi',attribute_keyword=kind,  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
         if kind == 'other':
-            desc = ""
-            for o in other:
-                for f in other_epis[o]:
-                    if f['facility_id']==facility['facility_id']:
-                        desc = desc + " " + o + ":" + str(f['value'])+" cases"
-            epi['desc'] = desc
+            other_epis = {}
+            epi_rep=[]
+            for epi in other:
+                rep=report('epi',attribute_keyword=epi,  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
+                other_epis[epi] =rep
+                epi_rep=epi_rep+rep
 
-        else:
-            epi['desc'] = "<b>" + str(kind) + "</b>:" + str(facility['value']) + " cases"
-        epi['heat'] = facility['value'] / float(epi_facility_reports[0]['value'])
-        epi['color'] = MAP_LAYERS[kind][2]
-        epi_reports.append(epi)
-    return JsonResponse(epi_reports)
+            #sort the list of dictionaries in descending order on value
+            epi_facility_reports=sorted(epi_rep, key=lambda k: k['value'],reverse=True)
+
+        epi_reports = []
+        for facility in epi_facility_reports:
+            epi = {}
+            epi['title'] = str(facility['facility_name'])
+            epi['lat'] = float(facility['latitude'])
+            epi['lon'] = float(facility['longitude'])
+            if kind == 'other':
+                desc = ""
+                for o in other:
+                    for f in other_epis[o]:
+                        if f['facility_id']==facility['facility_id']:
+                            desc = desc + " " + o + ":" + str(f['value'])+" cases"
+                epi['desc'] = desc
+
+            else:
+                epi['desc'] = "<b>" + str(kind) + "</b>:" + str(facility['value']) + " cases"
+            epi['heat'] = facility['value'] / float(epi_facility_reports[0]['value'])
+            epi['color'] = MAP_LAYERS[kind][2]
+            data_list.append(epi)
+
+    elif layer:
+        layers={'malnutrition':(('muac'),('Malnutrition'),),'births':(('birth'),('Births'),),'deaths':(('death'),('Deaths'),)}
+        reports=report(layers[layer][0],  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
+        for facility in reports:
+            rep = {}
+            rep['title'] = str(facility['facility_name'])
+            rep['lat'] = float(facility['latitude'])
+            rep['lon'] = float(facility['longitude'])
+            rep['desc'] = "<b>layers[layer][1]:</b>" +  str(facility['value']) + " cases"
+            rep['heat'] = facility['value'] / float(reports[0]['value'])
+            rep['color'] = MAP_LAYERS[layer][2]
+            data_list.append(rep)
+    else:
+
+        return render_to_response(template,
+                                  dict(start_ts=get_dates()[0], end_ts=get_dates()[1],min_ts=min_date, max_ts=max_date, minLon=minLon, maxLon=maxLon, minLat=minLat
+                                       , maxLat=maxLat, map_key=map_key, map_layers=map_layers, base_layer=BASELAYER),
+                                  context_instance=RequestContext(request))
+    if request.GET.get('module',None):
+        template="cvs/partials/map_module.html"
+        return render_to_response(template,
+                                  dict(start_ts=get_dates()[0], end_ts=get_dates()[1],min_ts=min_date, max_ts=max_date, minLon=minLon, maxLon=maxLon, minLat=minLat
+                                       , maxLat=maxLat, map_key=map_key,data=mark_safe(data_list), map_layers=map_layers, base_layer=BASELAYER),
+                                  context_instance=RequestContext(request))
+    return JsonResponse(data_list)
 
 
-def health_facilities(request):
-    facility_list = []
-    health_facilities = HealthFacility.objects.all()
-    for facility in health_facilities:
-        if facility.location:
-            fac = {}
-            fac['title'] = facility.name
-            fac['lat'] = float(facility.location.latitude)
-            fac['lon'] = float(facility.location.longitude)
-            fac['icon'] = settings.MEDIA_URL + "cvs/icons/" + facility.type.name.upper() + '.png'
-            fac['desc'] = facility.name
-            #fac['color'] = MAP_LAYERS['health_facilities'][2]
-            facility_list.append(fac)
 
-    return JsonResponse(facility_list)
-
-
-def malnutrition(request):
-    start_date = datetime.datetime.fromtimestamp(int(request.GET.get('start', get_dates()[0]))//1000)
-    end_date = datetime.datetime.fromtimestamp(int(request.GET.get('end', get_dates()[1]))//1000)
-    minLat = request.GET.get('minLat', MIN_LAT)
-    maxLat = request.GET.get('maxLat', MAX_LAT)
-    minLon = request.GET.get('minLon', MIN_LON)
-    maxLon = request.GET.get('maxLon', MAX_LON)
-    malnutrition_reports = []
-    muac_facility_reports=report('muac',  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
-    for facility in muac_facility_reports:
-        muac = {}
-        muac['title'] = facility['facility_name']
-        muac['lat'] = float(facility['latitude'])
-        muac['lon'] = float(facility['longitude'])
-        muac['desc'] = "<b>Malnutrition:</b>" +  str(facility['value']) + " cases"
-        muac['heat'] = facility['value'] / float(muac_facility_reports[0]['value'])
-        muac['color'] = MAP_LAYERS['malnutrition'][2]
-        malnutrition_reports.append(muac)
-    return JsonResponse(malnutrition_reports)
-
-def births(request):
-    start_date = datetime.datetime.fromtimestamp(int(request.GET.get('start', get_dates()[0]))//1000)
-    end_date = datetime.datetime.fromtimestamp(int(request.GET.get('end', get_dates()[1]))//1000)
-    minLat = request.GET.get('minLat', MIN_LAT)
-    maxLat = request.GET.get('maxLat', MAX_LAT)
-    minLon = request.GET.get('minLon', MIN_LON)
-    maxLon = request.GET.get('maxLon', MAX_LON)
-    birth_reports = []
-    birth_facility_reports=report('birth',  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
-    for facility in birth_facility_reports:
-        birth = {}
-        birth['title'] = facility['facility_name']
-        birth['lat'] = float(facility['latitude'])
-        birth['lon'] = float(facility['longitude'])
-        birth['desc'] = "<b>Births:</b>" + str(facility['value']) + " cases"
-        birth['heat'] = facility['value'] / float(birth_facility_reports[0]['value'])
-        birth['color'] = MAP_LAYERS['births'][2]
-        birth_reports.append(birth)
-    return JsonResponse(birth_reports)
-
-def deaths(request):
-    start_date = datetime.datetime.fromtimestamp(int(request.GET.get('start', get_dates()[0]))//1000)
-    end_date = datetime.datetime.fromtimestamp(int(request.GET.get('end', get_dates()[1]))//1000)
-    minLat = request.GET.get('minLat', MIN_LAT)
-    maxLat = request.GET.get('maxLat', MAX_LAT)
-    minLon = request.GET.get('minLon', MIN_LON)
-    maxLon = request.GET.get('maxLon', MAX_LON)
-    death_reports = []
-    death_facility_reports=report('death',  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
-    for facility in death_facility_reports:
-        death = {}
-        death['title'] = facility['facility_name']
-        death['lat'] = float(facility['latitude'])
-        death['lon'] = float(facility['longitude'])
-        death['desc'] = "<b>Deaths:</b>" + str(facility['value']) + " cases"
-        death['heat'] = facility['value'] / float(death_facility_reports[0]['value'])
-        death['color'] = MAP_LAYERS['deaths'][2]
-        death_reports.append(death)
-    return JsonResponse(death_reports)

@@ -1,0 +1,72 @@
+<div id="map" style="width:800px;height:400px;">
+
+
+</div>
+
+     <script language="javascript">
+           var map;
+        var minLat="{{minLat}}";
+        var maxLat="{{maxLat}}";
+        var minLon="{{minLon}}";
+        var maxLon="{{maxLon}}";
+        var map_layers={{map_layers}};
+        base_layer="{{base_layer}}";
+         var data={{data}};
+        var zoom=9;
+         //    function to draw simple map
+    function init_map(minLat,minLon,maxLat,MaxLon) {
+
+     //make sure the zoom fits all the points
+    var randomnumber=Math.floor(Math.random()*100) + 1;
+    var id = 'chart' + randomnumber;
+    $("#map").attr('id','map'+id);
+        
+    var myOptions = {
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map(document.getElementById("map"+id),
+            myOptions);
+    var bounds = new google.maps.LatLngBounds()
+    bounds.extend(new google.maps.LatLng(parseFloat(minLon), parseFloat(minLat)));
+    bounds.extend(new google.maps.LatLng(parseFloat(maxLon), parseFloat(maxLat)));
+    map.fitBounds(bounds);
+
+
+}
+
+function draw_graphs(data)
+{
+    {
+         $.each(data, function(key, value){
+
+    var start = new google.maps.LatLng(parseFloat(value['lon']), parseFloat(value['lat']));
+
+    // Add a Circle overlay to the map.
+        var circle = new google.maps.Circle({
+          center:start,
+          map: map,
+          strokeColor:value['color'],
+          radius:30000*parseFloat(value['heat']), // 3000 km
+          fillColor:value['color'],
+           strokeWeight: 1
+        });
+             
+//       circle.bindTo('position', markers[start]);
+//
+            });}
+}
+         $(document).ready(function() {
+
+        init_map(minLat,minLon,maxLat,maxLon);
+       
+         draw_graphs(data);
+});
+
+
+
+
+
+
+    </script>
+
+

@@ -6,7 +6,7 @@ from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard
 from generic.sorters import SimpleSorter, QuickSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
-from cvs.forms import FacilityFilterForm, ChartModuleForm
+from cvs.forms import FacilityFilterForm, ChartModuleForm,MapModuleForm
 from cvs.utils import get_reporters
 from cvs.sorters import LatestSubmissionSorter
 from healthmodels.models.HealthProvider import HealthProviderBase
@@ -36,12 +36,14 @@ urlpatterns = patterns('',
    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)', chart),
    #map urls
-   url(r'^cvs/map/$', map.map_index, name='map'),
-   url(r'^cvs/map/health_facilities', map.health_facilities),
-   url(r'^cvs/map/births', map.births),
-   url(r'^cvs/map/epi/(?P<kind>[-a-z]+)', map.epi_kind),
-   url(r'^cvs/map/malnutrition', map.malnutrition),
-   url(r'^cvs/map/deaths', map.deaths),
+   url(r'^cvs/map/(?P<layer>[a-z_]+)/(?P<kind>[-a-z]+)', map.map_index,name='map'),
+   url(r'^cvs/map/(?P<layer>[a-z_]+)',map.map_index),
+   url(r'^cvs/map/$',map.map_index),
+#   url(r'^cvs/map/health_facilities', map.health_facilities),
+#   url(r'^cvs/map/births', map.births),
+#   url(r'^cvs/map/epi/(?P<kind>[-a-z]+)', map.epi_kind),
+#   url(r'^cvs/map/malnutrition', map.malnutrition),
+#   url(r'^cvs/map/deaths', map.deaths),
    #reporters
     url(r'^cvs/reporter/$', login_required(generic), {
       'model':HealthProviderBase,
@@ -82,7 +84,7 @@ urlpatterns = patterns('',
     url(r"^cvs/forms/(\d+)/submissions/$", login_required(basic.view_submissions)),
     url(r'^cvs/dashboard/$', generic_dashboard,{
            'slug':'cvs',
-        'module_types':[('chart', ChartModuleForm, 'CVS Chart Module',)],
+        'module_types':[('map',MapModuleForm,'Cvs Map Module'),('chart', ChartModuleForm, 'CVS Chart Module',)],
         'base_template':'generic/dashboard_base.html',
 
    }),

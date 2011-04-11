@@ -82,3 +82,29 @@ class ChartModuleForm(ModuleForm):
             module.params.create(module=module, param_name='attribute_value', param_value=param_list[2], is_url_param=True)
 
         return module
+
+
+class MapModuleForm(ModuleForm):
+    layer = forms.ChoiceField(choices=(
+    ('health_facilities', 'health Facilities'),
+    ('malnutrition', 'Malnutrition'),
+    ('deaths', 'Deaths'),
+    ('epi__other', 'other_epi'),
+    ('births', 'Births'),
+    ('epi__ma', 'Malaria'),
+    ('epi__bd', 'Bloody  Diarrhoea'),
+    ('epi__tb', 'TuberClosis'),
+    ('epi__tb', 'TuberClosis'),
+    ), label="Layers To Map ")
+
+
+    def setModuleParams(self, dashboard, module=None):
+        module = module or self.createModule(dashboard, 'cvs.views.map.map_index')
+        param_list = self.cleaned_data['layer'].split('__')
+        if len(param_list) > 0:
+            module.params.create(module=module, param_name='layer', param_value=param_list[0], is_url_param=True)
+        if len(param_list) > 1:
+            module.params.create(module=module, param_name='kind', param_value=param_list[1], is_url_param=True)
+
+        return module
+		
