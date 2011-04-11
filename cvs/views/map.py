@@ -58,6 +58,11 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
 
     if request.GET.get('module',None):
             template="cvs/partials/map_module.html"
+    facility_icons={}
+    for facility in health_facilities:
+            if facility.location:
+                facility_icons[str(facility.name.lower())] = str(settings.MEDIA_URL + "cvs/icons/" + facility.type.name.upper() + '.png')
+    print facility_icons 
     if layer == 'health_facilities' :
         for facility in health_facilities:
             if facility.location:
@@ -112,6 +117,7 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
                 epi['desc'] = "<b>" + str(kind) + "</b>:" + str(facility['value']) + " cases"
             epi['heat'] = facility['value'] / float(epi_facility_reports[0]['value'])
             epi['color'] = MAP_LAYERS[kind][2]
+            epi['icon'] = facility_icons[str(facility['facility_name']).lower()]
             data_list.append(epi)
 
     elif layer:
@@ -125,6 +131,7 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
             rep['desc'] = "<b>layers[layer][1]:</b>" +  str(facility['value']) + " cases"
             rep['heat'] = facility['value'] / float(reports[0]['value'])
             rep['color'] = MAP_LAYERS[layer][2]
+            rep['icon'] = facility_icons[str(facility['facility_name'])]
             data_list.append(rep)
     else:
 
