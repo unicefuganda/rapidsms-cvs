@@ -6,11 +6,7 @@ from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard
 from generic.sorters import SimpleSorter, QuickSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
-<<<<<<< HEAD
-from cvs.forms import FacilityFilterForm, ChartModuleForm,MapModuleForm
-=======
-from cvs.forms import FacilityFilterForm, ChartModuleForm, StatsModuleForm
->>>>>>> 223f3da99d5bb84a83290eb71d98a14107f61376
+from cvs.forms import FacilityFilterForm, ChartModuleForm, StatsModuleForm,MapModuleForm
 from cvs.utils import get_reporters
 from cvs.sorters import LatestSubmissionSorter
 from healthmodels.models.HealthProvider import HealthProviderBase
