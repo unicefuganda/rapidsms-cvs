@@ -34,7 +34,7 @@ setup(
         'simple_locations',
         'code_generator',
         'rapidsms-auth',
-        'rapidsms-authsites',]
+        'rapidsms-authsites',],
     dependency_links = [
         "http://github.com/daveycrockett/code_generator/tarball/master#egg=code_generator",
         "http://github.com/mossplix/simple_locations/tarball/master#egg=simple_locations",
