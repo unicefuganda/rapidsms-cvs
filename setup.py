@@ -42,7 +42,7 @@ setup(
     author_email='david.a.mccann@gmail.com',
 
     url='http://github.com/daveycrockett/rapidsms-cvs',
-    download_url='http://github.com/daveycrockett/rapidsms-cvs/downloads',
+    #download_url='http://github.com/daveycrockett/rapidsms-cvs/downloads',
 
     include_package_data=True,
 
