@@ -7,7 +7,7 @@ setup(
 
     install_requires = [
         "rapidsms",
-        'health_models',
+        'healthmodels1.1',
         'rapidsms-xforms',
         'rapidsms-auth',
         'rapidsms-polls',
@@ -23,7 +23,7 @@ setup(
     ],
     
     dependency_links = [
-        "http://github.com/daveycrockett/healthmodels/tarball/master#egg=health_models",
+        "http://github.com/daveycrockett/healthmodels/tarball/master#egg=healthmodels1.1",
         "http://github.com/daveycrockett/rapidsms-xforms/tarball/master#egg=rapidsms-xforms",
         "http://github.com/daveycrockett/code_generator/tarball/master#egg=code_generator",
         "http://github.com/mossplix/simple_locations/tarball/master#egg=simple_locations",
