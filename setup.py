@@ -18,11 +18,11 @@ setup(
         'simple_locations',
         'rapidsms-auth',
         'rapidsms-authsites',
-         'rapidsms-healthmodels',
+         'healthmodels',
     ],
     
     dependency_links = [
-        "http://github.com/daveycrockett/healthmodels/tarball/master#egg=rapid-healthmodels",
+        "http://github.com/daveycrockett/healthmodels/tarball/master#egg=healthmodels",
         "http://github.com/daveycrockett/rapidsms-xforms/tarball/master#egg=rapidsms-xforms",
         "http://github.com/mossplix/simple_locations/tarball/master#egg=simple_locations",
         "http://github.com/daveycrockett/auth/tarball/master#egg=rapidsms-auth",
