@@ -128,10 +128,10 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
             rep['title'] = str(facility['facility_name'])
             rep['lat'] = float(facility['latitude'])
             rep['lon'] = float(facility['longitude'])
-            rep['desc'] = "<b>layers[layer][1]:</b>" +  str(facility['value']) + " cases"
+            rep['desc'] = "<b>"+layers[layer][1]+":</b>" +  str(facility['value']) + " cases"
             rep['heat'] = facility['value'] / float(reports[0]['value'])
             rep['color'] = MAP_LAYERS[layer][2]
-            rep['icon'] = facility_icons[str(facility['facility_name'])]
+            rep['icon'] = facility_icons[str(facility['facility_name']).lower()]
             data_list.append(rep)
     else:
 
