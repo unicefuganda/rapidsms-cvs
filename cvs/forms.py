@@ -97,10 +97,12 @@ class MapModuleForm(ModuleForm):
     ('epi__tb', 'TuberClosis'),
     ('epi__tb', 'TuberClosis'),
     ), label="Layers To Map ")
+    title=forms.CharField(max_length=40)
 
-
-    def setModuleParams(self, dashboard, module=None):
-        module = module or self.createModule(dashboard, 'cvs.views.map.map_index')
+    def setModuleParams(self, dashboard, module=None,title=None):
+        if len(self.cleaned_data['title'])>0:
+            title=self.cleaned_data['title']
+        module = module or self.createModule(dashboard, 'cvs.views.map.map_index',title=title)
         param_list = self.cleaned_data['layer'].split('__')
         if len(param_list) > 0:
             module.params.create(module=module, param_name='layer', param_value=param_list[0], is_url_param=True)
@@ -127,10 +129,8 @@ class StatsModuleForm(ModuleForm):
                                  ).order_by('name')]))
     
     def setModuleParams(self, dashboard, module=None, title=None):
-        import pdb; pdb.set_trace()
         module = module or self.createModule(dashboard, 'cvs.views.stats.module_stats', title=title)
         module.params.create(module=module, param_name='location_id', param_value=str(self.cleaned_data['district']), is_url_param=True)
         module.params.create(module=module, param_name='view_name', param_value=self.cleaned_data['type'], is_url_param=True)
 
         return module
-
