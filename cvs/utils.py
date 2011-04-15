@@ -10,7 +10,7 @@ from rapidsms_xforms.models import *
 import datetime
 from django.http import HttpResponse
 from django.db.models import Count
-from django.views.decorators.cache import never_cache
+#from django.views.decorators.cache import never_cache
 
 def init_xforms():
     DISEASE_CHOICES = [
@@ -518,7 +518,7 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
 #        if not location in location_list:
 #            location_list.append(location)
 
-@never_cache
+#@never_cache
 def get_dates(request):
     """
     Process date variables from POST
