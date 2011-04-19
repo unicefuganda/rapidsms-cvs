@@ -12,7 +12,7 @@ from cvs.utils import get_dates
 from healthmodels.models.HealthFacility import HealthFacility
 from cvs.settings import MAP_KEY, MAP_LAYERS, MIN_LAT, MAX_LAT, MIN_LON, MAX_LON, BASELAYER
 
-from cvs.utils import report,GROUP_BY_FACILITY
+from cvs.utils import GROUP_BY_FACILITY, total_submissions_by_facility, total_attribute_by_facility
 
 def get_dates():
     cursor = connection.cursor()
@@ -87,12 +87,14 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
             'pl',
             'rb',
         ]
-        epi_facility_reports=report('epi',attribute_keyword=kind,  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
+        epi_facility_reports=total_attribute_by_facility('epi_%s'%kind, start_date, end_date, (minLat,minLon,maxLat,maxLon,))
+#        epi_facility_reports=report('epi',attribute_keyword=kind,  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
         if kind == 'other':
             other_epis = {}
             epi_rep=[]
             for epi in other:
-                rep=report('epi',attribute_keyword=epi,  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
+                rep=total_attribute_by_facility('epi_%s'%epi, start_date, end_date, (minLat,minLon,maxLat,maxLon,))
+#                rep=report('epi',attribute_keyword=epi,  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
                 other_epis[epi] =rep
                 epi_rep=epi_rep+rep
 
@@ -122,7 +124,8 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
 
     elif layer:
         layers={'malnutrition':(('muac'),('Malnutrition'),),'births':(('birth'),('Births'),),'deaths':(('death'),('Deaths'),)}
-        reports=report(layers[layer][0],  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
+        reports=total_submissions_by_facility(layers[layer][0], start_date, end_date, (minLat,minLon,maxLat,maxLon,))
+#        reports=report(layers[layer][0],  group_by = GROUP_BY_FACILITY, start_date=start_date, end_date=end_date,minLat=minLat,maxLat=maxLat,minLon=minLon,maxLon=maxLon)
         for facility in reports:
             rep = {}
             rep['title'] = str(facility['facility_name'])

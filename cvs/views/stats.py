@@ -8,15 +8,16 @@ from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
-from cvs.utils import report, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER,get_group_by,ExcelResponse
+from cvs.utils import total_submissions, total_attribute_value, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER,get_group_by,ExcelResponse
 from cvs.forms import DateRangeForm
 import datetime
 import time
 from django.db import connection
 from django.utils.datastructures import SortedDict
-from rapidsms_xforms.models import XFormSubmission
+from rapidsms_xforms.models import XFormSubmission, XFormSubmissionValue
 from rapidsms.models import Contact
 import re
+from django.db.models import Count,Sum
 
 Num_REG=re.compile('\d+')
 
@@ -45,15 +46,27 @@ def index(request, location_id=None):
         request.session['stats']=chart_path
     else:
         request.session['stats']="/cvs/charts/"+str(location.pk)+"/muac/"
-    muac = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    ma = report('epi', attribute_keyword='ma', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    tb = report('epi', attribute_keyword='tb', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    bd = report('epi', attribute_keyword='bd', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    birth = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    death = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    percentage_safe_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    home_total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    percentage_epi = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+    start_date = dates['start']
+    end_date = dates['end']
+    muac = total_submissions('muac', start_date, end_date, location)
+    ma = total_attribute_value('epi_ma', start_date, end_date, location)
+    tb = total_attribute_value('epi_tb', start_date, end_date, location)
+    bd = total_attribute_value('epi_bd', start_date, end_date, location)
+    birth = total_submissions('birth', start_date, end_date, location)
+    death = total_submissions('death', start_date, end_date, location)
+    percentage_safe_water = total_attribute_value('home_wa', start_date, end_date, location)
+    home_total = total_attribute_value('home_to', start_date, end_date, location)
+    percentage_epi = total_submissions('muac', start_date, end_date, location)
+#    muac = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    ma = report('epi', attribute_keyword='ma', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    tb = report('epi', attribute_keyword='tb', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    bd = report('epi', attribute_keyword='bd', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    birth = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    death = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    percentage_safe_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    home_total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    percentage_epi = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+
     expected_epi = get_expected_epi(location,request)
 
 
@@ -149,12 +162,32 @@ def muac_detail(request,location_id=None):
             request.session['muac']=chart_path
         else:
             request.session['muac']="/cvs/charts/"+str(location.pk)+"/muac/"
-    total = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    green = report('muac', attribute_keyword='category', attribute_value='G', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    green_oedema = report('muac', attribute_keyword=['category', 'oedema'], attribute_value=['G','T'], location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    yellow = report('muac', attribute_keyword='category', attribute_value='Y', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    red = report('muac', attribute_keyword='category', attribute_value='R', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    red_oedema = report('muac', attribute_keyword=['category', 'oedema'], attribute_value=['R','T'], location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    start_date = dates['start']
+    end_date = dates['end']
+    total = total_submissions('muac', start_date, end_date, location)
+    green = total_submissions('muac', start_date, end_date, location, {
+                'eav__muac_category':'G',
+            })
+    green_oedema = total_submissions('muac', start_date, end_date, location, {
+                'eav__muac_category':'G',
+                'eav__muac_ignored':'T',
+            })
+    yellow = total_submissions('muac', start_date, end_date, location, {
+                'eav__muac_category':'Y',
+            })
+    red = total_submissions('muac', start_date, end_date, location, {
+                'eav__muac_category':'R',
+            })
+    red_oedema = total_submissions('muac', start_date, end_date, location, {
+                'eav__muac_category':'R',
+                'eav__muac_ignored':'T',
+            })
+#    total = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)    
+#    green = report('muac', attribute_keyword='category', attribute_value='G', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    green_oedema = report('muac', attribute_keyword=['category', 'oedema'], attribute_value=['G','T'], location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    yellow = report('muac', attribute_keyword='category', attribute_value='Y', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    red = report('muac', attribute_keyword='category', attribute_value='R', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    red_oedema = report('muac', attribute_keyword=['category', 'oedema'], attribute_value=['R','T'], location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     report_dict = {}
     reorganize_location('total', total, report_dict)
     reorganize_location('green', green, report_dict)
@@ -166,10 +199,10 @@ def muac_detail(request,location_id=None):
     columns = (('','',1),
                   ('Total', '', 1),
                   ('Green','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/G/')"),
-                  ('Green+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__oedema/G__T/')"),
+                  ('Green+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__ignored/G__T/')"),
                   ('Yellow','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/Y/')"),
                   ('Red','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/R/')"),
-                  ('Red+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__oedema/R__T/')")
+                  ('Red+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__ignored/R__T/')")
                   )
     
     stats_template = "cvs/stats_module.html" if module else "cvs/stats.html" 
@@ -227,10 +260,14 @@ def epi_detail(request, location_id=None):
                   ('ei','Infectious Diseases')
     )
     report_dict = {}
-    total = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+    start_date=dates['start']
+    end_date=dates['end']
+    total = total_submissions('epi', start_date, end_date, location)
+#    total = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     reorganize_location('total', total, report_dict)
     for attrib_keyword, v in categories:
-        dictx = report('epi', attribute_keyword=attrib_keyword, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+        dictx = total_attribute_value('epi_%s' % attrib_keyword, start_date, end_date, location)
+#        dictx = report('epi', attribute_keyword=attrib_keyword, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
         reorganize_location(attrib_keyword, dictx, report_dict)
 
     columns = [
@@ -282,13 +319,34 @@ def birth_detail(request, location_id=None):
             request.session['birth']=chart_path
         else:
             request.session['birth']="/cvs/charts/"+str(location.pk)+"/birth/"
-    total = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    boys = report('birth', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    girls = report('birth', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    start_date=dates['start']
+    end_date=dates['end']
+    total = total_submissions('birth', start_date, end_date, location)
+    boys = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_gender':'M',
+            })
+    girls = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_gender':'F',
+            })
+    at_home = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_place':'HOME',
+            })
+    percentage_at_home = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_place':'HOME',
+            })
+    at_facility = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_place':'FACILITY',
+            })
+    percentage_at_facility = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_place':'FACILITY',
+            })
+#    total = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    boys = report('birth', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    girls = report('birth', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    percentage_at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    percentage_at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
    
     report_dict = {}
     reorganize_location('total', total, report_dict)
@@ -361,13 +419,35 @@ def death_detail(request, location_id=None):
             request.session['death']=chart_path
         else:
             request.session['death']="/cvs/charts/"+str(location.pk)+"/death/"
-    total = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    boys = report('death', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    girls = report('death', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    under_28days = report('death', attribute_keyword='age', attribute_value={"under":(28)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    upto_3months = report('death', attribute_keyword='age', attribute_value={"between":(28, 90)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    upto_12months = report('death', attribute_keyword='age', attribute_value={"between":(90, 365)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    upto_5years = report('death', attribute_keyword='age', attribute_value={"between":(365, 1825)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    start_date=dates['start']
+    end_date=dates['end']
+    total = total_submissions('death', start_date, end_date, location)
+    boys = total_submissions('death', start_date, end_date, location, {
+                'eav__death_gender':'M',
+            })
+    girls = total_submissions('death', start_date, end_date, location, {
+                'eav__death_gender':'F',
+            })
+    under_28days = total_submissions('death', start_date, end_date, location, {
+                'eav__death_age__lt':28,
+            })
+    upto_3months = total_submissions('death', start_date, end_date, location, {
+                'eav__death_age__range':(28,90)
+            })
+    upto_12months = total_submissions('death', start_date, end_date, location, {
+                'eav__death_age__range':(90,365)
+            })
+    upto_5years = total_submissions('death', start_date, end_date, location, {
+                'eav__death_age__range':(365,1825)
+            })
+
+#    total = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    boys = report('death', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    girls = report('death', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    under_28days = report('death', attribute_keyword='age', attribute_value={"under":(28)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    upto_3months = report('death', attribute_keyword='age', attribute_value={"between":(28, 90)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    upto_12months = report('death', attribute_keyword='age', attribute_value={"between":(90, 365)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    upto_5years = report('death', attribute_keyword='age', attribute_value={"between":(365, 1825)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     report_dict = {}
     reorganize_location('total', total, report_dict)
     reorganize_location('boys', boys, report_dict)
@@ -424,16 +504,29 @@ def home_detail(request, location_id=None):
             request.session['home']=chart_path
         else:
             request.session['home']="/cvs/charts/"+str(location.pk)+"/home/to/"
-    total_reports = report('home', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    hand_washing_facilities = report('home', attribute_keyword='ha', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_hand_washing_facilities = report('home', attribute_keyword='ha', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    latrines = report('home', attribute_keyword='la', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_latrines = report('home', attribute_keyword='la', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    ittns = report('home', attribute_keyword='it', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_ittns = report('home', attribute_keyword='it', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    start_date=dates['start']
+    end_date=dates['end']
+    total_reports = total_submissions('home', start_date, end_date, location)
+    total = total_attribute_value('home_to', start_date, end_date, location)
+    safe_drinking_water = total_attribute_value('home_wa', start_date, end_date, location)
+    percentage_safe_drinking_water = total_attribute_value('home_wa', start_date, end_date, location)
+    hand_washing_facilities = total_attribute_value('home_ha', start_date, end_date, location)
+    percentage_hand_washing_facilities = total_attribute_value('home_ha', start_date, end_date, location)
+    latrines = total_attribute_value('home_la', start_date, end_date, location)
+    percentage_latrines = total_attribute_value('home_la', start_date, end_date, location)
+    ittns = total_attribute_value('home_it', start_date, end_date, location)
+    percentage_ittns = total_attribute_value('home_it', start_date, end_date, location)
+
+#    total_reports = report('home', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+#    safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    percentage_safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    hand_washing_facilities = report('home', attribute_keyword='ha', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    percentage_hand_washing_facilities = report('home', attribute_keyword='ha', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    latrines = report('home', attribute_keyword='la', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    percentage_latrines = report('home', attribute_keyword='la', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    ittns = report('home', attribute_keyword='it', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+#    percentage_ittns = report('home', attribute_keyword='it', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
 
     report_dict = {}
     reorganize_location('total_reports', total_reports, report_dict)

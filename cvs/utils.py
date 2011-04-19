@@ -159,6 +159,118 @@ quarters = {
     4:'Forth'
 }
 
+GROUP_BY_SELECTS = {
+    GROUP_BY_DAY:('day','date(rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_WEEK:('week','extract(week from rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_MONTH:('month','extract(month from rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_QUARTER:('quarter','extract(quarter from rapidsms_xforms_xformsubmission.created)',),
+}
+
+def total_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None):
+    if extra_filters:
+        q = XFormSubmission.objects.filter(**extra_filters)
+        tnum = 8
+    else:
+        q = XFormSubmission.objects
+        tnum = 6
+    select = {
+        'location_name':'T%d.name' % tnum,
+        'location_id':'T%d.id' % tnum,
+        'rght':'T%d.rght' % tnum,
+        'lft':'T%d.lft' % tnum
+    }
+    values = ['location_name','location_id','lft','rght']
+    if group_by_timespan:
+         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+         select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+         select.update({select_value:select_clause,
+                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)',})
+         values.extend([select_value,'year'])
+    return q.filter(
+               xform__keyword=keyword,
+               has_errors=False,
+               created__lte=end_date,
+               created__gte=start_date).values(
+               'connection__contact__reporting_location__name').extra(
+               tables=['simple_locations_area'],
+               where=[\
+                   'T%d.lft <= simple_locations_area.lft' % tnum,\
+                   'T%d.rght >= simple_locations_area.rght' % tnum,\
+                   'T%d.id in %s' % (tnum, str(tuple(location.get_children().values_list(\
+                   'pk', flat=True))))]).extra(\
+               select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
+
+def total_submissions_by_facility(keyword, start_date, end_date, map_window):
+    minlat, minlon, maxlat, maxlon = map_window
+    return XFormSubmission.objects.filter(**{
+        'has_errors':False,
+        'xform__keyword':keyword,
+        'has_errors':False,
+        'created__lte':end_date,
+        'created__gte':start_date,
+        'connection__contact__healthproviderbase__facility__location__latitude__range':(str(minlat),str(maxlat),),
+        'connection__contact__healthproviderbase__facility__location__longitude__range':(str(minlon),str(maxlon),)})\
+        .extra(
+        tables=['healthmodels_healthfacilitytypebase'],
+        where=['healthmodels_healthfacilitybase.type_id=healthmodels_healthfacilitytypebase.id'])\
+        .extra(select={
+        'facility_name':'healthmodels_healthfacilitybase.name',
+        'facility_id':'healthmodels_healthfacilitybase.id',
+        'latitude':'simple_locations_point.latitude',
+        'longitude':'simple_locations_point.longitude',
+        'type':'healthmodels_healthfacilitytypebase.name'})\
+        .values('facility_name','facility_id','latitude','longitude','type')\
+        .annotate(value=Count('id'))
+
+def total_attribute_value(attribute_slug, start_date, end_date, location, group_by_timespan=None):
+    select = {
+        'location_name':'T8.name',
+        'location_id':'T8.id',
+        'rght':'T8.rght',
+        'lft':'T8.lft',
+    }
+    values = ['location_name','location_id','lft','rght']
+    if group_by_timespan:
+         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+         select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+         select.update({select_value:select_clause,
+                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)',})
+         values.extend([select_value,'year'])
+    return XFormSubmissionValue.objects.filter(
+               submission__has_errors=False,
+               attribute__slug=attribute_slug,
+               submission__created__lte=end_date,
+               submission__created__gte=start_date).values(
+               'submission__connection__contact__reporting_location__name').extra(
+               tables=['simple_locations_area'],
+               where=[\
+                   'T8.lft <= simple_locations_area.lft',
+                   'T8.rght >= simple_locations_area.rght',
+                   'T8.id in %s' % (str(tuple(location.get_children().values_list(\
+                   'pk', flat=True))))]).extra(\
+               select=select).values(*values).annotate(value=Sum('value_int')).extra(order_by=['location_name'])
+
+def total_attribute_by_facility(attribute_slug, start_date, end_date, map_window):
+    minlat, minlon, maxlat, maxlon = map_window
+    return XFormSubmissionValue.objects.filter(**{
+               'submission__has_errors':False,
+               'attribute__slug':attribute_slug,
+               'submission__created__lte':end_date,
+               'submission__created__gte':start_date,
+               'submission__connection__contact__healthproviderbase__facility__location__latitude__range':(str(minlat),str(maxlat),),
+               'submission__connection__contact__healthproviderbase__facility__location__longitude__range':(str(minlon),str(maxlon),)})\
+        .extra(
+        tables=['healthmodels_healthfacilitytypebase'],
+        where=['healthmodels_healthfacilitybase.type_id=healthmodels_healthfacilitytypebase.id'])\
+        .extra(select={
+        'facility_name':'healthmodels_healthfacilitybase.name',
+        'facility_id':'healthmodels_healthfacilitybase.id',
+        'latitude':'simple_locations_point.latitude',
+        'longitude':'simple_locations_point.longitude',
+        'type':'healthmodels_healthfacilitytypebase.name'})\
+        .values('facility_name','facility_id','latitude','longitude','type')\
+        .annotate(value=Sum('value_int'))
+
 def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), attribute_keyword=None, attribute_value=None, location=None, facility=None, group_by=None,**kwargs):
     """
         
@@ -337,9 +449,9 @@ def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribut
         groupby_columns.append('day')
         orderby_columns.append('day')
     if group_by & GROUP_BY_QUARTER:
-           select_clauses.append(('extract(quarter from submissions.created)', 'quarter'))
-           groupby_columns.append('quarter')
-           orderby_columns.append('quarter')
+       select_clauses.append(('extract(quarter from submissions.created)', 'quarter'))
+       groupby_columns.append('quarter')
+       orderby_columns.append('quarter')
     if group_by & GROUP_BY_FACILITY:
         select_clauses.append(('facility.name', 'fname',))
         select_clauses.append(('providers.facility_id', 'fid',))
@@ -470,7 +582,7 @@ def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, a
         sql += " group by " + ' , '.join(groupby_columns)
     if len(orderby_columns):
         sql += " order by " + ' , '.join(orderby_columns)
-    
+    print sql
     return sql
 
 def reorganize_location(key, report, report_dict):
