@@ -8,23 +8,24 @@ from django.http import HttpResponse
 from django.db import connection
 from django.conf import settings
 from cvs.utils import get_dates
+from cvs.forms import DateRangeForm
 
 from healthmodels.models.HealthFacility import HealthFacility
 from cvs.settings import MAP_KEY, MAP_LAYERS, MIN_LAT, MAX_LAT, MIN_LON, MAX_LON, BASELAYER
 
 from cvs.utils import GROUP_BY_FACILITY, total_submissions_by_facility, total_attribute_by_facility
 
-def get_dates():
-    cursor = connection.cursor()
-    cursor.execute("select min(created), max(created) from rapidsms_xforms_xformsubmission")
-    min_date, end_date = cursor.fetchone()
-    start_date = end_date - datetime.timedelta(days=300)
-    start_date=time.mktime(start_date.timetuple()) * 1000
-    end_date=time.mktime(end_date.timetuple()) * 1000
-    max_date =  time.mktime(datetime.datetime.now().timetuple()) * 1000
-    min_date=time.mktime(min_date.timetuple()) * 1000
-
-    return (start_date, end_date, min_date, max_date)
+#def get_dates():
+#    cursor = connection.cursor()
+#    cursor.execute("select min(created), max(created) from rapidsms_xforms_xformsubmission")
+#    min_date, end_date = cursor.fetchone()
+#    start_date = end_date - datetime.timedelta(days=300)
+#    start_date=time.mktime(start_date.timetuple()) * 1000
+#    end_date=time.mktime(end_date.timetuple()) * 1000
+#    max_date =  time.mktime(datetime.datetime.now().timetuple()) * 1000
+#    min_date=time.mktime(min_date.timetuple()) * 1000
+#
+#    return (start_date, end_date, min_date, max_date)
 
 class JsonResponse(HttpResponse):
     """ return json content type   """
@@ -47,10 +48,15 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
     maxLat = request.GET.get('maxLat', MAX_LAT)
     minLon = request.GET.get('minLon', MIN_LON)
     maxLon = request.GET.get('maxLon', MAX_LON)
-    min_date, max_date = get_dates()[2],get_dates()[3]
-
-    start_date = datetime.datetime.fromtimestamp(int(request.GET.get('start', get_dates()[0]))//1000)
-    end_date = datetime.datetime.fromtimestamp(int(request.GET.get('end', get_dates()[1]))//1000)
+    max_date = datetime.datetime.now()
+    dates=get_dates(request)
+    date_range_form=dates['form']
+    max_ts=time.mktime(max_date.timetuple()) * 1000
+    min_ts=time.mktime(dates['min'].timetuple()) * 1000
+    start_ts=time.mktime(dates['start'].timetuple()) * 1000
+    end_ts=time.mktime(dates['end'].timetuple()) * 1000
+    start_date = datetime.datetime.fromtimestamp(int(request.GET.get('start', start_ts))//1000)
+    end_date = datetime.datetime.fromtimestamp(int(request.GET.get('end', end_ts))//1000)
 
 
     (minLon, maxLon, minLat, maxLat) = (mark_safe(MIN_LON),
@@ -62,7 +68,6 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
     for facility in health_facilities:
             if facility.location:
                 facility_icons[str(facility.name.lower())] = str(settings.MEDIA_URL + "cvs/icons/" + facility.type.name.upper() + '.png')
-    print facility_icons 
     if layer == 'health_facilities' :
         for facility in health_facilities:
             if facility.location:
@@ -131,22 +136,22 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
             rep['title'] = str(facility['facility_name'])
             rep['lat'] = float(facility['latitude'])
             rep['lon'] = float(facility['longitude'])
-            rep['desc'] = "<b>layers[layer][1]:</b>" +  str(facility['value']) + " cases"
+            rep['desc'] = "<b>"+layers[layer][1]+":</b>" +  str(facility['value']) + " cases"
             rep['heat'] = facility['value'] / float(reports[0]['value'])
             rep['color'] = MAP_LAYERS[layer][2]
-            rep['icon'] = facility_icons[str(facility['facility_name'])]
+            rep['icon'] = facility_icons[str(facility['facility_name']).lower()]
             data_list.append(rep)
     else:
 
         return render_to_response(template,
-                                  dict(start_ts=get_dates()[0], end_ts=get_dates()[1],min_ts=min_date, max_ts=max_date, minLon=minLon, maxLon=maxLon, minLat=minLat
-                                       , maxLat=maxLat, map_key=map_key, map_layers=map_layers, base_layer=BASELAYER),
+                                  dict(start_ts=start_ts, end_ts=end_ts,min_ts=min_ts, max_ts=max_ts, minLon=minLon, maxLon=maxLon, minLat=minLat
+                                       , maxLat=maxLat, map_key=map_key, map_layers=map_layers,date_range_form=date_range_form, base_layer=BASELAYER),
                                   context_instance=RequestContext(request))
     if request.GET.get('module',None):
         template="cvs/partials/map_module.html"
         return render_to_response(template,
-                                  dict(start_ts=get_dates()[0], end_ts=get_dates()[1],min_ts=min_date, max_ts=max_date, minLon=minLon, maxLon=maxLon, minLat=minLat
-                                       , maxLat=maxLat, map_key=map_key,data=mark_safe(data_list), map_layers=map_layers, base_layer=BASELAYER),
+                                  dict(start_ts=start_ts, end_ts=end_ts,min_ts=min_ts, max_ts=max_ts, minLon=minLon, maxLon=maxLon, minLat=minLat
+                                       , maxLat=maxLat, map_key=map_key,data=mark_safe(data_list), map_layers=map_layers,date_range_form=date_range_form, base_layer=BASELAYER),
                                   context_instance=RequestContext(request))
     return JsonResponse(data_list)
 

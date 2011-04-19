@@ -67,14 +67,29 @@ function Label(point, html, classname, pixelOffset) {
         this.div_.style.top = (p.y + this.pixelOffset.height - h) + "px";
     }
 }
-//given list of dictionaries , graph them
-function draw_graphs(data)
-{
-    {
+
+//add graph to point
+function addGraph(url) {
+     ajax_loading('#map');
+
+    maxLon= map.getBounds().getNorthEast().lat();
+    maxLat=map.getBounds().getNorthEast().lng();
+    minLon=map.getBounds().getSouthWest().lat();
+    minLat=map.getBounds().getSouthWest().lng();
+	$('#id_end_ts').val(end_date);
+    zoom=map.getZoom();
+
+    var URL=url+ "?maxLat="+ maxLat + "&maxLon=" +maxLon +"&minLat="+ minLat + "&minLon=" + minLon +"&zoom=" + zoom+"&start="+parseInt($('select#start option:selected').val())+"&end="+parseInt($('select#end option:selected').val());
+    
+    $.ajax({
+            type: "GET",
+            url: URL,
+            dataType: "json",
+            success: function(data){
          $.each(data, function(key, value){
 
     var start = new google.maps.LatLng(parseFloat(value['lon']), parseFloat(value['lat']));
-
+   
     // Add a Circle overlay to the map.
         var circle = new google.maps.Circle({
           center:start,
@@ -101,26 +116,8 @@ function draw_graphs(data)
        descriptions[start][url]="<p>"+value['desc']+"</p>";
 
        circle.bindTo('position', markers[start]);
-
-            });}
-}
-//add graph to point
-function addGraph(url) {
-     ajax_loading('#map');
-
-    maxLon= map.getBounds().getNorthEast().lat();
-    maxLat=map.getBounds().getNorthEast().lng();
-    minLon=map.getBounds().getSouthWest().lat();
-    minLat=map.getBounds().getSouthWest().lng();
-    zoom=map.getZoom();
-
-    var URL=url+ "?maxLat="+ maxLat + "&maxLon=" +maxLon +"&minLat="+ minLat + "&minLon=" + minLon +"&zoom=" + zoom+"&start="+slider_start_ts+"&end="+slider_end_ts;
     
-    $.ajax({
-            type: "GET",
-            url: URL,
-            dataType: "json",
-            success:  draw_graphs(data),
+            });},
         complete:function(status){
 
           $('.ajax_loading').remove();
@@ -129,7 +126,6 @@ function addGraph(url) {
     });
 
 }
-
 
 function removeGraph(url)
 {

@@ -7,7 +7,6 @@ setup(
 
     install_requires = [
         "rapidsms",
-        'healthmodels',
         'rapidsms-xforms',
         'rapidsms-auth',
         'rapidsms-polls',
@@ -17,22 +16,21 @@ setup(
         'django-uni-form',
         'django-eav',
         'simple_locations',
-        'code_generator',
         'rapidsms-auth',
         'rapidsms-authsites',
+         'healthmodels',
     ],
     
     dependency_links = [
-        "http://github.com/daveycrockett/code_generator/tarball/master#egg=code_generator",
-        "http://github.com/mossplix/simple_locations/tarball/master#egg=simple_locations",
         "http://github.com/daveycrockett/healthmodels/tarball/master#egg=healthmodels",
         "http://github.com/daveycrockett/rapidsms-xforms/tarball/master#egg=rapidsms-xforms",
+        "http://github.com/mossplix/simple_locations/tarball/master#egg=simple_locations",
         "http://github.com/daveycrockett/auth/tarball/master#egg=rapidsms-auth",
         "http://github.com/daveycrockett/rapidsms-polls/tarball/master#egg=rapidsms-polls",
         "http://github.com/daveycrockett/rapidsms-httprouter/tarball/master#egg=rapidsms-httprouter",
         "http://github.com/daveycrockett/rapidsms-ureport/tarball/master#egg=rapidsms-ureport",
         "http://github.com/mvpdev/django-eav/tarball/master#egg=django-eav",
-        "http://github.com/daveycrockett/rapidsms-auth/tarball/master#egg=rapidsms-auth",
+        "http://github.com/daveycrockett/auth/tarball/master#egg=rapidsms-auth",
         "http://github.com/daveycrockett/rapidsms-authsites/tarball/master#egg=rapidsms-authsites",
     ],
 
