@@ -2,21 +2,18 @@ from healthmodels.models import *
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.shortcuts import get_object_or_404
-from django.core.exceptions import ObjectDoesNotExist
 from healthmodels.models.HealthFacility import HealthFacility
 from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
-from django.views.decorators.cache import cache_control
-from django.http import HttpResponseRedirect,HttpResponse
 from cvs.utils import report, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER,get_group_by,ExcelResponse
 from cvs.forms import DateRangeForm
 import datetime
 import time
-from django.db import connection
 from django.utils.datastructures import SortedDict
 from rapidsms_xforms.models import XFormSubmission
 from rapidsms.models import Contact
 import re
+from django.utils.safestring import mark_safe
 
 Num_REG=re.compile('\d+')
 
@@ -41,10 +38,11 @@ def index(request, location_id=None):
         location = Area.tree.root_nodes()[0]
     chart=request.session.get('stats',None)
     if chart :
-        chart_path=Num_REG.sub(str(location.pk),chart)
+        
+        chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
         request.session['stats']=chart_path
     else:
-        request.session['stats']="/cvs/charts/"+str(location.pk)+"/muac/"
+        request.session['stats']=mark_safe("/cvs/charts/"+str(location.pk)+"/muac/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
     muac = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     ma = report('epi', attribute_keyword='ma', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     tb = report('epi', attribute_keyword='tb', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
@@ -111,11 +109,11 @@ def index(request, location_id=None):
                ('Safe Drinking Water (% of homesteads)','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/percentage/')"),
                ('% of expected weekly Epi reports received','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/percentage/')"),
     )
-
+    
     return render_to_response("cvs/stats.html",
                               {'report':report_dict, 
                                'top_columns':topColumns, 
-                               'columns':columns, 
+                               'columns':columns,
                                'location_id':location_id,
                                'report_template':'cvs/partials/stats_main.html', 
                                'start_date':dates['start'],
@@ -145,10 +143,10 @@ def muac_detail(request,location_id=None):
     if not module:
         chart=request.session.get('muac',None)
         if chart :
-            chart_path=Num_REG.sub(str(location.pk),chart)
+            chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
             request.session['muac']=chart_path
         else:
-            request.session['muac']="/cvs/charts/"+str(location.pk)+"/muac/"
+            request.session['muac']=mark_safe("/cvs/charts/"+str(location.pk)+"/muac/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
     total = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     green = report('muac', attribute_keyword='category', attribute_value='G', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     green_oedema = report('muac', attribute_keyword=['category', 'oedema'], attribute_value=['G','T'], location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -204,10 +202,10 @@ def epi_detail(request, location_id=None):
     if not module:
         chart=request.session.get('epi',None)
         if chart:
-            chart_path=Num_REG.sub(str(location.pk),chart)
+            chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
             request.session['epi']=chart_path
         else:
-            request.session['epi']="/cvs/charts/"+str(location.pk)+"/epi/ma/"
+            request.session['epi']=mark_safe("/cvs/charts/"+str(location.pk)+"/epi/ma/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
 
     categories = (
                   ('bd','Bloody Diarrhea'),
@@ -278,10 +276,10 @@ def birth_detail(request, location_id=None):
     if not module:
         chart=request.session.get('birth',None)
         if chart :
-            chart_path=Num_REG.sub(str(location.pk),chart)
+            chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
             request.session['birth']=chart_path
         else:
-            request.session['birth']="/cvs/charts/"+str(location.pk)+"/birth/"
+            request.session['birth']=mark_safe("/cvs/charts/"+str(location.pk)+"/birth/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
     total = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     boys = report('birth', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     girls = report('birth', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -357,10 +355,10 @@ def death_detail(request, location_id=None):
     if not module:
         chart=request.session.get('death',None)
         if chart :
-            chart_path=Num_REG.sub(str(location.pk),chart)
+            chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
             request.session['death']=chart_path
         else:
-            request.session['death']="/cvs/charts/"+str(location.pk)+"/death/"
+            request.session['death']=mark_safe("/cvs/charts/"+str(location.pk)+"/death/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
     total = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     boys = report('death', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
     girls = report('death', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
@@ -420,10 +418,10 @@ def home_detail(request, location_id=None):
     if not module:
         chart=request.session.get('home',None)
         if chart:
-            chart_path=Num_REG.sub(str(location.pk),chart)
+            chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
             request.session['home']=chart_path
         else:
-            request.session['home']="/cvs/charts/"+str(location.pk)+"/home/to/"
+            request.session['home']="/cvs/charts/"+str(location.pk)+"/home/to/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()),time.mktime(dates['end'].timetuple()) )
     total_reports = report('home', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
