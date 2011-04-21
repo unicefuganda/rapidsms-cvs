@@ -4,7 +4,7 @@ table th  a {
 
 div#map {
     margin-top:40px;
-    width: 700px;
+    width: 75%;
     height: 400px;
     border: 1px solid #1ebfd2;
     float:left;
@@ -12,7 +12,7 @@ div#map {
 
 div#overlays {
     margin-top:40px;
-    width: 200px;
+    width: 20%;
     height: 400px;
     border: 1px solid #1ebfd2;
     float: right;

@@ -8,7 +8,7 @@ from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
 from django.db import connection
-from cvs.utils import report, reorganize_timespan, get_expected_epi, get_group_by, GROUP_BY_LOCATION, GROUP_BY_WEEK, GROUP_BY_YEAR, GROUP_BY_DAY
+from cvs.utils import total_submissions, total_attribute_value, reorganize_timespan, get_expected_epi, get_group_by, GROUP_BY_WEEK, GROUP_BY_DAY
 from cvs.forms import DateRangeForm
 import datetime
 from django.utils.datastructures import SortedDict
@@ -74,37 +74,48 @@ def chart(request,xform_keyword, attribute_keyword=None, attribute_value=None, l
         if attribute_value.find('__') > 0:
             attribute_value = attribute_value.split('__')
         if xform_keyword == 'death' and attribute_keyword == 'age':
-            vlist = attribute_value.split('_')
-            value_dict_key = str(vlist[0])
-            value_dict_values = []
-            x = 1
-            while x < len(vlist):
-                value_dict_values.append(int(vlist[x]))
-                x +=1
-            attribute_value = {value_dict_key:value_dict_values}
-        if xform_keyword == 'birth' and kwargs.get('extra_param') == 'percentage':
+            age_filter_dict = {
+                'under_28':{'eav__death_age__lt':28},
+                'between_28_90':{'eav__death_age__range':(28,90)},
+                'between_90_365':{'eav__death_age__range':(90,365)},
+                'between_365_1825':{'eav__death_age__range':(365,1825)},
+            }
+            chart_data = total_submissions(
+                xform_keyword, start_date, end_date, location,
+                extra_filters=age_filter_dict[attribute_value],
+                group_by_timespan=group_by['group_by'],
+            )
+        elif xform_keyword == 'birth' and kwargs.get('extra_param') == 'percentage':
             label="%"
-            percentage_values = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
-            total = report(xform_keyword, start_date=start_date, end_date=end_date, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+            percentage_values = total_submissions(
+                xform_keyword, start_date, end_date, location,
+                extra_filters={'eav__%s_%s' % (xform_keyword, attribute_keyword):attribute_value},
+                group_by_timespan=group_by['group_by'])
+            total = total_submissions(xform_keyword, start_date, end_date, location, group_by_timespan=group_by['group_by'])
             percentage_values = get_percentages(percentage_values, total, group_by, 'birth')
             chart_data = percentage_values
         elif xform_keyword == 'home' and attribute_value == 'percentage':
             label="%"
-            attribute_values_list = report('home', attribute_keyword=attribute_keyword, location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
-            home_total = report('home', attribute_keyword='to', location=location, group_by = group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, start_date=start_date, end_date=end_date)
+            attribute_values_list = total_attribute_value('home_%s' % attribute_keyword, start_date, end_date, location, group_by_timespan=group_by['group_by'])
+            home_total = total_attribute_value('home_to', start_date, end_date, location, group_by_timespan=group_by['group_by'])
             attribute_values_list = get_percentages(attribute_values_list, home_total, group_by, 'home')
-#            for attribute_values_dict in attribute_values_list:
-#                try:
-#                    attribute_values_dict['value']=(attribute_values_dict['value']/float(home_total[attribute_values_list.index(attribute_values_dict)]['value']))*100 or "null"
-#                except (ZeroDivisionError, TypeError):
-#                    attribute_values_dict['value']='null'
             chart_data = attribute_values_list
         else:
-            chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, attribute_value=attribute_value, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+            extra_filters = {}
+            if not (type(attribute_keyword) == list):
+                attribute_keyword = [attribute_keyword,]
+                attribute_value = [attribute_value,]
+            for i in range(0, len(attribute_keyword)):
+                extra_filters.update({'eav__%s_%s' % (xform_keyword, attribute_keyword[i]):attribute_value[i]})
+            chart_data = total_submissions(
+                xform_keyword, start_date, end_date, location,
+                extra_filters=extra_filters,
+                group_by_timespan=group_by['group_by'],
+            )
     elif attribute_keyword and not attribute_value:
         if xform_keyword == 'epi' and attribute_keyword == 'percentage':
             label="%"
-            percentage_epi = report(xform_keyword, attribute_keyword=None, attribute_value=None, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+            percentage_epi = total_submissions(xform_keyword, start_date, end_date, location, group_by_timespan=group_by['group_by'])
             expected_epi = get_expected_epi(location,request)
             y = 0
             while y < len(percentage_epi):
@@ -114,13 +125,20 @@ def chart(request,xform_keyword, attribute_keyword=None, attribute_value=None, l
                 y +=1
             chart_data = percentage_epi
         else:
-            chart_data = report(xform_keyword, attribute_keyword=attribute_keyword, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+            chart_data = total_attribute_value(
+                '%s_%s' % (xform_keyword, attribute_keyword),
+                start_date, end_date, location, group_by_timespan=group_by['group_by']
+            )
     else:
-        chart_data = report(xform_keyword, start_date=start_date, end_date=end_date, group_by=group_by['group_by'] | GROUP_BY_LOCATION | GROUP_BY_YEAR, location=location)
+        chart_data = total_submissions(
+           xform_keyword, start_date, end_date, location,
+           group_by_timespan=group_by['group_by']
+        )
     report_dict = SortedDict()
     location_list = []
 # FIXME: should also fixure out how to calculate max and min values for
 # yaxis range
+    chart_data = list(chart_data)
     reorganize_timespan(group_by['group_by_name'], chart_data, report_dict, location_list, request)
     return render_to_response(template,
                               {'data':report_dict, 

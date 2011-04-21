@@ -5,15 +5,18 @@ from django.shortcuts import get_object_or_404
 from healthmodels.models.HealthFacility import HealthFacility
 from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
-from cvs.utils import report, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_LOCATION, GROUP_BY_WEEK,GROUP_BY_MONTH, GROUP_BY_YEAR,GROUP_BY_DAY,GROUP_BY_QUARTER,get_group_by,ExcelResponse
+from django.views.decorators.cache import cache_control
+from django.http import HttpResponseRedirect,HttpResponse
+from cvs.utils import total_submissions, total_attribute_value, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_WEEK,GROUP_BY_MONTH,GROUP_BY_DAY,GROUP_BY_QUARTER,get_group_by,ExcelResponse
 from cvs.forms import DateRangeForm
 import datetime
 import time
 from django.utils.datastructures import SortedDict
-from rapidsms_xforms.models import XFormSubmission
+from rapidsms_xforms.models import XFormSubmission, XFormSubmissionValue
 from rapidsms.models import Contact
 import re
 from django.utils.safestring import mark_safe
+from django.db.models import Count,Sum
 
 Num_REG=re.compile('\d+')
 
@@ -22,46 +25,40 @@ def index(request, location_id=None):
         This is the basic stats page.  You can see that each column requires a separate
         call to report, but only once per column, not once per-column-per-location (same
         with the chart, no calls per week, month or quarter.
-        
+
         FIXME: the proper GROUP_BY_xxx flags need to be used based on the date range
         passed from the user: If it's greater than nine months, it should probably
         be graphed quarterly, if it's greated than 3 months, monthly, if it's greater
         than 21 days, weekly, otherwise daily.
     """
-    
+
     dates = get_dates(request)
     max_date = datetime.datetime.now()
-    
+
     if location_id:
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
     chart=request.session.get('stats',None)
     if chart :
-        
+
         chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
         request.session['stats']=chart_path
     else:
         request.session['stats']=mark_safe("/cvs/charts/"+str(location.pk)+"/muac/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
-    muac = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    ma = report('epi', attribute_keyword='ma', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    tb = report('epi', attribute_keyword='tb', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    bd = report('epi', attribute_keyword='bd', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    birth = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    death = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    percentage_safe_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    home_total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    percentage_epi = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+    start_date = dates['start']
+    end_date = dates['end']
+    muac = total_submissions('muac', start_date, end_date, location)
+    ma = total_attribute_value('epi_ma', start_date, end_date, location)
+    tb = total_attribute_value('epi_tb', start_date, end_date, location)
+    bd = total_attribute_value('epi_bd', start_date, end_date, location)
+    birth = total_submissions('birth', start_date, end_date, location)
+    death = total_submissions('death', start_date, end_date, location)
+    percentage_safe_water = total_attribute_value('home_wa', start_date, end_date, location)
+    home_total = total_attribute_value('home_to', start_date, end_date, location)
+    percentage_epi = total_submissions('muac', start_date, end_date, location)
+
     expected_epi = get_expected_epi(location,request)
-
-
-#    x = 0
-#    while x < len(percentage_safe_water):
-#        home_divide = float(percentage_safe_water[x]['value'])
-#        total_value = float(home_total[x]['value'])
-#        home_divide /= total_value
-#        percentage_safe_water[x]['value'] = round(home_divide*100,1)
-#        x +=1
 
     y = 0
     while y < len(percentage_epi):
@@ -97,7 +94,7 @@ def index(request, location_id=None):
                   ('Home', '/cvs/home/?root=true',1),
                   ('Reporters','/cvs/reporter/',1)
                   )
-                  
+
     columns = (
                ('','',1,''),
                ('Total New Cases','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/')"),
@@ -109,15 +106,15 @@ def index(request, location_id=None):
                ('Safe Drinking Water (% of homesteads)','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/percentage/')"),
                ('% of expected weekly Epi reports received','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/percentage/')"),
     )
-    
+
     return render_to_response("cvs/stats.html",
-                              {'report':report_dict, 
-                               'top_columns':topColumns, 
+                              {'report':report_dict,
+                               'top_columns':topColumns,
                                'columns':columns,
                                'location_id':location_id,
-                               'report_template':'cvs/partials/stats_main.html', 
+                               'report_template':'cvs/partials/stats_main.html',
                                'start_date':dates['start'],
-                               'end_date':dates['end'], 
+                               'end_date':dates['end'],
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -134,7 +131,7 @@ def muac_detail(request,location_id=None):
     malnutrition stats
     """
     dates = get_dates(request)
-    max_date = datetime.datetime.now()   
+    max_date = datetime.datetime.now()
     if location_id:
         location = get_object_or_404(Area, pk=location_id)
     else:
@@ -147,12 +144,27 @@ def muac_detail(request,location_id=None):
             request.session['muac']=chart_path
         else:
             request.session['muac']=mark_safe("/cvs/charts/"+str(location.pk)+"/muac/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
-    total = report('muac', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    green = report('muac', attribute_keyword='category', attribute_value='G', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    green_oedema = report('muac', attribute_keyword=['category', 'oedema'], attribute_value=['G','T'], location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    yellow = report('muac', attribute_keyword='category', attribute_value='Y', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    red = report('muac', attribute_keyword='category', attribute_value='R', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    red_oedema = report('muac', attribute_keyword=['category', 'oedema'], attribute_value=['R','T'], location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    start_date = dates['start']
+    end_date = dates['end']
+    total = total_submissions('muac', start_date, end_date, location)
+    green = total_submissions('muac', start_date, end_date, location, {
+                'eav__muac_category':'G',
+            })
+    green_oedema = total_submissions('muac', start_date, end_date, location, {
+                'eav__muac_category':'G',
+                'eav__muac_ignored':'T',
+            })
+    yellow = total_submissions('muac', start_date, end_date, location, {
+                'eav__muac_category':'Y',
+            })
+    red = total_submissions('muac', start_date, end_date, location, {
+                'eav__muac_category':'R',
+            })
+    red_oedema = total_submissions('muac', start_date, end_date, location, {
+                'eav__muac_category':'R',
+                'eav__muac_ignored':'T',
+            })
+
     report_dict = {}
     reorganize_location('total', total, report_dict)
     reorganize_location('green', green, report_dict)
@@ -160,24 +172,24 @@ def muac_detail(request,location_id=None):
     reorganize_location('yellow', yellow, report_dict)
     reorganize_location('red', red, report_dict)
     reorganize_location('red_oedema', red_oedema, report_dict)
-    
+
     columns = (('','',1),
                   ('Total', '', 1),
                   ('Green','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/G/')"),
-                  ('Green+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__oedema/G__T/')"),
+                  ('Green+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__ignored/G__T/')"),
                   ('Yellow','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/Y/')"),
                   ('Red','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/R/')"),
-                  ('Red+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__oedema/R__T/')")
+                  ('Red+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__ignored/R__T/')")
                   )
-    
-    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html" 
+
+    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
     return render_to_response(stats_template,
-                              {'report':report_dict, 
-                               'columns':columns,  
-                               'location_id':location_id, 
+                              {'report':report_dict,
+                               'columns':columns,
+                               'location_id':location_id,
                                'report_template':'cvs/partials/muac_main.html',
                                'start_date':dates['start'],
-                               'end_date':dates['end'], 
+                               'end_date':dates['end'],
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -209,26 +221,29 @@ def epi_detail(request, location_id=None):
 
     categories = (
                   ('bd','Bloody Diarrhea'),
-                  ('ma','Malaria'), 
-                  ('tb','Tb'), 
-                  ('ab','Animal Bite'), 
-                  ('af','Polio'), 
-                  ('mg','Meningitis'), 
-                  ('me','Measles'), 
-                  ('ch','Cholera'), 
-                  ('gw','Ginuea Worm'), 
-                  ('nt','Neonatal Tetanus'), 
-                  ('yf','Yellow Fever'), 
-                  ('pl','Plague'), 
-                  ('ra','Rabies'), 
-                  ('vf','Hemorrhagic Fevers'), 
+                  ('ma','Malaria'),
+                  ('tb','Tb'),
+                  ('ab','Animal Bite'),
+                  ('af','Polio'),
+                  ('mg','Meningitis'),
+                  ('me','Measles'),
+                  ('ch','Cholera'),
+                  ('gw','Ginuea Worm'),
+                  ('nt','Neonatal Tetanus'),
+                  ('yf','Yellow Fever'),
+                  ('pl','Plague'),
+                  ('ra','Rabies'),
+                  ('vf','Hemorrhagic Fevers'),
                   ('ei','Infectious Diseases')
     )
     report_dict = {}
-    total = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
+    start_date=dates['start']
+    end_date=dates['end']
+    total = total_submissions('epi', start_date, end_date, location)
+#    total = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     reorganize_location('total', total, report_dict)
     for attrib_keyword, v in categories:
-        dictx = report('epi', attribute_keyword=attrib_keyword, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+        dictx = total_attribute_value('epi_%s' % attrib_keyword, start_date, end_date, location)
         reorganize_location(attrib_keyword, dictx, report_dict)
 
     columns = [
@@ -242,15 +257,15 @@ def epi_detail(request, location_id=None):
         tup = (v, link, colspan, onclick)
         columns.append(tup)
 
-    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html" 
+    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
     return render_to_response(stats_template,
-                              {'report':report_dict, 
-                               'columns':columns,  
-                               'location_id':location_id, 
+                              {'report':report_dict,
+                               'columns':columns,
+                               'location_id':location_id,
                                'report_template':'cvs/partials/epi_main.html',
                                'start_date':dates['start'],
                                'end_date':dates['end'],
-                               'module':module, 
+                               'module':module,
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -264,10 +279,10 @@ def epi_detail(request, location_id=None):
 def birth_detail(request, location_id=None):
     """
         birth reports view
-        
+
     """
     dates = get_dates(request)
-    max_date = datetime.datetime.now()   
+    max_date = datetime.datetime.now()
     if location_id:
         location = get_object_or_404(Area, pk=location_id)
     else:
@@ -280,14 +295,28 @@ def birth_detail(request, location_id=None):
             request.session['birth']=chart_path
         else:
             request.session['birth']=mark_safe("/cvs/charts/"+str(location.pk)+"/birth/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
-    total = report('birth', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    boys = report('birth', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    girls = report('birth', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_at_home = report('birth', attribute_keyword='place', attribute_value='HOME', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_at_facility = report('birth', attribute_keyword='place', attribute_value='FACILITY', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-   
+    start_date=dates['start']
+    end_date=dates['end']
+    total = total_submissions('birth', start_date, end_date, location)
+    boys = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_gender':'M',
+            })
+    girls = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_gender':'F',
+            })
+    at_home = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_place':'HOME',
+            })
+    percentage_at_home = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_place':'HOME',
+            })
+    at_facility = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_place':'FACILITY',
+            })
+    percentage_at_facility = total_submissions('birth', start_date, end_date, location, {
+                'eav__birth_place':'FACILITY',
+            })
+
     report_dict = {}
     reorganize_location('total', total, report_dict)
     reorganize_location('boys', boys, report_dict)
@@ -311,7 +340,7 @@ def birth_detail(request, location_id=None):
             val_dict['percentage_at_facility'] = round(((percentage_at_facility / total)*100), 1)
         else:
             val_dict['percentage_at_facility'] = 'N/A'
-    
+
     columns = (('','',1),
                   ('Total Births', '', 1),
                   ('Boys','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/gender/M/')"),
@@ -322,14 +351,14 @@ def birth_detail(request, location_id=None):
                   ('% Delivered at Facility','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/FACILITY/percentage/')")
                   )
 
-    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html" 
+    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
     return render_to_response(stats_template,
-                              {'report':report_dict, 
-                               'columns':columns,  
-                               'location_id':location_id, 
+                              {'report':report_dict,
+                               'columns':columns,
+                               'location_id':location_id,
                                'report_template':'cvs/partials/birth_main.html',
                                'start_date':dates['start'],
-                               'end_date':dates['end'], 
+                               'end_date':dates['end'],
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -339,14 +368,14 @@ def birth_detail(request, location_id=None):
                                'date_range_form':dates['form'],
                                'page':'birth',
                                 }, context_instance=RequestContext(request))
-    
+
 def death_detail(request, location_id=None):
     """
         death reports view
-        
+
     """
     dates = get_dates(request)
-    max_date = datetime.datetime.now()   
+    max_date = datetime.datetime.now()
     if location_id:
         location = get_object_or_404(Area, pk=location_id)
     else:
@@ -359,13 +388,28 @@ def death_detail(request, location_id=None):
             request.session['death']=chart_path
         else:
             request.session['death']=mark_safe("/cvs/charts/"+str(location.pk)+"/death/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
-    total = report('death', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    boys = report('death', attribute_keyword='gender', attribute_value='M', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    girls = report('death', attribute_keyword='gender', attribute_value='F', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    under_28days = report('death', attribute_keyword='age', attribute_value={"under":(28)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    upto_3months = report('death', attribute_keyword='age', attribute_value={"between":(28, 90)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    upto_12months = report('death', attribute_keyword='age', attribute_value={"between":(90, 365)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    upto_5years = report('death', attribute_keyword='age', attribute_value={"between":(365, 1825)}, location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    start_date=dates['start']
+    end_date=dates['end']
+    total = total_submissions('death', start_date, end_date, location)
+    boys = total_submissions('death', start_date, end_date, location, {
+                'eav__death_gender':'M',
+            })
+    girls = total_submissions('death', start_date, end_date, location, {
+                'eav__death_gender':'F',
+            })
+    under_28days = total_submissions('death', start_date, end_date, location, {
+                'eav__death_age__lt':28,
+            })
+    upto_3months = total_submissions('death', start_date, end_date, location, {
+                'eav__death_age__range':(28,90)
+            })
+    upto_12months = total_submissions('death', start_date, end_date, location, {
+                'eav__death_age__range':(90,365)
+            })
+    upto_5years = total_submissions('death', start_date, end_date, location, {
+                'eav__death_age__range':(365,1825)
+            })
+
     report_dict = {}
     reorganize_location('total', total, report_dict)
     reorganize_location('boys', boys, report_dict)
@@ -374,7 +418,7 @@ def death_detail(request, location_id=None):
     reorganize_location('upto_3months', upto_3months, report_dict)
     reorganize_location('upto_12months', upto_12months, report_dict)
     reorganize_location('upto_5years', upto_5years, report_dict)
-    
+
     columns = (('','',1),
                   ('Total Child Deaths', '', 1),
                   ('Male Deaths','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/gender/M/')"),
@@ -384,15 +428,15 @@ def death_detail(request, location_id=None):
                   ('Deaths 3 months to 12 months','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/between_90_365/')"),
                   ('Deaths 1 year to 5 years','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/between_365_1825/')")
                   )
-    
-    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html" 
+
+    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
     return render_to_response(stats_template,
-                              {'report':report_dict, 
-                               'columns':columns,  
-                               'location_id':location_id, 
+                              {'report':report_dict,
+                               'columns':columns,
+                               'location_id':location_id,
                                'report_template':'cvs/partials/death_main.html',
                                'start_date':dates['start'],
-                               'end_date':dates['end'], 
+                               'end_date':dates['end'],
                                # timestamps in python are in seconds,
                                # in javascript they're in milliseconds
                                'max_ts':time.mktime(max_date.timetuple()) * 1000,
@@ -422,16 +466,18 @@ def home_detail(request, location_id=None):
             request.session['home']=chart_path
         else:
             request.session['home']="/cvs/charts/"+str(location.pk)+"/home/to/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()),time.mktime(dates['end'].timetuple()) )
-    total_reports = report('home', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    total = report('home', attribute_keyword='to', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
-    safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_safe_drinking_water = report('home', attribute_keyword='wa', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    hand_washing_facilities = report('home', attribute_keyword='ha', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_hand_washing_facilities = report('home', attribute_keyword='ha', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    latrines = report('home', attribute_keyword='la', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_latrines = report('home', attribute_keyword='la', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    ittns = report('home', attribute_keyword='it', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
-    percentage_ittns = report('home', attribute_keyword='it', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'], request=request)
+    start_date=dates['start']
+    end_date=dates['end']
+    total_reports = total_submissions('home', start_date, end_date, location)
+    total = total_attribute_value('home_to', start_date, end_date, location)
+    safe_drinking_water = total_attribute_value('home_wa', start_date, end_date, location)
+    percentage_safe_drinking_water = total_attribute_value('home_wa', start_date, end_date, location)
+    hand_washing_facilities = total_attribute_value('home_ha', start_date, end_date, location)
+    percentage_hand_washing_facilities = total_attribute_value('home_ha', start_date, end_date, location)
+    latrines = total_attribute_value('home_la', start_date, end_date, location)
+    percentage_latrines = total_attribute_value('home_la', start_date, end_date, location)
+    ittns = total_attribute_value('home_it', start_date, end_date, location)
+    percentage_ittns = total_attribute_value('home_it', start_date, end_date, location)
 
     report_dict = {}
     reorganize_location('total_reports', total_reports, report_dict)
@@ -482,7 +528,7 @@ def home_detail(request, location_id=None):
         ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/percentage/')", 1,),
     )
 
-    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html" 
+    stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
     return render_to_response(stats_template,
                               {'report':report_dict,
                                'columns':columns,
@@ -582,7 +628,7 @@ def export_as_excel(request):
         export_data['epi_vf']=data.get('epi_vf','')
         export_data['epi_ei']=data.get('epi_ei','')
         export_data_list.append(export_data)
-  
+
     return ExcelResponse(export_data_list)
 
 def module_stats(request, view_name, location_id):

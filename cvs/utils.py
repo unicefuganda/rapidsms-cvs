@@ -132,11 +132,8 @@ def init_xforms():
 
 GROUP_BY_WEEK = 1
 GROUP_BY_MONTH = 2
-GROUP_BY_YEAR = 4
-GROUP_BY_LOCATION = 8
 GROUP_BY_DAY = 16
 GROUP_BY_QUARTER = 32
-GROUP_BY_FACILITY = 64
 
 months={
     1: 'Jan',
@@ -160,319 +157,117 @@ quarters = {
     4:'Forth'
 }
 
-def report(xform_keyword, start_date=None, end_date=datetime.datetime.now(), attribute_keyword=None, attribute_value=None, location=None, facility=None, group_by=None,**kwargs):
-    """
-        
-    """
-    request=kwargs.get('request',None)
-    if group_by is not None:
-        return report_raw(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility,**kwargs)
-    if attribute_keyword is None:
-        submissions = XFormSubmission.objects.filter(xform__keyword=xform_keyword)
-        if start_date is not None:
-            submissions = submissions.filter(created__gt=start_date, created__lte=end_date)
-        if location is not None:
-            submissions = submissions.filter(Q(connection__contact__healthproviderbase__healthprovider__location=location) | Q(connection__contact__healthproviderbase__healthprovider__location__in=location.get_descendants()))
-        if facility is not None:
-            submissions = submissions.filter(Q(connection__contact__healthproviderbase__healthprovider__facility=facility) | 
-                                   Q(connection__contact__healthproviderbase__healthprovider__location__in=facility.catchment_areas.all()))            
-        return submissions.count()
+GROUP_BY_SELECTS = {
+    GROUP_BY_DAY:('day','date(rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_WEEK:('week','extract(week from rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_MONTH:('month','extract(month from rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_QUARTER:('quarter','extract(quarter from rapidsms_xforms_xformsubmission.created)',),
+}
+
+def total_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None):
+    if extra_filters:
+        q = XFormSubmission.objects.filter(**extra_filters)
+        tnum = 8
     else:
-        attribute_slug = "%s_%s" % (xform_keyword, attribute_keyword)
-        values = XFormSubmissionValue.objects.filter(attribute__slug=attribute_slug)
-        if start_date is not None:
-            values = values.filter(submission__created__gt=start_date, submission__created__lte=end_date)
-        if location is not None:
-            values = values.filter(Q(submission__connection__contact__healthproviderbase__healthprovider__location=location) | Q(submission__connection__contact__healthproviderbase__healthprovider__location__in=location.get_descendants()))
-        if facility is not None:
-            values = values.filter(Q(submission__connection__contact__healthproviderbase__healthprovider__facility=facility) | 
-                                   Q(submission__connection__contact__healthproviderbase__healthprovider__location__in=facility.catchment_areas.all()))
-        if attribute_value is not None:
-            values = values.filter(value_text=attribute_value)
-            return values.count()
-        return values.aggregate(Sum('value_int'))['value_int__sum']
+        q = XFormSubmission.objects
+        tnum = 6
+    select = {
+        'location_name':'T%d.name' % tnum,
+        'location_id':'T%d.id' % tnum,
+        'rght':'T%d.rght' % tnum,
+        'lft':'T%d.lft' % tnum
+    }
+    values = ['location_name','location_id','lft','rght']
+    if group_by_timespan:
+         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+         select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+         select.update({select_value:select_clause,
+                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)',})
+         values.extend([select_value,'year'])
+    return q.filter(
+               xform__keyword=keyword,
+               has_errors=False,
+               created__lte=end_date,
+               created__gte=start_date).values(
+               'connection__contact__reporting_location__name').extra(
+               tables=['simple_locations_area'],
+               where=[\
+                   'T%d.lft <= simple_locations_area.lft' % tnum,\
+                   'T%d.rght >= simple_locations_area.rght' % tnum,\
+                   'T%d.id in %s' % (tnum, str(tuple(location.get_children().values_list(\
+                   'pk', flat=True))))]).extra(\
+               select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
 
-def report_raw(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None,**kwargs):
+def total_submissions_by_facility(keyword, start_date, end_date, map_window):
+    minlat, minlon, maxlat, maxlon = map_window
+    return XFormSubmission.objects.filter(**{
+        'has_errors':False,
+        'xform__keyword':keyword,
+        'has_errors':False,
+        'created__lte':end_date,
+        'created__gte':start_date,
+        'connection__contact__healthproviderbase__facility__location__latitude__range':(str(minlat),str(maxlat),),
+        'connection__contact__healthproviderbase__facility__location__longitude__range':(str(minlon),str(maxlon),)})\
+        .extra(
+        tables=['healthmodels_healthfacilitytypebase'],
+        where=['healthmodels_healthfacilitybase.type_id=healthmodels_healthfacilitytypebase.id'])\
+        .extra(select={
+        'facility_name':'healthmodels_healthfacilitybase.name',
+        'facility_id':'healthmodels_healthfacilitybase.id',
+        'latitude':'simple_locations_point.latitude',
+        'longitude':'simple_locations_point.longitude',
+        'type':'healthmodels_healthfacilitytypebase.name'})\
+        .values('facility_name','facility_id','latitude','longitude','type')\
+        .annotate(value=Count('id'))
 
-    cursor = connection.cursor()
-    list_toret = []
-    countx = None
-    if isinstance(attribute_keyword, list) and isinstance(attribute_value, list):
-        sql = mk_entity_raw_sql(xform_keyword, group_by, start_date, end_date, attribute_keyword[0], attribute_value[0], location, facility,**kwargs)
-        cursor.execute(sql)
-        k = 1
-        while k < len(attribute_keyword):
-            countx = 0
-            for row in cursor.fetchall():
-                attribute_slug = "%s_%s" % (xform_keyword, attribute_keyword[k])
-                value = XFormSubmissionValue.objects.filter(entity_id=row[0], attribute__slug=attribute_slug, value_text=attribute_value[k])
-                countx += value.count()
-            k +=1
-    else:
-        sql = mk_raw_sql(xform_keyword, group_by, start_date, end_date, attribute_keyword, attribute_value, location, facility,**kwargs)
-    cursor.execute(sql)
-    for row in cursor.fetchall():
-        if countx is None:
-            rowdict = {'value':row[0]}
-        else:
-            rowdict = {'value':countx}
-        rowoff = 1
-        if group_by & GROUP_BY_YEAR:
-            rowdict.update({'year':row[rowoff]})
-            rowoff += 1
+def total_attribute_value(attribute_slug, start_date, end_date, location, group_by_timespan=None):
+    select = {
+        'location_name':'T8.name',
+        'location_id':'T8.id',
+        'rght':'T8.rght',
+        'lft':'T8.lft',
+    }
+    values = ['location_name','location_id','lft','rght']
+    if group_by_timespan:
+         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+         select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+         select.update({select_value:select_clause,
+                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)',})
+         values.extend([select_value,'year'])
+    return XFormSubmissionValue.objects.filter(
+               submission__has_errors=False,
+               attribute__slug=attribute_slug,
+               submission__created__lte=end_date,
+               submission__created__gte=start_date).values(
+               'submission__connection__contact__reporting_location__name').extra(
+               tables=['simple_locations_area'],
+               where=[\
+                   'T8.lft <= simple_locations_area.lft',
+                   'T8.rght >= simple_locations_area.rght',
+                   'T8.id in %s' % (str(tuple(location.get_children().values_list(\
+                   'pk', flat=True))))]).extra(\
+               select=select).values(*values).annotate(value=Sum('value_int')).extra(order_by=['location_name'])
 
-        if group_by & GROUP_BY_WEEK:
-            rowdict.update({'week':row[rowoff]})
-            rowoff += 1            
-        if group_by & GROUP_BY_MONTH:
-            rowdict.update({'month':row[rowoff]})
-            rowoff += 1
-        if group_by & GROUP_BY_DAY:
-            rowdict.update({'day':row[rowoff]})
-            rowoff += 1
-        if group_by & GROUP_BY_QUARTER:
-            rowdict.update({'quarter':row[rowoff]})
-            rowoff += 1
-        if group_by & GROUP_BY_LOCATION:
-            rowdict.update({'location_name':row[rowoff]})
-            rowoff += 1
-            rowdict.update({'location_id':row[rowoff]})
-            rowoff += 1
-            rowdict.update({'rght':row[rowoff]})
-            rowoff += 1
-            rowdict.update({'lft':row[rowoff]})
-            rowoff += 1
-        if group_by & GROUP_BY_FACILITY:
-            rowdict.update({'facility_name':row[1]})
-            rowdict.update({'facility_id':row[2]})
-            rowdict.update({'type':row[3]})
-            rowdict.update({'latitude':row[4]})
-            rowdict.update({'longitude':row[5]})
-        list_toret.append(rowdict)
-    return list_toret
-
-def mk_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None,**kwargs):
-
-    """
-        report_raw returns a list of dictionaries, each with keys based on the GROUP_BY_xxxx flags used.
-        all dictionaries will at least contain a "value" key, which is the count() of reports or the sum() of a particular
-        attribute for a particular report.
-        For instance, report_raw('epi', group_by=GROUP_BY_WEEK | GROUP_BY_LOCATION, attribute_keyword='ma') would return a list of
-        dictionaries of the form:
-        [{'location_id':1,'location_name':'Uganda','week':1,'value':13},
-        ...
-        ]
-        where '13' is the total number of cases of malaria in Uganda (in this case, we didn't filter by
-        time, so in fact 13 would be the total number of cases reported for the entire database in Uganda.
-        
-        Note how the SQL raw query is composed of select_clauses, joins, where_clauses, orderby_columns,
-        and groupby_columns.  This can be modified to suit even more particular cases (for instance, maybe
-        counting the number of occurences of a particular attribute having a particular value, like total
-        birth reports with gender == 'M'
-    """
-    groupby_columns = []
-    orderby_columns = []
-    if attribute_keyword is not None:
-        root_table = "eav_value as values"
-        where_clauses = ["attributes.slug = '%s_%s'" % (xform_keyword, attribute_keyword)]
-        joins = ['eav_attribute attributes on values.attribute_id = attributes.id', 'rapidsms_xforms_xformsubmission submissions on values.entity_id = submissions.id']
-        if attribute_value is not None:
-            if isinstance(attribute_value, dict):
-                select_clauses = [('count(value_int)', 'value',)]
-                func = attribute_value.keys()
-                if isinstance(attribute_value[func[0]], list):
-                    attribute_values = tuple(attribute_value[func[0]])
-                else:
-                    attribute_values = attribute_value[func[0]]
-                if func[0] == 'under':
-                    where_clauses.append("values.value_int < %d" % attribute_values)
-                elif func[0] == 'above':
-                    where_clauses.append("values.value_int > %d" % attribute_values)
-                else:
-                    where_clauses.append("values.value_int between %d and %d" % attribute_values)
-            elif isinstance(attribute_value, tuple):
-                select_clauses = [('count(value_text)', 'value',)]
-                where_clauses.append("values.value_text in ('%s','%s')" % attribute_value)
-            else:
-                select_clauses = [('count(value_text)', 'value',)]
-                where_clauses.append("values.value_text = '%s'" % attribute_value)
-        else:
-            select_clauses = [('sum(value_int)', 'value',)]        
-    else:
-        select_clauses = [('count(submissions.id)', 'value',)]
-        root_table = 'rapidsms_xforms_xformsubmission as submissions'
-        where_clauses = ["xforms.keyword = '%s'" % xform_keyword] 
-        joins = ['rapidsms_xforms_xform xforms on submissions.xform_id = xforms.id']
-    if location is not None:
-        if kwargs.get('request',None) and kwargs.get('request',None) and kwargs['request'].GET.get('root',None):
-             group_by = group_by | GROUP_BY_LOCATION
-             where_clauses.append("locations.id in (%s)" % location.id)
-        else:
-            group_by = group_by | GROUP_BY_LOCATION
-            where_clauses.append("locations.id in (%s)" % ' , '.join(str(id) for id in location.get_children().values_list('pk', flat=True)))
-    
-    # Only use non-duplicate submissions
-    where_clauses.append('not submissions.has_errors')
-
-    if start_date is not None:
-        where_clauses.append("submissions.created >= date '%s'" % datetime.datetime.strftime(start_date, '%Y-%m-%d'))
-        where_clauses.append("submissions.created <= date '%s'" % datetime.datetime.strftime(end_date, '%Y-%m-%d'))
-    if facility is not None:
-        group_by = group_by | GROUP_BY_LOCATION
-        where_clauses.append("(providers.location_id in (%s) or providers.facility_id = %s)" % (' , '.join(str(id) for id in facility.catchment_areas.all()), str(facility.pk)))
-    if group_by & GROUP_BY_YEAR:
-        select_clauses.append(('extract(year from submissions.created)', 'year',))
-        groupby_columns.append('year')
-        orderby_columns.append('year')    
-    if group_by & GROUP_BY_WEEK:
-        select_clauses.append(('extract(week from submissions.created)', 'week',))
-        groupby_columns.append('week')
-        orderby_columns.append('week')        
-    if group_by & GROUP_BY_MONTH:
-        select_clauses.append(('extract(month from submissions.created)', 'month'))
-        groupby_columns.append('month')
-        orderby_columns.append('month')
-    if group_by & GROUP_BY_DAY:
-#        select_clauses.append(('extract(day from submissions.created)', 'day'))
-        select_clauses.append(('date(submissions.created)' , 'day',))
-        groupby_columns.append('day')
-        orderby_columns.append('day')
-    if group_by & GROUP_BY_QUARTER:
-           select_clauses.append(('extract(quarter from submissions.created)', 'quarter'))
-           groupby_columns.append('quarter')
-           orderby_columns.append('quarter')
-    if group_by & GROUP_BY_FACILITY:
-        select_clauses.append(('facility.name', 'fname',))
-        select_clauses.append(('providers.facility_id', 'fid',))
-        select_clauses.append(('type.name', 'tname',))
-        select_clauses.append(('location.latitude', 'latitude',))
-        select_clauses.append(('location.longitude', 'longitude',))
-        groupby_columns.append('fname')
-        groupby_columns.append('tname')
-        groupby_columns.append('fid')
-        groupby_columns.append('latitude')
-        groupby_columns.append('longitude')
-        orderby_columns.append('value DESC')
-        where_clauses.append('location.latitude >=%s'% kwargs.get('minLat'))
-        where_clauses.append('location.latitude <=%s'% kwargs.get('maxLat'))
-        where_clauses.append('location.longitude >=%s'%kwargs.get('minLon'))
-        where_clauses.append('location.longitude <=%s'%kwargs.get('maxLon'))
-        joins.append('rapidsms_connection connections on submissions.connection_id = connections.id')
-        joins.append('healthmodels_healthproviderbase providers on connections.contact_id = providers.contact_ptr_id')
-        joins.append('healthmodels_healthfacilitybase facility on providers.facility_id = facility.id')
-        joins.append(' healthmodels_healthfacilitytypebase type on type.id = facility.type_id')
-        joins.append(' simple_locations_point location on facility.location_id = location.id')
-
-    if group_by & GROUP_BY_LOCATION:
-        select_clauses.append(('locations.name', 'lname',))
-        select_clauses.append(('locations.id', 'lid',))
-        select_clauses.append(('locations.lft', 'lft',))
-        select_clauses.append(('locations.rght', 'rght',))
-        groupby_columns.append('lname')
-        groupby_columns.append('lid')
-        groupby_columns.append('locations.lft')
-        groupby_columns.append('locations.rght')
-        orderby_columns.append('lname')
-        joins.append('rapidsms_connection connections on submissions.connection_id = connections.id')
-        joins.append('healthmodels_healthproviderbase providers on connections.contact_id = providers.contact_ptr_id')
-        if location is None:
-            joins.append('simple_locations_area locations on providers.location_id = locations.id')
-        else:
-            joins.append('simple_locations_area provider_locations on providers.location_id = provider_locations.id')
-            joins.append('simple_locations_area locations on provider_locations.lft >= locations.lft and provider_locations.rght <= locations.rght')
-    
-    sql = "select " + ' , '.join(["%s as %s" % (column, alias) for column, alias in select_clauses])
-    sql += " from " + root_table
-    if len(joins):
-        sql += " join " + ' join '.join(joins)
-    sql += " where " + ' and '.join(where_clauses)
-    if len(groupby_columns):
-        sql += " group by " + ' , '.join(groupby_columns)
-    if len(orderby_columns):
-        sql += " order by " + ' , '.join(orderby_columns)
-    return sql
-
-def mk_entity_raw_sql(xform_keyword, group_by, start_date=None, end_date=None, attribute_keyword=None, attribute_value=None, location=None, facility=None,**kwargs):
-    groupby_columns = []
-    orderby_columns = []
-    if attribute_keyword is not None:
-        root_table = "eav_value as values"
-        where_clauses = ["attributes.slug = '%s_%s'" % (xform_keyword, attribute_keyword)]
-        joins = ['eav_attribute attributes on values.attribute_id = attributes.id', 'rapidsms_xforms_xformsubmission submissions on values.entity_id = submissions.id']
-        if attribute_value is not None:
-            select_clauses = [('entity_id', 'entity',)]
-            where_clauses.append("values.value_text = '%s'" % attribute_value)
-        else:
-            select_clauses = [('entity_id', 'entity',)]        
-    else:
-        select_clauses = [('count(submissions.id)', 'value',)]
-        root_table = 'rapidsms_xforms_xformsubmission as submissions'
-        where_clauses = ["xforms.keyword = '%s'" % xform_keyword] 
-        joins = ['rapidsms_xforms_xform xforms on submissions.xform_id = xforms.id']
-    if location is not None:
-        if kwargs.get('request',None) and kwargs['request'] and  kwargs['request'].GET.get('root',None):
-             group_by = group_by | GROUP_BY_LOCATION
-             where_clauses.append("locations.id in (%s)" % location.id)
-        else:
-            group_by = group_by | GROUP_BY_LOCATION
-            where_clauses.append("locations.id in (%s)" % ' , '.join(str(id) for id in location.get_children().values_list('pk', flat=True)))
-
-
-    if start_date is not None:
-        where_clauses.append("submissions.created >= date '%s'" % datetime.datetime.strftime(start_date, '%Y-%m-%d'))
-        where_clauses.append("submissions.created <= date '%s'" % datetime.datetime.strftime(end_date, '%Y-%m-%d'))
-    if facility is not None:
-        group_by = group_by | GROUP_BY_LOCATION
-        where_clauses.append("(providers.location_id in (%s) or providers.facility_id = %s)" % (' , '.join(str(id) for id in facility.catchment_areas.all()), str(facility.pk)))
-    if group_by & GROUP_BY_YEAR:
-        select_clauses.append(('extract(year from submissions.created)', 'year',))
-        groupby_columns.append('year')
-        orderby_columns.append('year')    
-    if group_by & GROUP_BY_WEEK:
-        select_clauses.append(('extract(week from submissions.created)', 'week',))
-        groupby_columns.append('week')
-        orderby_columns.append('week')        
-    if group_by & GROUP_BY_MONTH:
-        select_clauses.append(('extract(month from submissions.created)', 'month'))
-        groupby_columns.append('month')
-        orderby_columns.append('month')
-    if group_by & GROUP_BY_DAY:
-#        select_clauses.append(('extract(day from submissions.created)', 'day'))
-        select_clauses.append(('date(submissions.created)' , 'day',))
-        groupby_columns.append('day')
-        orderby_columns.append('day')
-    if group_by & GROUP_BY_LOCATION:
-        select_clauses.append(('locations.name', 'lname',))
-        select_clauses.append(('locations.id', 'lid',))
-        select_clauses.append(('locations.lft', 'lft',))
-        select_clauses.append(('locations.rght', 'rght',))
-        groupby_columns.append('lname')
-        groupby_columns.append('lid')
-        orderby_columns.append('lname')
-        groupby_columns.append('locations.lft')
-        groupby_columns.append('locations.rght')
-        joins.append('rapidsms_connection connections on submissions.connection_id = connections.id')
-        joins.append('healthmodels_healthproviderbase providers on connections.contact_id = providers.contact_ptr_id')
-        if location is None:
-            joins.append('simple_locations_area locations on providers.location_id = locations.id')
-        else:
-            joins.append('simple_locations_area provider_locations on providers.location_id = provider_locations.id')
-            joins.append('simple_locations_area locations on provider_locations.lft >= locations.lft and provider_locations.rght <= locations.rght')
-
-    if attribute_keyword is not None:
-        groupby_columns.append('entity')
-    
-    sql = "select " + ' , '.join(["%s as %s" % (column, alias) for column, alias in select_clauses])
-    sql += " from " + root_table
-    if len(joins):
-        sql += " join " + ' join '.join(joins)
-    sql += " where " + ' and '.join(where_clauses)
-    if len(groupby_columns):
-        sql += " group by " + ' , '.join(groupby_columns)
-    if len(orderby_columns):
-        sql += " order by " + ' , '.join(orderby_columns)
-    
-    return sql
+def total_attribute_by_facility(attribute_slug, start_date, end_date, map_window):
+    minlat, minlon, maxlat, maxlon = map_window
+    return XFormSubmissionValue.objects.filter(**{
+               'submission__has_errors':False,
+               'attribute__slug':attribute_slug,
+               'submission__created__lte':end_date,
+               'submission__created__gte':start_date,
+               'submission__connection__contact__healthproviderbase__facility__location__latitude__range':(str(minlat),str(maxlat),),
+               'submission__connection__contact__healthproviderbase__facility__location__longitude__range':(str(minlon),str(maxlon),)})\
+        .extra(
+        tables=['healthmodels_healthfacilitytypebase'],
+        where=['healthmodels_healthfacilitybase.type_id=healthmodels_healthfacilitytypebase.id'])\
+        .extra(select={
+        'facility_name':'healthmodels_healthfacilitybase.name',
+        'facility_id':'healthmodels_healthfacilitybase.id',
+        'latitude':'simple_locations_point.latitude',
+        'longitude':'simple_locations_point.longitude',
+        'type':'healthmodels_healthfacilitytypebase.name'})\
+        .values('facility_name','facility_id','latitude','longitude','type')\
+        .annotate(value=Sum('value_int'))
 
 def reorganize_location(key, report, report_dict):
     for dict in report:
@@ -666,5 +461,4 @@ class ExcelResponse(HttpResponse):
                                             mimetype=mimetype)
         self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
             (output_name.replace('"', '\"'), file_ext)
-
 
