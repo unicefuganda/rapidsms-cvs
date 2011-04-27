@@ -28,7 +28,6 @@ def chart(request,xform_keyword, attribute_keyword=None, attribute_value=None, l
         values passed in (see the FIXMEs) below.
 
     """
-
     if  request.environ.get('HTTP_REFERER',None):
         request.session['stats']=request.path
     else:
@@ -42,9 +41,9 @@ def chart(request,xform_keyword, attribute_keyword=None, attribute_value=None, l
             request.session['start_date'] = start_date
             request.session['end_date'] = end_date
     if request.GET.get('start_date',None):
-        request.session['start_date'] = request.GET['start_date']
+        request.session['start_date'] = datetime.datetime.fromtimestamp(int(request.GET['start_date']))
     if request.GET.get('end_date',None):
-        request.session['end_date'] = request.GET['end_date']
+        request.session['end_date'] = datetime.datetime.fromtimestamp(int(request.GET['end_date']))
     if request.GET.get('module'):
         template="cvs/partials/chart_module.html"
              
