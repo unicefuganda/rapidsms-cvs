@@ -75,8 +75,8 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
                 fac['title'] = str(facility.name)
                 fac['lat'] = float(facility.location.latitude)
                 fac['lon'] = float(facility.location.longitude)
-                fac['icon'] = settings.MEDIA_URL + "cvs/icons/" + facility.type.name.upper() + '.png'
-                fac['desc'] = facility.name
+                fac['icon'] = str(settings.MEDIA_URL + "cvs/icons/" + facility.type.name.upper() + '.png')
+                fac['desc'] = str(facility.name)
                 #fac['color'] = MAP_LAYERS['health_facilities'][2]
                 data_list.append(fac)
     elif layer == 'epi':
@@ -105,7 +105,6 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
         epi_facility_reports=sorted(epi_rep, key=lambda k: k['value'],reverse=True)
 
         epi_reports = []
-        print epi_facility_reports
         for facility in epi_facility_reports:
             epi = {}
             epi['title'] = str(facility['facility_name'])
@@ -135,7 +134,7 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
             rep['title'] = str(facility['facility_name'])
             rep['lat'] = float(facility['latitude'])
             rep['lon'] = float(facility['longitude'])
-            rep['desc'] = "<b>"+layers[layer][1]+":</b>" +  str(facility['value']) + " cases"
+            rep['desc'] = "<b>"+str(layers[layer][1])+":</b>" +  str(facility['value']) + " cases"
             rep['heat'] = facility['value'] / float(reports[0]['value'])
             rep['color'] = MAP_LAYERS[layer][2]
             rep['icon'] = facility_icons[str(facility['facility_name']).lower()]
