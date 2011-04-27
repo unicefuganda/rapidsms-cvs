@@ -184,6 +184,12 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
          select.update({select_value:select_clause,
                         'year':'extract (year from rapidsms_xforms_xformsubmission.created)',})
          values.extend([select_value,'year'])
+    if location.get_children().count() > 1:
+        location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list(\
+                       'pk', flat=True)))))
+    else:
+        location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
+
     return q.filter(
                xform__keyword=keyword,
                has_errors=False,
@@ -194,8 +200,7 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
                where=[\
                    'T%d.lft <= simple_locations_area.lft' % tnum,\
                    'T%d.rght >= simple_locations_area.rght' % tnum,\
-                   'T%d.id in %s' % (tnum, str(tuple(location.get_children().values_list(\
-                   'pk', flat=True))))]).extra(\
+                   location_children_where]).extra(\
                select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
 
 def total_submissions_by_facility(keyword, start_date, end_date, map_window):
@@ -234,6 +239,11 @@ def total_attribute_value(attribute_slug, start_date, end_date, location, group_
          select.update({select_value:select_clause,
                         'year':'extract (year from rapidsms_xforms_xformsubmission.created)',})
          values.extend([select_value,'year'])
+    if location.get_children().count() > 1:
+        location_children_where = 'T8.id in %s' % (str(tuple(location.get_children().values_list(\
+                       'pk', flat=True))))
+    else:
+        location_children_where = 'T8.id = %d' % location.get_children()[0].pk    
     return XFormSubmissionValue.objects.filter(
                submission__has_errors=False,
                attribute__slug=attribute_slug,
@@ -244,8 +254,7 @@ def total_attribute_value(attribute_slug, start_date, end_date, location, group_
                where=[\
                    'T8.lft <= simple_locations_area.lft',
                    'T8.rght >= simple_locations_area.rght',
-                   'T8.id in %s' % (str(tuple(location.get_children().values_list(\
-                   'pk', flat=True))))]).extra(\
+                   location_children_where]).extra(\
                select=select).values(*values).annotate(value=Sum('value_int')).extra(order_by=['location_name'])
 
 def total_attribute_by_facility(attribute_slug, start_date, end_date, map_window):
