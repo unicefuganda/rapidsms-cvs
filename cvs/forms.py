@@ -6,6 +6,7 @@ from healthmodels.models.HealthFacility import HealthFacility
 from mptt.forms import TreeNodeChoiceField
 from simple_locations.models import Area
 
+date_range_choices=(('w','Previous Calendar Week'),('m','Previous Calendar Month'),('q','Previous calendar quarter'),)
 class DateRangeForm(forms.Form): # pragma: no cover
     start_ts = forms.IntegerField(required=True, widget=forms.HiddenInput())
     end_ts = forms.IntegerField(required=True, widget=forms.HiddenInput())
@@ -70,10 +71,13 @@ class ChartModuleForm(ModuleForm):
     ), label="Data to chart")
     title = forms.CharField(max_length=40)
     district = forms.ModelChoiceField(queryset=Area.objects.filter(kind__slug='district').order_by('name'))
+    range=forms.ChoiceField(choices= date_range_choices,label="date Range")
 
     def setModuleParams(self, dashboard, module=None, title=None):
         module = module or self.createModule(dashboard, 'cvs.views.chart.chart', title=title)
+
         module.params.create(module=module, param_name='location_id', param_value=str(self.cleaned_data['district'].pk), is_url_param=True)
+        module.params.create(module=module, param_name='date_range', param_value=str(self.cleaned_data['range']), is_url_param=False)
         param_list = self.cleaned_data['type'].split('___')
         if len(param_list) > 0:
             module.params.create(module=module, param_name='xform_keyword', param_value=param_list[0], is_url_param=True)
@@ -98,11 +102,13 @@ class MapModuleForm(ModuleForm):
     ('epi__tb', 'TuberClosis'),
     ), label="Layers To Map ")
     title=forms.CharField(max_length=40)
-
+    range=forms.ChoiceField(choices= date_range_choices,label="date Range")
     def setModuleParams(self, dashboard, module=None,title=None):
         if len(self.cleaned_data['title'])>0:
             title=self.cleaned_data['title']
         module = module or self.createModule(dashboard, 'cvs.views.map.map_index',title=title)
+        module.params.create(module=module, param_name='date_range', param_value=str(self.cleaned_data['range']), is_url_param=False)
+        module.params.create(module=module, param_name='range', param_value=str(self.cleaned_data['range']), is_url_param=False)
         param_list = self.cleaned_data['layer'].split('__')
         if len(param_list) > 0:
             module.params.create(module=module, param_name='layer', param_value=param_list[0], is_url_param=True)
@@ -127,9 +133,10 @@ class StatsModuleForm(ModuleForm):
                                  d.name) for d in
                                  Area.objects.filter(kind__slug='district'
                                  ).order_by('name')]))
-    
+    range=forms.ChoiceField(choices= date_range_choices,label="date Range")
     def setModuleParams(self, dashboard, module=None, title=None):
         module = module or self.createModule(dashboard, 'cvs.views.stats.module_stats', title=title)
+        module.params.create(module=module, param_name='date_range', param_value=str(self.cleaned_data['range']), is_url_param=False)
         module.params.create(module=module, param_name='location_id', param_value=str(self.cleaned_data['district']), is_url_param=True)
         module.params.create(module=module, param_name='view_name', param_value=self.cleaned_data['type'], is_url_param=True)
 
