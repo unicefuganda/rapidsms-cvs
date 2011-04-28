@@ -33,32 +33,11 @@ def chart(request,xform_keyword, attribute_keyword=None, attribute_value=None, l
     else:
         request.session[xform_keyword]=request.path
 
-    if request.POST:
-        form = DateRangeForm(request.POST)
-        if form.is_valid():
-            start_date = form.cleaned_data['start_ts']
-            end_date = form.cleaned_data['end_ts']
-            request.session['start_date'] = start_date
-            request.session['end_date'] = end_date
-    if request.GET.get('start_date',None):
-        request.session['start_date'] = datetime.datetime.fromtimestamp(int(request.GET['start_date']))
-    if request.GET.get('end_date',None):
-        request.session['end_date'] = datetime.datetime.fromtimestamp(int(request.GET['end_date']))
     if request.GET.get('module'):
         template="cvs/partials/chart_module.html"
-             
-    else:
-        cursor = connection.cursor()
-        cursor.execute("select max(created) from rapidsms_xforms_xformsubmission")
-        end_date = cursor.fetchone()[0]
-        start_date = end_date - datetime.timedelta(days=30)
-        if request.session.get('start_date',None)  and request.session.get('end_date',None):
-            start_date=request.session['start_date']
-            end_date=request.session['end_date']
-    if not end_date:
-        end_date=datetime.datetime.now()
-    if not start_date:
-        start_date=get_dates(request)['min']
+    dates=get_dates(request)
+    start_date=dates.get('start')
+    end_date=dates.get('end')
 
     group_by = get_group_by(start_date, end_date)
     if location_id:
