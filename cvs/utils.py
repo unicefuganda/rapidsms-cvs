@@ -10,7 +10,7 @@ from rapidsms_xforms.models import *
 import datetime
 from django.http import HttpResponse
 from django.db.models import Count
-from uganda_common.common.utils import TIME_RANGES
+from uganda_common.utils import TIME_RANGES
 
 def init_xforms():
     DISEASE_CHOICES = [
