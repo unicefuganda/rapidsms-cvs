@@ -18,11 +18,11 @@ setup(
         'simple_locations',
         'rapidsms-auth',
         'rapidsms-authsites',
-         'healthmodels',
+        'health-models',
     ],
     
     dependency_links = [
-        "http://github.com/daveycrockett/healthmodels/tarball/master#egg=healthmodels",
+        "http://github.com/daveycrockett/healthmodels/tarball/master#egg=health-models",
         "http://github.com/daveycrockett/rapidsms-xforms/tarball/master#egg=rapidsms-xforms",
         "http://github.com/mossplix/simple_locations/tarball/master#egg=simple_locations",
         "http://github.com/daveycrockett/auth/tarball/master#egg=rapidsms-auth",
@@ -45,7 +45,7 @@ setup(
     include_package_data=True,
 
     packages=['cvs'],
-    package_data={'cvs':['templates/*/*.html','templates/*/*/*.html']},
+    package_data={'generic':['templates/*/*.html','templates/*/*/*.html','static/*','static/*/*']},
     zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',
