@@ -45,7 +45,7 @@ setup(
     include_package_data=True,
 
     packages=['cvs'],
-    package_data={'generic':['templates/*/*.html','templates/*/*/*.html','static/*','static/*/*']},
+    package_data={'cvs':['templates/*/*.html','templates/*/*/*.html','static/*','static/*/*']},
     zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',
