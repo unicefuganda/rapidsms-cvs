@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='rapidsms-cvs',
@@ -15,7 +15,7 @@ setup(
         'django-extensions',
         'django-uni-form',
         'django-eav',
-        'simple_locations',
+        'simple-locations',
         'health-models',
         'rapidsms-contact',
         'rapidsms-generic',
@@ -25,7 +25,7 @@ setup(
         "http://github.com/daveycrockett/healthmodels/tarball/master#egg=health-models",
         "http://github.com/daveycrockett/rapidsms-xforms/tarball/master#egg=rapidsms-xforms",
         "http://github.com/daveycrockett/auth/tarball/master#egg=rapidsms-auth",
-        "http://github.com/mossplix/simple_locations/tarball/master#egg=simple_locations",
+        "http://github.com/mossplix/simple_locations/tarball/master#egg=simple-locations",
         "http://github.com/daveycrockett/rapidsms-polls/tarball/master#egg=rapidsms-polls",
         "http://github.com/daveycrockett/rapidsms-httprouter/tarball/master#egg=rapidsms-httprouter",
         "http://github.com/daveycrockett/rapidsms-ureport/tarball/master#egg=rapidsms-ureport",
@@ -44,7 +44,7 @@ setup(
 
     include_package_data=True,
 
-    packages=['cvs'],
+    packages=find_packages(),
     package_data={'cvs':['templates/*/*.html','templates/*/*/*.html','static/*/*']},
     zip_safe=False,
     classifiers=[
