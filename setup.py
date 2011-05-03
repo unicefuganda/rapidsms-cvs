@@ -19,6 +19,7 @@ setup(
         'health-models',
         'rapidsms-contact',
         'rapidsms-generic',
+        'uganda-common',
     ],
     
     dependency_links = [
@@ -32,6 +33,7 @@ setup(
         "http://github.com/mvpdev/django-eav/tarball/master#egg=django-eav",
         "http://github.com/mossplix/rapidsms-contact/tarball/master#egg=rapidsms-contact",
         "http://github.com/daveycrockett/rapidsms-generic/tarball/master#egg=rapidsms-generic",
+        "http://github.com/mossplix/uganda_common/tarball/master#egg=uganda-common",
     ],
 
     description='The community vulnerability surveillance program deployed in Uganda for the VHT program',
