@@ -28,7 +28,7 @@ function tickEvery(num, offset){
 
 function previous_date_range(timespan){
 	var d = new Date();
-	var last_date = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 8, 0, 0, 0)
+	var last_date = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0)
 	var last_timestamp = parseInt(last_date.getTime());
 	var last_date_index = $('select#end option').index($('select#end option[value='+last_timestamp+']'));
 	if(timespan == 'w'){
