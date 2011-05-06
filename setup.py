@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='rapidsms-cvs',
@@ -15,23 +15,25 @@ setup(
         'django-extensions',
         'django-uni-form',
         'django-eav',
-        'simple_locations',
-        'rapidsms-auth',
-        'rapidsms-authsites',
-         'healthmodels',
+        'simple-locations',
+        'health-models',
+        'rapidsms-contact',
+        'rapidsms-generic',
+        'uganda-common',
     ],
     
     dependency_links = [
-        "http://github.com/daveycrockett/healthmodels/tarball/master#egg=healthmodels",
+        "http://github.com/daveycrockett/healthmodels/tarball/master#egg=health-models",
         "http://github.com/daveycrockett/rapidsms-xforms/tarball/master#egg=rapidsms-xforms",
-        "http://github.com/mossplix/simple_locations/tarball/master#egg=simple_locations",
         "http://github.com/daveycrockett/auth/tarball/master#egg=rapidsms-auth",
+        "http://github.com/mossplix/simple_locations/tarball/master#egg=simple-locations",
         "http://github.com/daveycrockett/rapidsms-polls/tarball/master#egg=rapidsms-polls",
         "http://github.com/daveycrockett/rapidsms-httprouter/tarball/master#egg=rapidsms-httprouter",
         "http://github.com/daveycrockett/rapidsms-ureport/tarball/master#egg=rapidsms-ureport",
         "http://github.com/mvpdev/django-eav/tarball/master#egg=django-eav",
-        "http://github.com/daveycrockett/auth/tarball/master#egg=rapidsms-auth",
-        "http://github.com/daveycrockett/rapidsms-authsites/tarball/master#egg=rapidsms-authsites",
+        "http://github.com/mossplix/rapidsms-contact/tarball/master#egg=rapidsms-contact",
+        "http://github.com/daveycrockett/rapidsms-generic/tarball/master#egg=rapidsms-generic",
+        "http://github.com/mossplix/uganda_common/tarball/master#egg=uganda-common",
     ],
 
     description='The community vulnerability surveillance program deployed in Uganda for the VHT program',
@@ -44,8 +46,8 @@ setup(
 
     include_package_data=True,
 
-    packages=['cvs'],
-
+    packages=find_packages(),
+    package_data={'cvs':['templates/*/*.html','templates/*/*/*.html','static/*/*']},
     zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',
