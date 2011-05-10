@@ -14,7 +14,9 @@ import datetime
 from django.utils.datastructures import SortedDict
 from cvs.utils import get_dates
 
-def chart(request,xform_keyword, attribute_keyword=None, attribute_value=None, location_id=None,label='cases',template='cvs/partials/chart.html', start_date=None,end_date=None,**kwargs):
+
+
+def chart(request,xform_keyword=None, attribute_keyword=None, attribute_value=None, location_id=None,label='cases',template='cvs/partials/chart.html', start_date=None,end_date=None,type=None,title='',):
     """
         This view can handle basic functionality for all charts.  This view
         is a partial response, to be loaded within a container div for another
@@ -31,7 +33,8 @@ def chart(request,xform_keyword, attribute_keyword=None, attribute_value=None, l
     if  request.environ.get('HTTP_REFERER',None):
         request.session['stats']=request.path
     else:
-        request.session[xform_keyword]=request.path
+        if xform_keyword:
+            request.session[xform_keyword]=request.path
 
     if request.GET.get('module'):
         template="cvs/partials/chart_module.html"
@@ -44,8 +47,11 @@ def chart(request,xform_keyword, attribute_keyword=None, attribute_value=None, l
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
-        
-    params = chart_params(xform_keyword, attribute_keyword, attribute_value)
+    if xform_keyword:
+        params = chart_params(xform_keyword, attribute_keyword, attribute_value)
+    else:
+        params={'chart_title':title,'xaxis':'','yaxis':''}
+
     if attribute_keyword and attribute_value:
         if attribute_keyword.find('__') > 0:
             attribute_keyword = attribute_keyword.split('__')
@@ -88,7 +94,7 @@ def chart(request,xform_keyword, attribute_keyword=None, attribute_value=None, l
             chart_data = total_submissions(
                 xform_keyword, start_date, end_date, location,
                 extra_filters=extra_filters,
-                group_by_timespan=group_by['group_by'],
+                group_by_timespan=group_by['group_by']
             )
     elif attribute_keyword and not attribute_value:
         if xform_keyword == 'epi' and attribute_keyword == 'percentage':
@@ -108,9 +114,10 @@ def chart(request,xform_keyword, attribute_keyword=None, attribute_value=None, l
                 start_date, end_date, location, group_by_timespan=group_by['group_by']
             )
     else:
+
         chart_data = total_submissions(
            xform_keyword, start_date, end_date, location,
-           group_by_timespan=group_by['group_by']
+           group_by_timespan=group_by['group_by'],type=type
         )
     report_dict = SortedDict()
     location_list = []

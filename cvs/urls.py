@@ -35,6 +35,7 @@ urlpatterns = patterns('',
    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/',chart),
    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)', chart),
+    url(r'^cvs/chart/(?P<location_id>\d+)/active_reporters/$', chart,{'label':'reporters','type':'active_reporters','title':'Variation Of active Reporters'}),
    #map urls
    url(r'^cvs/map/(?P<layer>[a-z_]+)/(?P<kind>[-a-z]+)', map.map_index,name='map'),
    url(r'^cvs/map/(?P<layer>[a-z_]+)',map.map_index),

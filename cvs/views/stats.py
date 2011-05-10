@@ -7,7 +7,7 @@ from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
-from cvs.utils import total_submissions, total_attribute_value, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_WEEK,GROUP_BY_MONTH,GROUP_BY_DAY,GROUP_BY_QUARTER,get_group_by,ExcelResponse
+from cvs.utils import total_submissions,total_attribute_value,registered_reporters, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_WEEK,GROUP_BY_MONTH,GROUP_BY_DAY,GROUP_BY_QUARTER,get_group_by,ExcelResponse
 from cvs.forms import DateRangeForm
 import datetime
 import time
@@ -57,6 +57,10 @@ def index(request, location_id=None):
     percentage_safe_water = total_attribute_value('home_wa', start_date, end_date, location)
     home_total = total_attribute_value('home_to', start_date, end_date, location)
     percentage_epi = total_submissions('muac', start_date, end_date, location)
+    active_lower_bound=datetime.datetime.now()
+    active_upper_bound=datetime.datetime.now()-datetime.timedelta(days=14)
+    activeReporters = total_submissions(None, active_upper_bound,active_lower_bound, location,type='active_reporters')
+    registeredReporters = registered_reporters(location)
 
     expected_epi = get_expected_epi(location,request)
 
@@ -77,6 +81,8 @@ def index(request, location_id=None):
     reorganize_location('percentage_epi', percentage_epi, report_dict)
     reorganize_location('percentage_safe_water', percentage_safe_water, report_dict)
     reorganize_location('home_total', home_total, report_dict)
+    reorganize_location('activeReporters', activeReporters, report_dict)
+    reorganize_location('registeredReporters', registeredReporters, report_dict)
     for loc, val_dict in report_dict.iteritems():
         if 'home_total' in val_dict and 'percentage_safe_water' in val_dict:
             home_total = float(val_dict['home_total'])
@@ -92,7 +98,7 @@ def index(request, location_id=None):
                   ('Birth','/cvs/birth/?root=true',1),
                   ('Death','/cvs/death/?root=true',1),
                   ('Home', '/cvs/home/?root=true',1),
-                  ('Reporters','/cvs/reporter/',1)
+                  ('Reporters','/cvs/reporter/',2)
                   )
 
     columns = (
@@ -104,7 +110,9 @@ def index(request, location_id=None):
                ('Total','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/')"),
                ('Total Child Deaths','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/')"),
                ('Safe Drinking Water (% of homesteads)','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/percentage/')"),
-               ('% of expected weekly Epi reports received','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/percentage/')"),
+               #('% of expected weekly Epi reports received','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/percentage/')"),
+               ('Active Reporters','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "chart/" + str(location.pk) + "/active_reporters/')"),
+               ('Registered Reporters','',1),
     )
 
     return render_to_response("cvs/stats.html",
@@ -633,5 +641,4 @@ def export_as_excel(request):
 
 def module_stats(request, view_name, location_id):
     return globals()[str(view_name)](request, location_id)
-
 
