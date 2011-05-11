@@ -7,7 +7,7 @@ from healthmodels.models.HealthProvider import HealthProvider
 from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
-from cvs.utils import total_submissions,total_attribute_value,registered_reporters, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_WEEK,GROUP_BY_MONTH,GROUP_BY_DAY,GROUP_BY_QUARTER,get_group_by,ExcelResponse
+from cvs.utils import total_submissions,total_attribute_value,active_reporters,registered_reporters, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_WEEK,GROUP_BY_MONTH,GROUP_BY_DAY,GROUP_BY_QUARTER,get_group_by,ExcelResponse
 from cvs.forms import DateRangeForm
 import datetime
 import time
@@ -59,7 +59,7 @@ def index(request, location_id=None):
     percentage_epi = total_submissions('muac', start_date, end_date, location)
     active_lower_bound=datetime.datetime.now()
     active_upper_bound=datetime.datetime.now()-datetime.timedelta(days=14)
-    activeReporters = total_submissions(None, active_upper_bound,active_lower_bound, location,type='active_reporters')
+    activeReporters = active_reporters(active_upper_bound,active_lower_bound, location)
     registeredReporters = registered_reporters(location)
 
     expected_epi = get_expected_epi(location,request)

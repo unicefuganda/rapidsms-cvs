@@ -164,16 +164,10 @@ GROUP_BY_SELECTS = {
     GROUP_BY_QUARTER:('quarter','extract(quarter from rapidsms_xforms_xformsubmission.created)',),
 }
 
-def total_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None,**kwargs):
-    annotate_value=Count('id')
+def total_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None):
     if extra_filters:
         q = XFormSubmission.objects.filter(**extra_filters)
         tnum = 8
-    elif kwargs.get('type',None) and kwargs['type']=='active_reporters':
-        q = XFormSubmission.objects
-        tnum=5
-        annotate_value=Count('connection__id')
-
     else:
         q = XFormSubmission.objects
         tnum = 6
@@ -196,10 +190,9 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
                        'pk', flat=True)))))
     else:
         location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
-    if keyword:
-        q=q.filter(xform__keyword=keyword)
 
     return q.filter(
+               xform__keyword=keyword,
                has_errors=False,
                created__lte=end_date,
                created__gte=start_date).values(
@@ -209,8 +202,42 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
                    'T%d.lft <= simple_locations_area.lft' % tnum,\
                    'T%d.rght >= simple_locations_area.rght' % tnum,\
                    location_children_where]).extra(\
-               select=select).values(*values).annotate(value=annotate_value).extra(order_by=['location_name'])
+               select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
 
+def active_reporters(start_date, end_date, location, group_by_timespan=None):
+    """ get all active reporters  """
+
+    tnum=5
+    select = {
+        'location_name':'T%d.name' % tnum,
+        'location_id':'T%d.id' % tnum,
+        'rght':'T%d.rght' % tnum,
+        'lft':'T%d.lft' % tnum
+    }
+
+    values = ['location_name','location_id','lft','rght']
+    if group_by_timespan:
+         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+         select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+         select.update({select_value:select_clause,
+                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)',})
+         values.extend([select_value,'year'])
+    if location.get_children().count() > 1:
+        location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list(\
+                       'pk', flat=True)))))
+    else:
+        location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
+    return XFormSubmission.objects.filter(
+               has_errors=False,
+               created__lte=end_date,
+               created__gte=start_date).values(
+               'connection__contact__reporting_location__name').extra(
+               tables=['simple_locations_area'],
+               where=[\
+                   'T%d.lft <= simple_locations_area.lft' % tnum,\
+                   'T%d.rght >= simple_locations_area.rght' % tnum,\
+                   location_children_where]).extra(\
+               select=select).values(*values).annotate(value=Count('connection__id')).extra(order_by=['location_name'])
 
 def registered_reporters(location):
     tnum=6

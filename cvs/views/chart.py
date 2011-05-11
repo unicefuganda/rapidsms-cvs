@@ -8,7 +8,7 @@ from simple_locations.models import AreaType,Point,Area
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
 from django.db import connection
-from cvs.utils import total_submissions, total_attribute_value, reorganize_timespan, get_expected_epi, get_group_by, GROUP_BY_WEEK, GROUP_BY_DAY
+from cvs.utils import total_submissions,active_reporters, total_attribute_value, reorganize_timespan, get_expected_epi, get_group_by, GROUP_BY_WEEK, GROUP_BY_DAY
 from cvs.forms import DateRangeForm
 import datetime
 from django.utils.datastructures import SortedDict
@@ -16,7 +16,43 @@ from cvs.utils import get_dates
 
 
 
-def chart(request,xform_keyword=None, attribute_keyword=None, attribute_value=None, location_id=None,label='cases',template='cvs/partials/chart.html', start_date=None,end_date=None,type=None,title='',):
+
+def active_reporters_chart(request,location_id=None, start_date=None,end_date=None):
+
+
+    if request.GET.get('module'):
+        template="cvs/partials/chart_module.html"
+    dates=get_dates(request)
+    start_date=dates.get('start')
+    end_date=dates.get('end')
+
+    if location_id:
+        location = get_object_or_404(Area, pk=location_id)
+    else:
+        location = Area.tree.root_nodes()[0]
+
+    group_by = get_group_by(start_date, end_date)
+
+    chart_data = active_reporters(
+           start_date, end_date, location,
+           group_by_timespan=group_by['group_by'],
+        )
+    report_dict = SortedDict()
+    location_list = []
+    chart_data = list(chart_data)
+    reorganize_timespan(group_by['group_by_name'], chart_data, report_dict, location_list, request)
+    return render_to_response('cvs/partials/chart.html',
+                          {'data':report_dict,
+                           'series':location_list,
+                           'start_date':start_date,
+                           'end_date':end_date,
+                           'chart_title':'Variation of Reporters',
+                           'xaxis':"",
+                           'yaxis':"Number",
+                           'label':'reporters',
+                           'timespan': group_by['group_by_name'],
+                           }, context_instance=RequestContext(request))
+def chart(request,xform_keyword=None, attribute_keyword=None, attribute_value=None, location_id=None,label='cases',template='cvs/partials/chart.html', start_date=None,end_date=None):
     """
         This view can handle basic functionality for all charts.  This view
         is a partial response, to be loaded within a container div for another
@@ -117,7 +153,7 @@ def chart(request,xform_keyword=None, attribute_keyword=None, attribute_value=No
 
         chart_data = total_submissions(
            xform_keyword, start_date, end_date, location,
-           group_by_timespan=group_by['group_by'],type=type
+           group_by_timespan=group_by['group_by'],
         )
     report_dict = SortedDict()
     location_list = []
