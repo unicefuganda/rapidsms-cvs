@@ -14,6 +14,7 @@
 <td>{% if value.birth %} {{ value.birth }} {% else %} 0 {% endif %}</td>
 <td>{% if value.death %} {{ value.death }} {% else %} 0 {% endif %}</td>
 <td>{% if value.percentage_safe_water %} {{ value.percentage_safe_water }} {% else %} 0 {% endif %}</td>
-<td>{% if value.percentage_epi %} {{ value.percentage_epi }} {% else %} 0 {% endif %}</td>
+<td>{% if value.activeReporters %} {{ value.activeReporters }} {% else %} 0 {% endif %}</td>
+<td>{% if value.registeredReporters %} {{ value.registeredReporters }} {% else %} 0 {% endif %}</td>
 </tr>
 {% endfor %}
