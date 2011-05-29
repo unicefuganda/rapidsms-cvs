@@ -236,15 +236,14 @@ def patient_label(patient):
 def fix_location(sender, **kwargs):
     if sender == Area:
         location = kwargs['instance']
-    else:
-        return
-    if location.parent:
-        for c in Contact.objects.filter(reporting_location = location):
-            c.reporting_location = location.parent
-            c.save()
-        for h in HealthFacility.objects.filter(catchment_areas = location):
-            h.catchment_areas.add(location.parent)
-            h.save()
+        if location.parent:
+            for c in HealthProvider.objects.filter(reporting_location = location):
+                c.reporting_location = location.parent
+                c.location = location.parent
+                c.save()
+            for h in HealthFacility.objects.filter(catchment_areas = location):
+                h.catchment_areas.add(location.parent)
+                h.save()
 
 def xform_received_handler(sender, **kwargs):
 

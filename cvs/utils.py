@@ -2,7 +2,6 @@ from cvs.forms import DateRangeForm
 from django.db import connection
 from django.db.models import Q, Sum
 from django.utils.datastructures import SortedDict
-from cvs.forms import DateRangeForm
 from django.contrib.auth.models import Group
 from healthmodels.models.HealthProvider import HealthProvider, HealthProviderBase
 from math import floor
