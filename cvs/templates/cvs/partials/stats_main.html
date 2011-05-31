@@ -1,7 +1,7 @@
 {% for key, value in report.items %}
 <tr>
 <td>
-    {% if value.diff <= 0%}
+    {% if value.diff <= 1%}
         {{ key }}
         {% else %}
         <a href="{% if location_id %}../{% endif %}{{ value.location_id }}/">{{ key }}</a>

@@ -179,7 +179,6 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
         'location_id':'T%d.id' % tnum,
         'rght':'T%d.rght' % tnum,
         'lft':'T%d.lft' % tnum,
-        'diff':'T%d.rght - T%d.lft' % (tnum,tnum),
     }
 
     values = ['location_name','location_id','lft','rght']
@@ -290,7 +289,6 @@ def total_attribute_value(attribute_slug, start_date, end_date, location, group_
     select = {
         'location_name':'T8.name',
         'location_id':'T8.id',
-        'diff':'T8.rght - T8.lft',
         'rght':'T8.rght',
         'lft':'T8.lft',
     }
