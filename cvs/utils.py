@@ -178,7 +178,8 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
         'location_name':'T%d.name' % tnum,
         'location_id':'T%d.id' % tnum,
         'rght':'T%d.rght' % tnum,
-        'lft':'T%d.lft' % tnum
+        'lft':'T%d.lft' % tnum,
+        'diff':'T%d.rght - T%d.lft' % (tnum,tnum),
     }
 
     values = ['location_name','location_id','lft','rght']
@@ -289,6 +290,7 @@ def total_attribute_value(attribute_slug, start_date, end_date, location, group_
     select = {
         'location_name':'T8.name',
         'location_id':'T8.id',
+        'diff':'T8.rght - T8.lft',
         'rght':'T8.rght',
         'lft':'T8.lft',
     }
@@ -341,7 +343,7 @@ def total_attribute_by_facility(attribute_slug, start_date, end_date, map_window
 def reorganize_location(key, report, report_dict):
     for dict in report:
         location = dict['location_name']
-        report_dict.setdefault(location,{'location_id':dict['location_id'],'diff':(dict['lft']-dict['rght'])})
+        report_dict.setdefault(location,{'location_id':dict['location_id'],'diff':(dict['rght']-dict['lft'])})
         report_dict[location][key] = dict['value']
 
 def reorganize_timespan(timespan, report, report_dict, location_list,request=None):
