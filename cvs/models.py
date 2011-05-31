@@ -234,6 +234,7 @@ def patient_label(patient):
         return "%s, %s %s" % (patient.full_name(), gender, age_string)
 
 def fix_location(sender, **kwargs):
+    print "pre_delete on %s : %s" % (sender, str(kwargs['instance'].pk))
     if sender == Area:
         location = kwargs['instance']
         if location.parent:

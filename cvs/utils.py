@@ -10,6 +10,10 @@ import datetime
 from django.http import HttpResponse
 from django.db.models import Count
 from uganda_common.utils import TIME_RANGES
+from rapidsms_httprouter.models import Message
+from ureport.models import MassText
+from poll.models import Poll
+from simple_locations.models import Area
 
 def init_xforms():
     DISEASE_CHOICES = [
@@ -441,9 +445,27 @@ def get_group_by(start_date, end_date):
         prefix = 'quarter'
     return {'group_by':group_by, 'group_by_name':prefix}
 
-def get_reporters():
-#    return HealthProviderBase.objects.raw("select h.*, c.name, conn.identity, max(subs.created) as last_date, count(subs.id) as num_reports from healthmodels_healthproviderbase h join rapidsms_contact c on h.contact_ptr_id = c.id join rapidsms_connection conn on conn.contact_id = c.id join rapidsms_xforms_xformsubmission subs on subs.connection_id = conn.id group by h.contact_ptr_id, h.facility_id, h.location_id, c.name, conn.identity")
+def get_reporters(**kwargs):
+    request = kwargs.pop('request')
+    if request.user.is_authenticated() and Area.objects.filter(kind__name='district', name=request.user.username).count():
+        area = Area.objects.filter(kind__name='district', name=request.user.username)[0]
+        return HealthProvider.objects.filter(reporting_location__in=area.get_descendants(include_self=True).all()).select_related('facility', 'location').annotate(Count('connection__submissions')).all()
+
     return HealthProvider.objects.select_related('facility', 'location').annotate(Count('connection__submissions')).all()
+
+def get_messages(**kwargs):
+    request = kwargs.pop('request')
+    if request.user.is_authenticated() and Area.objects.filter(kind__name='district', name=request.user.username).count():
+        area = Area.objects.filter(kind__name='district', name=request.user.username)[0]
+        return Message.objects.filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())
+
+    return Message.objects.filter(direction='I')
+
+def get_mass_messages(**kwargs):
+    request = kwargs.pop('request')
+    if request.user.is_authenticated():
+        return [(p.question, p.start_date, p.user.username, p.contacts.count(), 'Poll Message') for p in Poll.objects.filter(user=request.user).exclude(start_date=None)] + [(m.text, m.date, m.user.username, m.contacts.count(), 'Mass Text') for m in MassText.objects.filter(user=request.user)]
+    return [(p.question, p.start_date, p.user.username, p.contacts.count(), 'Poll Message') for p in Poll.objects.exclude(start_date=None)] + [(m.text, m.date, m.user.username, m.contacts.count(), 'Mass Text') for m in MassText.objects.all()]
 
 class ExcelResponse(HttpResponse):
     def __init__(self,data, output_name='excel_report',headers=None,force_csv=False, encoding='utf8'):

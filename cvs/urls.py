@@ -4,7 +4,7 @@ from cvs.views.chart import *
 from cvs.views import basic, reporters, map
 from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard
-from generic.sorters import SimpleSorter, QuickSorter
+from generic.sorters import SimpleSorter, TupleSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
 from cvs.forms import FacilityFilterForm, ChartModuleForm, StatsModuleForm,MapModuleForm
 from cvs.utils import get_reporters
@@ -12,6 +12,10 @@ from cvs.sorters import LatestSubmissionSorter
 from healthmodels.models.HealthProvider import HealthProviderBase
 from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
+from .utils import get_messages, get_mass_messages
+from rapidsms_httprouter.models import Message
+from ureport.models import MassText
+from contact.forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
 
 urlpatterns = patterns('',
    url(r'^cvs/stats/$', index,name='stats'),
@@ -88,8 +92,40 @@ urlpatterns = patterns('',
            'slug':'cvs',
         'module_types':[('chart', ChartModuleForm, 'CVS Chart Module',),('map',MapModuleForm,'Cvs Map Module',),('module_stats', StatsModuleForm, 'CVS Statistics Module',),],
         'base_template':'generic/dashboard_base.html',
-
    }),
+   url(r'^cvs/messagelog/$', login_required(generic), {
+      'model':Message,
+      'queryset':get_messages,
+      'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
+      'action_forms':[ReplyTextForm],
+      'objects_per_page':25,
+      'partial_row':'contact/partials/message_row.html',
+      'base_template':'cvs/messages_base.html',
+      'columns':[('Text', True, 'text', SimpleSorter()),
+                 ('Contact Information', True, 'connection__contact__name', SimpleSorter(),),
+                 ('Date', True, 'date', SimpleSorter(),),
+                 ('Type', True, 'application', SimpleSorter(),),
+                 ('Response', False, 'response', None,),
+                 ],
+      'sort_column':'date',
+      'sort_ascending':False,
+    }, name="cvs-messagelog"),
+   url(r'^cvs/massmessages/$', login_required(generic), {
+      'model':MassText,
+      'queryset':get_mass_messages,
+      'objects_per_page':10,
+      'partial_row':'contact/partials/mass_message_row.html',
+      'base_template':'cvs/mass_messages_base.html',
+      'columns':[('Message', True, 'text', TupleSorter(0)),
+                 ('Time', True, 'date', TupleSorter(1),),
+                 ('User', True, 'user', TupleSorter(2),),
+                 ('Recipients', True, 'response', TupleSorter(3),),
+                 ('Type', True, 'type', TupleSorter(4),),
+                 ],
+      'sort_column':'date',
+      'sort_ascending':False,
+      'selectable':False,
+    }),
 )
 
 
