@@ -52,7 +52,7 @@ def active_reporters_chart(request,location_id=None, start_date=None,end_date=No
                            'label':'reporters',
                            'timespan': group_by['group_by_name'],
                            }, context_instance=RequestContext(request))
-def chart(request,xform_keyword=None, attribute_keyword=None, attribute_value=None, location_id=None,label='cases',template='cvs/partials/chart.html', start_date=None,end_date=None):
+def chart(request,xform_keyword=None, attribute_keyword=None, attribute_value=None, extra_param=None, location_id=None,label='cases',template='cvs/partials/chart.html', start_date=None,end_date=None):
     """
         This view can handle basic functionality for all charts.  This view
         is a partial response, to be loaded within a container div for another
@@ -105,7 +105,7 @@ def chart(request,xform_keyword=None, attribute_keyword=None, attribute_value=No
                 extra_filters=age_filter_dict[attribute_value],
                 group_by_timespan=group_by['group_by'],
             )
-        elif xform_keyword == 'birth' and kwargs.get('extra_param') == 'percentage':
+        elif xform_keyword == 'birth' and extra_param == 'percentage':
             label="%"
             percentage_values = total_submissions(
                 xform_keyword, start_date, end_date, location,
