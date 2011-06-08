@@ -169,6 +169,7 @@ GROUP_BY_SELECTS = {
 
 def total_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None):
     if extra_filters:
+        extra_filters = dict([(str(k),v) for k,v in extra_filters.items()])
         q = XFormSubmission.objects.filter(**extra_filters)
         tnum = 8
     else:
