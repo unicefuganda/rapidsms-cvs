@@ -11,5 +11,5 @@ In addition to the message processing logic, CVS provides a set of reports and v
 
 Installation
 ------------
-CVS can be installed from a terminal using pip install -e git+http://github.com/daveycrockett/rapidsms-cvs#egg=cvs
+CVS can be installed from a terminal using 'pip install -e git+http://github.com/daveycrockett/rapidsms-cvs#egg=cvs'
 
