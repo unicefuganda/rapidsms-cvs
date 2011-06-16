@@ -83,6 +83,10 @@ def chart(request,xform_keyword=None, attribute_keyword=None, attribute_value=No
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+
+    if not location.get_children():
+        return HttpResponse(status=400)
+
     if xform_keyword:
         params = chart_params(xform_keyword, attribute_keyword, attribute_value)
     else:

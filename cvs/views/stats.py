@@ -39,6 +39,10 @@ def index(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+
+    if not location.get_children():
+        return HttpResponse(status=400)
+
     chart=request.session.get('stats',None)
     if chart :
 
@@ -144,6 +148,10 @@ def muac_detail(request,location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+
+    if not location.get_children():
+        return HttpResponse(status=400)
+
     module = request.GET.get('module', False)
     if not module:
         chart=request.session.get('muac',None)
@@ -218,6 +226,10 @@ def epi_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+
+    if not location.get_children():
+        return HttpResponse(status=400)
+
     module = request.GET.get('module', False)
     if not module:
         chart=request.session.get('epi',None)
@@ -295,6 +307,10 @@ def birth_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+
+    if not location.get_children():
+        return HttpResponse(status=400)
+
     module = request.GET.get('module', False)
     if not module:
         chart=request.session.get('birth',None)
@@ -388,6 +404,10 @@ def death_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+
+    if not location.get_children():
+        return HttpResponse(status=400)
+
     module = request.GET.get('module', False)
     if not module:
         chart=request.session.get('death',None)
@@ -466,6 +486,10 @@ def home_detail(request, location_id=None):
         location = get_object_or_404(Area, pk=location_id)
     else:
         location = Area.tree.root_nodes()[0]
+
+    if not location.get_children():
+        return HttpResponse(status=400)
+
     module = request.GET.get('module', False)
     if not module:
         chart=request.session.get('home',None)
