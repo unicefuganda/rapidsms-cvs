@@ -13,9 +13,7 @@ from cvs.forms import DateRangeForm
 import datetime
 from django.utils.datastructures import SortedDict
 from cvs.utils import get_dates
-
-
-
+from rapidsms_xforms.models import XForm, XFormField
 
 def active_reporters_chart(request,location_id=None, start_date=None,end_date=None):
 
@@ -66,6 +64,11 @@ def chart(request,xform_keyword=None, attribute_keyword=None, attribute_value=No
         values passed in (see the FIXMEs) below.
 
     """
+    get_object_or_404(XForm, keyword=xform_keyword)
+    if attribute_keyword:
+        for attrib_keyword in attribute_keyword.split('__'):
+            get_object_or_404(XFormField, slug="%s_%s" % (xform_keyword, attrib_keyword))
+
     if  request.environ.get('HTTP_REFERER',None):
         request.session['stats']=request.path
     else:
