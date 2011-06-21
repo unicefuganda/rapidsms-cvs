@@ -105,17 +105,19 @@ def index(request, location_id=None):
                   ('Reporters','/cvs/reporter/',2)
                   )
 
+    chart_root = "loadChart('../" + ("../" if location_id else "")
+    charts_root = chart_root + "charts/" + str(location.pk)
     columns = (
                ('','',1,''),
-               ('Total New Cases','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/')"),
-               ('Malaria','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/ma/')"),
-               ('Tb','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/tb/')"),
-               ('Bloody Diarrhea','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/bd/')"),
-               ('Total','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/')"),
-               ('Total Child Deaths','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/')"),
-               ('Safe Drinking Water (% of homesteads)','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/percentage/')"),
-               #('% of expected weekly Epi reports received','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/percentage/')"),
-               ('Active Reporters','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "chart/" + str(location.pk) + "/active_reporters/')"),
+               ('Total New Cases','javascript:void(0)',1,charts_root + "/muac/')"),
+               ('Malaria','javascript:void(0)',1,charts_root + "/epi/ma/')"),
+               ('Tb','javascript:void(0)',1,charts_root + "/epi/tb/')"),
+               ('Bloody Diarrhea','javascript:void(0)',1,charts_root + "/epi/bd/')"),
+               ('Total','javascript:void(0)',1,charts_root + "/birth/')"),
+               ('Total Child Deaths','javascript:void(0)',1,charts_root + "/death/')"),
+               ('Safe Drinking Water (% of homesteads)','javascript:void(0)',1,charts_root + "/home/wa/percentage/')"),
+               #('% of expected weekly Epi reports received','javascript:void(0)',1,charts_root + "/epi/percentage/')"),
+               ('Active Reporters','javascript:void(0)',1,chart_root + "chart/" + str(location.pk) + "/active_reporters/')"),
                ('Registered Reporters','',1),
     )
 
@@ -189,13 +191,15 @@ def muac_detail(request,location_id=None):
     reorganize_location('red', red, report_dict)
     reorganize_location('red_oedema', red_oedema, report_dict)
 
+    muac_chart_root = "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/"
+
     columns = (('','',1),
                   ('Total', '', 1),
-                  ('Green','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/G/')"),
-                  ('Green+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__ignored/G__T/')"),
-                  ('Yellow','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/Y/')"),
-                  ('Red','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category/R/')"),
-                  ('Red+oe','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/category__ignored/R__T/')")
+                  ('Green','javascript:void(0)',1,muac_charts_root + "category/G/')"),
+                  ('Green+oe','javascript:void(0)',1,muac_charts_root + "category__ignored/G__T/')"),
+                  ('Yellow','javascript:void(0)',1,muac_charts_root + "category/Y/')"),
+                  ('Red','javascript:void(0)',1,muac_charts_root + "category/R/')"),
+                  ('Red+oe','javascript:void(0)',1,muac_charts_root + "category__ignored/R__T/')")
                   )
 
     stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
@@ -270,10 +274,12 @@ def epi_detail(request, location_id=None):
         ('','',1),
         ('Total','javascript:void(0)',1, "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/')")
     ]
+
+    epi_chart_root = "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/"
     for k, v in categories:
         link = 'javascript:void(0)'
         colspan = 1
-        onclick = "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/"+k+"/')"
+        onclick = epi_chart_root+k+"/')"
         tup = (v, link, colspan, onclick)
         columns.append(tup)
 
@@ -365,14 +371,15 @@ def birth_detail(request, location_id=None):
         else:
             val_dict['percentage_at_facility'] = 'N/A'
 
+    birth_chart_root = "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/"
     columns = (('','',1),
                   ('Total Births', '', 1),
-                  ('Boys','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/gender/M/')"),
-                  ('Girls','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/gender/F/')"),
-                  ('Delivered at Home','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/HOME/')"),
-                  ('Delivered at Facility','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/FACILITY/')"),
-                  ('% Delivered at Home','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/HOME/percentage/')"),
-                  ('% Delivered at Facility','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/place/FACILITY/percentage/')")
+                  ('Boys','javascript:void(0)',1,birth_chart_root + "gender/M/')"),
+                  ('Girls','javascript:void(0)',1,birth_chart_root + "gender/F/')"),
+                  ('Delivered at Home','javascript:void(0)',1,birth_chart_root + "place/HOME/')"),
+                  ('Delivered at Facility','javascript:void(0)',1,birth_chart_root + "place/FACILITY/')"),
+                  ('% Delivered at Home','javascript:void(0)',1,birth_chart_root + "place/HOME/percentage/')"),
+                  ('% Delivered at Facility','javascript:void(0)',1,birth_chart_root + "place/FACILITY/percentage/')")
                   )
 
     stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
@@ -447,14 +454,15 @@ def death_detail(request, location_id=None):
     reorganize_location('upto_12months', upto_12months, report_dict)
     reorganize_location('upto_5years', upto_5years, report_dict)
 
+    death_chart_root = "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/"
     columns = (('','',1),
                   ('Total Child Deaths', '', 1),
-                  ('Male Deaths','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/gender/M/')"),
-                  ('Female Deaths','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/gender/F/')"),
-                  ('Deaths Under 28 days','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/under_28/')"),
-                  ('Deaths 28 days to 3 months','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/between_28_90/')"),
-                  ('Deaths 3 months to 12 months','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/between_90_365/')"),
-                  ('Deaths 1 year to 5 years','javascript:void(0)',1,"loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/age/between_365_1825/')")
+                  ('Male Deaths','javascript:void(0)',1,death_chart_root + "gender/M/')"),
+                  ('Female Deaths','javascript:void(0)',1,death_chart_root + "gender/F/')"),
+                  ('Deaths Under 28 days','javascript:void(0)',1,death_chart_root + "age/under_28/')"),
+                  ('Deaths 28 days to 3 months','javascript:void(0)',1,death_chart_root + "age/between_28_90/')"),
+                  ('Deaths 3 months to 12 months','javascript:void(0)',1,death_chart_root + "age/between_90_365/')"),
+                  ('Deaths 1 year to 5 years','javascript:void(0)',1,death_chart_root + "age/between_365_1825/')")
                   )
 
     stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
@@ -546,18 +554,20 @@ def home_detail(request, location_id=None):
         ('Latrines','',2),
         ('ITTNs/LLINs','',2),
     )
+    
+    home_chart_root = "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/"
     bottom_columns = (
         ('','',1),
-        ('Total Reports', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/')", 1),
-        ('Total Households Visited', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/to/')", 1),
+        ('Total Reports', home_chart_root + "')", 1),
+        ('Total Households Visited', home_chart_root + "to/')", 1),
         ('Total', '', 1),
-        ("% of Total", "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/wa/percentage/')", 1,""),
+        ("% of Total", home_chart_root + "wa/percentage/')", 1,""),
         ('Total', '', 1),
-        ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/ha/percentage/')", 1),
+        ('% of Total', home_chart_root + "ha/percentage/')", 1),
         ('Total', '', 1),
-        ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/la/percentage/')", 1),
+        ('% of Total', home_chart_root + "la/percentage/')", 1),
         ('Total', '', 1),
-        ('% of Total', "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/it/percentage/')", 1,),
+        ('% of Total', home_chart_root + "it/percentage/')", 1,),
     )
 
     stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
