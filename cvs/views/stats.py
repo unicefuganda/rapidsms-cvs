@@ -195,11 +195,11 @@ def muac_detail(request,location_id=None):
 
     columns = (('','',1),
                   ('Total', '', 1),
-                  ('Green','javascript:void(0)',1,muac_charts_root + "category/G/')"),
-                  ('Green+oe','javascript:void(0)',1,muac_charts_root + "category__ignored/G__T/')"),
-                  ('Yellow','javascript:void(0)',1,muac_charts_root + "category/Y/')"),
-                  ('Red','javascript:void(0)',1,muac_charts_root + "category/R/')"),
-                  ('Red+oe','javascript:void(0)',1,muac_charts_root + "category__ignored/R__T/')")
+                  ('Green','javascript:void(0)',1,muac_chart_root + "category/G/')"),
+                  ('Green+oe','javascript:void(0)',1,muac_chart_root + "category__ignored/G__T/')"),
+                  ('Yellow','javascript:void(0)',1,muac_chart_root + "category/Y/')"),
+                  ('Red','javascript:void(0)',1,muac_chart_root + "category/R/')"),
+                  ('Red+oe','javascript:void(0)',1,muac_chart_root + "category__ignored/R__T/')")
                   )
 
     stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
