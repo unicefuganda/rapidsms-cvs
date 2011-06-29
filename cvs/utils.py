@@ -457,8 +457,10 @@ def get_reporters(**kwargs):
 def get_messages(**kwargs):
     request = kwargs.pop('request')
     if request.user.is_authenticated() and Area.objects.filter(kind__name='district', name=request.user.username).count():
-        area = Area.objects.filter(kind__name='district', name=request.user.username)[0]
-        return Message.objects.filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())
+        q = Area.objects.filter(kind__name='district', name=request.user.username)
+        if q.count():
+            area = q[0]
+            return Message.objects.filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())
 
     return Message.objects.filter(direction='I')
 

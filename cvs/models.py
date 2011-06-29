@@ -247,7 +247,6 @@ def fix_location(sender, **kwargs):
                 h.save()
 
 def xform_received_handler(sender, **kwargs):
-
     xform = kwargs['xform']
     submission = kwargs['submission']
 
