@@ -10,7 +10,6 @@ from django.db.models.signals import pre_delete
 from rapidsms.models import Contact
 from poll.models import Poll
 from eav.models import Attribute
-from cvs.forms import FacilityResponseForm
 
 def parse_timedelta(command, value):
     lvalue = value.lower().strip()
@@ -139,7 +138,7 @@ XFormField.register_field_type('cvsodema', 'Oedema Occurrence', parse_oedema,
 XFormField.register_field_type('facility', 'Facility Code', parse_facility,
                                db_type=XFormField.TYPE_OBJECT, xforms_type='string')
 
-Poll.register_poll_type('facility', 'Facility Code Response', parse_facility_value, db_type=Attribute.TYPE_OBJECT, view_template='cvs/partials/response_facility_view.html',edit_template='cvs/partials/response_facility_edit.html',report_columns=(('Original Text', 'text'),('Health Facility','custom',),),edit_form=FacilityResponseForm)
+Poll.register_poll_type('facility', 'Facility Code Response', parse_facility_value, db_type=Attribute.TYPE_OBJECT, view_template='cvs/partials/response_facility_view.html',edit_template='cvs/partials/response_facility_edit.html',report_columns=(('Original Text', 'text'),('Health Facility','custom',),),edit_form='cvs.forms.FacilityResponseForm')
 
 def split_name(patient_name):
     names = patient_name.split(' ')
