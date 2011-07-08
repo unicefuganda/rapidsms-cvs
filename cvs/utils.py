@@ -1,3 +1,4 @@
+import itertools
 from cvs.forms import DateRangeForm
 from django.db import connection
 from django.db.models import Q, Sum
