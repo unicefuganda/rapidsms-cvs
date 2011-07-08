@@ -561,3 +561,69 @@ class ExcelResponse(HttpResponse):
         self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
             (output_name.replace('"', '\"'), file_ext)
 
+def generate_tracking_tag(start='2a2', base_numbers='2345679',
+                          base_letters='acdefghjklmnprtuvwxy', **kwargs):
+    """
+        Generate a unique tag. The format is xyz[...] with x, y and z picked
+        from an iterable giving a new set of ordered caracters at each
+        call to next. You must pass the previous tag and a patter the tag
+        should validate against.
+
+        This is espacially usefull to get a unique tag to display on mobile
+        device so you can exclude figures and letters that could be 
+        confusing or hard to type.
+
+        Default values are empirically proven to be easy to read and type
+        on old phones.
+
+        The code format alternate a char from base_number and base_letters,
+        be sure the 'start' argument follows this convention or you'll
+        get a ValueError.
+
+        e.g:
+
+        >>> generate_tracking_tag()
+        '3a2'
+        >>> generate_tracking_tag('3a2')
+        '4a2'
+        >>> generate_tracking_tag('9y9')
+        '2a2a'
+        >>> generate_tracking_tag('2a2a')
+        '3a2a'
+        >>> generate_tracking_tag('9a2a')
+        '2c2a'
+
+    """
+
+    next_tag = []
+
+    matrix_generator = itertools.cycle((base_numbers, base_letters))
+
+    for index, c in enumerate(start):
+
+        matrix = matrix_generator.next()
+
+        try:
+            i = matrix.index(c)
+        except ValueError:
+            raise ValueError(u"The 'start' argument must be correctly "\
+                             u"formated. Check doctstring for more info.")
+
+        try:
+            next_char = matrix[i+1]
+            next_tag.append(next_char)
+            try:
+                next_tag.extend(start[index+1:])
+                break
+            except IndexError:
+                pass
+        except IndexError:
+            next_tag.append(matrix[0])
+            try:
+                start[index+1]
+            except IndexError:
+                matrix = matrix_generator.next()
+                next_tag.append(matrix[0])
+                break
+
+    return ''.join(next_tag)

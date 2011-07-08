@@ -5,7 +5,7 @@ from healthmodels.models import *
 from healthmodels.models.HealthProvider import HealthProviderBase
 from rapidsms.contrib.locations.models import Location
 from django.core.exceptions import ValidationError
-from code_generator.code_generator import get_code_from_model, generate_tracking_tag, generate_code
+from .utils import generate_tracking_tag
 from django.contrib.auth.models import Group
 from django.db.models.signals import pre_delete
 from rapidsms.models import Contact
