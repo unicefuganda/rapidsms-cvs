@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.shortcuts import get_object_or_404
 from healthmodels.models.HealthFacility import HealthFacility
 from healthmodels.models.HealthProvider import HealthProvider
-from simple_locations.models import AreaType,Point,Area
+from rapidsms.contrib.locations.models import Location
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
 from cvs.utils import total_submissions,total_attribute_value,active_reporters,registered_reporters, reorganize_location, reorganize_timespan, get_dates, get_expected_epi, GROUP_BY_WEEK,GROUP_BY_MONTH,GROUP_BY_DAY,GROUP_BY_QUARTER,get_group_by,ExcelResponse
@@ -36,9 +36,9 @@ def index(request, location_id=None):
     max_date = datetime.datetime.now()
 
     if location_id:
-        location = get_object_or_404(Area, pk=location_id)
+        location = get_object_or_404(Location, pk=location_id)
     else:
-        location = Area.tree.root_nodes()[0]
+        location = Location.tree.root_nodes()[0]
 
     if not location.get_children():
         return HttpResponse(status=400)
@@ -147,9 +147,9 @@ def muac_detail(request,location_id=None):
     dates = get_dates(request)
     max_date = datetime.datetime.now()
     if location_id:
-        location = get_object_or_404(Area, pk=location_id)
+        location = get_object_or_404(Location, pk=location_id)
     else:
-        location = Area.tree.root_nodes()[0]
+        location = Location.tree.root_nodes()[0]
 
     if not location.get_children():
         return HttpResponse(status=400)
@@ -227,9 +227,9 @@ def epi_detail(request, location_id=None):
     dates = get_dates(request)
     max_date = datetime.datetime.now()
     if location_id:
-        location = get_object_or_404(Area, pk=location_id)
+        location = get_object_or_404(Location, pk=location_id)
     else:
-        location = Area.tree.root_nodes()[0]
+        location = Location.tree.root_nodes()[0]
 
     if not location.get_children():
         return HttpResponse(status=400)
@@ -310,9 +310,9 @@ def birth_detail(request, location_id=None):
     dates = get_dates(request)
     max_date = datetime.datetime.now()
     if location_id:
-        location = get_object_or_404(Area, pk=location_id)
+        location = get_object_or_404(Location, pk=location_id)
     else:
-        location = Area.tree.root_nodes()[0]
+        location = Location.tree.root_nodes()[0]
 
     if not location.get_children():
         return HttpResponse(status=400)
@@ -408,9 +408,9 @@ def death_detail(request, location_id=None):
     dates = get_dates(request)
     max_date = datetime.datetime.now()
     if location_id:
-        location = get_object_or_404(Area, pk=location_id)
+        location = get_object_or_404(Location, pk=location_id)
     else:
-        location = Area.tree.root_nodes()[0]
+        location = Location.tree.root_nodes()[0]
 
     if not location.get_children():
         return HttpResponse(status=400)
@@ -491,9 +491,9 @@ def home_detail(request, location_id=None):
     dates = get_dates(request)
     max_date = datetime.datetime.now()
     if location_id:
-        location = get_object_or_404(Area, pk=location_id)
+        location = get_object_or_404(Location, pk=location_id)
     else:
-        location = Area.tree.root_nodes()[0]
+        location = Location.tree.root_nodes()[0]
 
     if not location.get_children():
         return HttpResponse(status=400)
@@ -602,7 +602,7 @@ def export_as_excel(request):
     health_providers=HealthProvider.objects.select_related('location','facility','location__name','facility__name','location__lft','loction__rght')
     export_data_list=[]
     districts=[]
-    for d in Area.objects.filter(kind__slug='district'):
+    for d in Location.objects.filter(type__slug='district'):
         districts.append((d.name,[d.lft,d.rght]))
     for submission in submissions:
         export_data=SortedDict()

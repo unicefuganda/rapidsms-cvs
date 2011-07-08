@@ -4,7 +4,7 @@ from healthmodels.models.HealthProvider import HealthProvider
 from generic.forms import ActionForm, FilterForm, ModuleForm
 from healthmodels.models.HealthFacility import HealthFacility
 from mptt.forms import TreeNodeChoiceField
-from simple_locations.models import Area
+from rapidsms.contrib.locations.models import Location
 
 date_range_choices=(('w','Previous Calendar Week'),('m','Previous Calendar Month'),('q','Previous calendar quarter'),)
 class DateRangeForm(forms.Form): # pragma: no cover
@@ -21,7 +21,7 @@ class DateRangeForm(forms.Form): # pragma: no cover
         cleaned_data['end_ts'] = datetime.datetime.fromtimestamp(float(end_ts) / 1000.0)
         return cleaned_data
 
-AREAS = Area.tree.all().select_related('kind')
+AREAS = Location.tree.all().select_related('type')
 
 class EditReporterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -70,7 +70,7 @@ class ChartModuleForm(ModuleForm):
         ('epi___percentage', 'Variation of percentage of expected weekly epi reports received'),
     ), label="Data to chart")
     title = forms.CharField(max_length=40)
-    district = forms.ModelChoiceField(queryset=Area.objects.filter(kind__slug='district').order_by('name'))
+    district = forms.ModelChoiceField(queryset=Location.objects.filter(type__slug='district').order_by('name'))
     range=forms.ChoiceField(choices= date_range_choices,label="date Range")
 
     def setModuleParams(self, dashboard, module=None, title=None):
@@ -127,11 +127,11 @@ class StatsModuleForm(ModuleForm):
         ('home_detail', 'Variation of Homesteads reports'),
     ), label="Statistics to Show")
     title = forms.CharField(max_length=40)
-    root_node = Area.tree.root_nodes()[0]
+    root_node = Location.tree.root_nodes()[0]
     district = forms.ChoiceField(choices=(('', '----------'), (int(root_node.pk),
                                  'All Districts')) + tuple([(int(d.pk),
                                  d.name) for d in
-                                 Area.objects.filter(kind__slug='district'
+                                 Location.objects.filter(type__slug='district'
                                  ).order_by('name')]))
     range=forms.ChoiceField(choices= date_range_choices,label="date Range")
     def setModuleParams(self, dashboard, module=None, title=None):

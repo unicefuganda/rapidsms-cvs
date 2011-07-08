@@ -17,7 +17,7 @@ from rapidsms.models import Contact, Connection, Backend
 from rapidsms_xforms.app import App
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms_httprouter.models import Message
-from simple_locations.models import Area
+from rapidsms.contrib.locations.models import Location
 import datetime
 
 class ModelTest(TestCase): #pragma: no cover
@@ -262,8 +262,8 @@ class ModelTest(TestCase): #pragma: no cover
         pass
 
     def testLocationDelete(self):
-        parent_loc = Area.objects.create(name='Uganda', code='ug')
-        child_loc = Area.objects.create(name='Pader', code='pad', parent=parent_loc)
+        parent_loc = Location.objects.create(name='Uganda')
+        child_loc = Location.objects.create(name='Pader', tree_parent=parent_loc)
         child_loc.save()
         h = HealthFacility.objects.create(name="Dave's drug emporium")
         h.catchment_areas.add(child_loc)

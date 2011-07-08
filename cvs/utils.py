@@ -13,7 +13,7 @@ from uganda_common.utils import TIME_RANGES
 from rapidsms_httprouter.models import Message
 from ureport.models import MassText
 from poll.models import Poll
-from simple_locations.models import Area
+from rapidsms.contrib.locations.models import Location
 
 def init_xforms():
     DISEASE_CHOICES = [
@@ -201,10 +201,10 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
                created__lte=end_date,
                created__gte=start_date).values(
                'connection__contact__reporting_location__name').extra(
-               tables=['simple_locations_area'],
+               tables=['locations_location'],
                where=[\
-                   'T%d.lft <= simple_locations_area.lft' % tnum,\
-                   'T%d.rght >= simple_locations_area.rght' % tnum,\
+                   'T%d.lft <= locations_location.lft' % tnum,\
+                   'T%d.rght >= locations_location.rght' % tnum,\
                    location_children_where]).extra(\
                select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
 
@@ -236,10 +236,10 @@ def active_reporters(start_date, end_date, location, group_by_timespan=None):
                created__lte=end_date,
                created__gte=start_date).values(
                'connection__contact__reporting_location__name').extra(
-               tables=['simple_locations_area'],
+               tables=['locations_location'],
                where=[\
-                   'T%d.lft <= simple_locations_area.lft' % tnum,\
-                   'T%d.rght >= simple_locations_area.rght' % tnum,\
+                   'T%d.lft <= locations_location.lft' % tnum,\
+                   'T%d.rght >= locations_location.rght' % tnum,\
                    location_children_where]).extra(\
                select=select).values(*values).annotate(value=Count('connection__id')).extra(order_by=['location_name'])
 
@@ -258,9 +258,9 @@ def registered_reporters(location):
     else:
         location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
     return  HealthProviderBase.objects.filter(groups=Group.objects.get(name='Village Health Team')).values('location__name').extra(
-            tables=['simple_locations_area'],where=[\
-                   'T%d.lft <= simple_locations_area.lft' % tnum,\
-                   'T%d.rght >= simple_locations_area.rght' % tnum,\
+            tables=['locations_location'],where=[\
+                   'T%d.lft <= locations_location.lft' % tnum,\
+                   'T%d.rght >= locations_location.rght' % tnum,\
                    location_children_where]).extra(select=select).values(*values).annotate(value=Count('id'))
 
 
@@ -280,8 +280,8 @@ def total_submissions_by_facility(keyword, start_date, end_date, map_window):
         .extra(select={
         'facility_name':'healthmodels_healthfacilitybase.name',
         'facility_id':'healthmodels_healthfacilitybase.id',
-        'latitude':'simple_locations_point.latitude',
-        'longitude':'simple_locations_point.longitude',
+        'latitude':'locations_point.latitude',
+        'longitude':'locations_point.longitude',
         'type':'healthmodels_healthfacilitytypebase.name'})\
         .values('facility_name','facility_id','latitude','longitude','type')\
         .annotate(value=Count('id'))
@@ -311,10 +311,10 @@ def total_attribute_value(attribute_slug, start_date, end_date, location, group_
                submission__created__lte=end_date,
                submission__created__gte=start_date).values(
                'submission__connection__contact__reporting_location__name').extra(
-               tables=['simple_locations_area'],
+               tables=['locations_location'],
                where=[\
-                   'T8.lft <= simple_locations_area.lft',
-                   'T8.rght >= simple_locations_area.rght',
+                   'T8.lft <= locations_location.lft',
+                   'T8.rght >= locations_location.rght',
                    location_children_where]).extra(\
                select=select).values(*values).annotate(value=Sum('value_int')).extra(order_by=['location_name'])
 
@@ -333,8 +333,8 @@ def total_attribute_by_facility(attribute_slug, start_date, end_date, map_window
         .extra(select={
         'facility_name':'healthmodels_healthfacilitybase.name',
         'facility_id':'healthmodels_healthfacilitybase.id',
-        'latitude':'simple_locations_point.latitude',
-        'longitude':'simple_locations_point.longitude',
+        'latitude':'locations_point.latitude',
+        'longitude':'locations_point.longitude',
         'type':'healthmodels_healthfacilitytypebase.name'})\
         .values('facility_name','facility_id','latitude','longitude','type')\
         .annotate(value=Sum('value_int'))
@@ -448,16 +448,16 @@ def get_group_by(start_date, end_date):
 
 def get_reporters(**kwargs):
     request = kwargs.pop('request')
-    if request.user.is_authenticated() and Area.objects.filter(kind__name='district', name=request.user.username).count():
-        area = Area.objects.filter(kind__name='district', name=request.user.username)[0]
+    if request.user.is_authenticated() and Location.objects.filter(type__name='district', name=request.user.username).count():
+        area = Location.objects.filter(type__name='district', name=request.user.username)[0]
         return HealthProvider.objects.filter(reporting_location__in=area.get_descendants(include_self=True).all()).select_related('facility', 'location').annotate(Count('connection__submissions')).all()
 
     return HealthProvider.objects.select_related('facility', 'location').annotate(Count('connection__submissions')).all()
 
 def get_messages(**kwargs):
     request = kwargs.pop('request')
-    if request.user.is_authenticated() and Area.objects.filter(kind__name='district', name=request.user.username).count():
-        q = Area.objects.filter(kind__name='district', name=request.user.username)
+    if request.user.is_authenticated() and Location.objects.filter(type__name='district', name=request.user.username).count():
+        q = Location.objects.filter(type__name='district', name=request.user.username)
         if q.count():
             area = q[0]
             return Message.objects.filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())

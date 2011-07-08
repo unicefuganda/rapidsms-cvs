@@ -3,7 +3,7 @@ import re
 import datetime
 from healthmodels.models import *
 from healthmodels.models.HealthProvider import HealthProviderBase
-from simple_locations.models import Point, Area, AreaType
+from rapidsms.contrib.locations.models import Location
 from django.core.exceptions import ValidationError
 from code_generator.code_generator import get_code_from_model, generate_tracking_tag, generate_code
 from django.contrib.auth.models import Group
@@ -235,7 +235,7 @@ def patient_label(patient):
 
 def fix_location(sender, **kwargs):
     print "pre_delete on %s : %s" % (sender, str(kwargs['instance'].pk))
-    if sender == Area:
+    if sender == Location:
         location = kwargs['instance']
         if location.parent:
             for c in HealthProvider.objects.filter(reporting_location = location):
