@@ -36,7 +36,15 @@ class EditReporterForm(forms.ModelForm):
 
 class FacilityFilterForm(FilterForm):
     """ filter form for cvs facilities """
-    facility=forms.ChoiceField(choices=(('','-----'),(-1,'Has No Facility'),)+tuple([(int(f.pk),f.name) for f in HealthFacility.objects.all().order_by('type','name') ]))
+    facility=forms.ChoiceField(choices=())
+    
+    def __init__(self, data=None, **kwargs):
+        if data:
+            forms.Form.__init__(self, data, **kwargs)
+        else:
+            forms.Form.__init__(self, **kwargs)
+        self.fields['facility'].widget.choices = (('','-----'),(-1,'Has No Facility'),)+tuple(HealthFacility.objects.values_list('pk','name').order_by('type','name'))
+
     def filter(self, request, queryset):
         facility_pk = self.cleaned_data['facility']
         if facility_pk == '':
