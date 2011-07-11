@@ -39,6 +39,7 @@ class FacilityFilterForm(FilterForm):
     facility=forms.ChoiceField(choices=())
     
     def __init__(self, data=None, **kwargs):
+        response = kwargs.pop('response')
         if data:
             forms.Form.__init__(self, data, **kwargs)
         else:
