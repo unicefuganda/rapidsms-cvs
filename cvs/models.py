@@ -13,7 +13,7 @@ from eav.models import Attribute
 from cvs.forms import FacilityResponseForm
 from script.signals import *
 from script.models import *
-from uganda_commond import find_closest_match, find_best_response, parse_district_value
+from uganda_common.utils import find_closest_match, find_best_response, parse_district_value
 from rapidsms.contrib.locations.models import Location
 import itertools
 
@@ -456,26 +456,14 @@ def cvs_autoreg(**kwargs):
 
     contact.reporting_location = find_best_response(session, districtpoll)
 
-#    age = find_best_response(session, agepoll)
-#    if age and age < 100:
-#        contact.birthdate = datetime.datetime.now() - datetime.timedelta(days=(365*int(age)))
-
-#    gresps = session.responses.filter(response__poll=genderpoll, response__has_errors=False).order_by('-response__date')
-#    if gresps.count():
-#        gender = gresps[0].response
-#        if gender.categories.filter(category__name='male').count():
-#            contact.gender = 'M'
-#        else:
-#            contact.gender = 'F'
-
     village = find_best_response(session, villagepoll)
     if village:
         contact.village = find_closest_match(village, Location.objects)
 
-    group = find_best_response(session, youthgrouppoll)
+    group = find_best_response(session, rolepoll)
     default_group = None
-    if Group.objects.filter(name='Other uReporters').count():
-        default_group = Group.objects.get(name='Other uReporters')
+    if Group.objects.filter(name='Other cvsReporters').count():
+        default_group = Group.objects.get(name='Other cvsReporters')
     if group:
         group = find_closest_match(group, Group.objects)
         if group:
