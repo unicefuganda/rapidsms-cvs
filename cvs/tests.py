@@ -17,7 +17,7 @@ from rapidsms.models import Contact, Connection, Backend
 from rapidsms_xforms.app import App
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms_httprouter.models import Message
-from simple_locations.models import Area
+from rapidsms.contrib.locations.models import Location
 import datetime
 
 class ModelTest(TestCase): #pragma: no cover
@@ -141,6 +141,28 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(s.eav.epi_vf, 12)
         self.assertEquals(s.eav.epi_ei, 13)
 
+        #new EPI doesn't require +, and has dy and rb indicators
+        s = self.fakeIncoming('epi dy 5,ma 12,tb 1,ab 2,af 3,mg 4,me 5, ch 6, gw 7, nt 8, yf 9, pl 10, rb 11, vf 12, ei 13')
+        # DY should alias to BD to make reporting easier (since they're actually the same indicator
+        self.assertEquals(s.eav.epi_bd, 5)
+        self.assertEquals(s.eav.epi_dy, 5)
+        self.assertEquals(s.eav.epi_ma, 12)
+        self.assertEquals(s.eav.epi_tb, 1)
+        self.assertEquals(s.eav.epi_ab, 2)
+        self.assertEquals(s.eav.epi_af, 3)
+        self.assertEquals(s.eav.epi_mg, 4)
+        self.assertEquals(s.eav.epi_me, 5)
+        self.assertEquals(s.eav.epi_ch, 6)
+        self.assertEquals(s.eav.epi_gw, 7)
+        self.assertEquals(s.eav.epi_nt, 8)
+        self.assertEquals(s.eav.epi_yf, 9)
+        self.assertEquals(s.eav.epi_pl, 10)
+        # RB should alias to RB to make reporting easier (since they're actually the same indicator
+        self.assertEquals(s.eav.epi_ra, 11)
+        self.assertEquals(s.eav.epi_rb, 11)
+        self.assertEquals(s.eav.epi_vf, 12)
+        self.assertEquals(s.eav.epi_ei, 13)
+
     def testHome(self):
         s = self.fakeIncoming('+home 13, wa 9, it 10, la 11, ha 12')
         self.assertEquals(s.eav.home_wa, 9)
@@ -148,6 +170,43 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(s.eav.home_la, 11)
         self.assertEquals(s.eav.home_ha, 12)
         self.assertEquals(s.eav.home_to, 13)
+
+    def testCom(self):
+        s = self.fakeIncoming('com 1, 2, 3, 4, 5, 6, 7')
+        self.assertEquals(s.eav.com_fever, 1)
+        self.assertEquals(s.eav.com_diarrhea, 2)
+        self.assertEquals(s.eav.com_death, 3)
+        self.assertEquals(s.eav.com_bi_od, 4)
+        self.assertEquals(s.eav.com_muac_red, 5)
+        self.assertEquals(s.eav.com_muac_yellow, 6)
+        self.assertEquals(s.eav.com_muac_green, 7)
+
+    def testMal(self):
+        s = self.fakeIncoming('mal 1, 2, 3, 4')
+        self.assertEquals(s.eav.mal_total_new, 1)
+        self.assertEquals(s.eav.mal_total_death, 2)
+        self.assertEquals(s.eav.mal_total_default, 3)
+        self.assertEquals(s.eav.mal_total_admissions, 4)
+
+    def testRutf(self):
+        s = self.fakeIncoming('rutf 1, 2, 3, 4')
+        self.assertEquals(s.eav.rutf_new_f75_stock, 1)
+        self.assertEquals(s.eav.rutf_closing_f75_stock, 2)
+        self.assertEquals(s.eav.rutf_new_rutf_stock, 3)
+        self.assertEquals(s.eav.rutf_closing_rutf_stock, 4)
+
+    def testACT(self):
+        s = self.fakeIncoming('act 1, 2, 3, 4, 5, 6, 7, 8, 9, 10')
+        self.assertEquals(s.eav.act_yellow_disp, 1)
+        self.assertEquals(s.eav.act_yellow_balance, 2)
+        self.assertEquals(s.eav.act_blue_disp, 3)
+        self.assertEquals(s.eav.act_blue_balance, 4)
+        self.assertEquals(s.eav.act_brown_disp, 5)
+        self.assertEquals(s.eav.act_brown_balance, 6)
+        self.assertEquals(s.eav.act_green_disp, 7)
+        self.assertEquals(s.eav.act_green_balance, 8)
+        self.assertEquals(s.eav.act_other_disp, 9)
+        self.assertEquals(s.eav.act_other_balance, 10)
 
     def testTimeDeltas(self):
         s = self.fakeIncoming('+muac Sean Blaschke, M,5months,yellow')
@@ -234,8 +293,8 @@ class ModelTest(TestCase): #pragma: no cover
         self.incomingResponse('+BIRTH Terra Weikel, F, HOME', 'Thank you for registering the birth of Terra Weikel, female (infant). We have recorded that the birth took place at home.')
         self.incomingResponse('+DEATH Malthe Borch, M,1DAY', 'We have recorded the death of Malthe Borch, male (infant).')
         self.incomingResponse('+muac Matt Berg, M,5months,yellow','Matt Berg, male (5 months old) has been identified with Risk of Malnutrition')
-        self.incomingResponse('+epi ma 12, bd 5','You reported Bloody diarrhea (Dysentery) 5, and Malaria 12')
-        self.incomingResponse('+home 12, wa 1, it 6','You reported Total Homesteads Visited 12,ITTNs/LLINs 6, and Safe Drinking Water 1')
+        self.incomingResponse('+epi ma 12, bd 5','You reported Bloody diarrhea (Dysentery) 5, and Malaria 12.If there is an error,please resend.')
+        self.incomingResponse('+home 12, wa 1, it 6','You reported Total Homesteads Visited 12,ITTNs/LLINs 6, and Safe Drinking Water 1.If there is an error,please resend.')
 
     def testErrors(self):
         #TODO make proper fields required
@@ -259,24 +318,16 @@ class ModelTest(TestCase): #pragma: no cover
 #        self.fakeErrorMessage('+home WA -5')
         self.fakeErrorMessage('+home xx 5.0')
         self.fakeErrorMessage('+home wa five')
-        pass
 
-    def testLocationDelete(self):
-        parent_loc = Area.objects.create(name='Uganda', code='ug')
-        child_loc = Area.objects.create(name='Pader', code='pad', parent=parent_loc)
-        child_loc.save()
-        h = HealthFacility.objects.create(name="Dave's drug emporium")
-        h.catchment_areas.add(child_loc)
-        c = Contact.objects.create(name='Davey Crockett', reporting_location = parent_loc)
-        child_loc.delete()
-        c = Contact.objects.get(pk=c.pk)
-        h = HealthFacility.objects.get(pk=h.pk)
-        self.assertEquals(c.reporting_location, parent_loc)
-        self.assertEquals(h.catchment_areas.all()[0], parent_loc)
-
-    def testSimpleDocTest(self):
-        """
-            >>> print 'hi'
-            hi        
-        """
-        pass
+#    def testLocationDelete(self):
+#        parent_loc = Location.objects.create(name='Uganda')
+#        child_loc = Location.objects.create(name='Pader', tree_parent=parent_loc)
+#        child_loc.save()
+#        h = HealthFacility.objects.create(name="Dave's drug emporium")
+#        h.catchment_areas.add(child_loc)
+#        c = Contact.objects.create(name='Davey Crockett', reporting_location = parent_loc)
+#        child_loc.delete()
+#        c = Contact.objects.get(pk=c.pk)
+#        h = HealthFacility.objects.get(pk=h.pk)
+#        self.assertEquals(c.reporting_location, parent_loc)
+#        self.assertEquals(h.catchment_areas.all()[0], parent_loc)

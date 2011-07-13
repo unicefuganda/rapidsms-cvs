@@ -3,9 +3,8 @@ import re
 import datetime
 from healthmodels.models import *
 from healthmodels.models.HealthProvider import HealthProviderBase
-from simple_locations.models import Point, Area, AreaType
+from rapidsms.contrib.locations.models import Location
 from django.core.exceptions import ValidationError
-from code_generator.code_generator import get_code_from_model, generate_tracking_tag, generate_code
 from django.contrib.auth.models import Group
 from django.db.models.signals import pre_delete
 from rapidsms.models import Contact
@@ -16,6 +15,7 @@ from script.signals import *
 from script.models import *
 from uganda_commond import find_closest_match, find_best_response, parse_district_value
 from rapidsms.contrib.locations.models import Location
+import itertools
 
 def parse_timedelta(command, value):
     lvalue = value.lower().strip()
@@ -52,13 +52,6 @@ def parse_timedelta(command, value):
                             return number*unit_amounts[key]
             
     raise ValidationError("Expected an age got: %s." % value)
-    #do something to parse a time delta
-    #raise ValidationError("unknown time length or something")
-
-    #cleaned_value = like a timedelta or something
-    #return cleaned_value
-
-# register timedeltas as a type
 
 def parse_place(command, value):
     lvalue = value.lower().strip()
@@ -108,7 +101,6 @@ def parse_muacreading(command, value):
     raise ValidationError("Expected a muac reading "
                 "(\"green\", \"red\", \"yellow\" or a number), "
                 "but received instead: %s." % value)
-    
 
 def parse_oedema(command, value):
     lvalue = value.lower().strip()
@@ -144,7 +136,7 @@ XFormField.register_field_type('cvsodema', 'Oedema Occurrence', parse_oedema,
 XFormField.register_field_type('facility', 'Facility Code', parse_facility,
                                db_type=XFormField.TYPE_OBJECT, xforms_type='string')
 
-Poll.register_poll_type('facility', 'Facility Code Response', parse_facility_value, db_type=Attribute.TYPE_OBJECT, view_template='cvs/partials/response_facility_view.html',edit_template='cvs/partials/response_facility_edit.html',report_columns=(('Original Text', 'text'),('Health Facility','custom',),),edit_form=FacilityResponseForm)
+Poll.register_poll_type('facility', 'Facility Code Response', parse_facility_value, db_type=Attribute.TYPE_OBJECT, view_template='cvs/partials/response_facility_view.html',edit_template='cvs/partials/response_facility_edit.html',report_columns=(('Original Text', 'text'),('Health Facility','custom',),),edit_form='cvs.forms.FacilityResponseForm')
 
 def split_name(patient_name):
     names = patient_name.split(' ')
@@ -173,6 +165,73 @@ def get_or_create_patient(health_provider, patient_name, birthdate=None, deathda
             p.save()
             return p
     return create_patient(health_provider, patient_name, birthdate, deathdate, gender)
+
+def generate_tracking_tag(start='2a2', base_numbers='2345679',
+                          base_letters='acdefghjklmnprtuvwxy', **kwargs):
+    """
+        Generate a unique tag. The format is xyz[...] with x, y and z picked
+        from an iterable giving a new set of ordered caracters at each
+        call to next. You must pass the previous tag and a patter the tag
+        should validate against.
+
+        This is espacially usefull to get a unique tag to display on mobile
+        device so you can exclude figures and letters that could be 
+        confusing or hard to type.
+
+        Default values are empirically proven to be easy to read and type
+        on old phones.
+
+        The code format alternate a char from base_number and base_letters,
+        be sure the 'start' argument follows this convention or you'll
+        get a ValueError.
+
+        e.g:
+
+        >>> generate_tracking_tag()
+        '3a2'
+        >>> generate_tracking_tag('3a2')
+        '4a2'
+        >>> generate_tracking_tag('9y9')
+        '2a2a'
+        >>> generate_tracking_tag('2a2a')
+        '3a2a'
+        >>> generate_tracking_tag('9a2a')
+        '2c2a'
+
+    """
+
+    next_tag = []
+
+    matrix_generator = itertools.cycle((base_numbers, base_letters))
+
+    for index, c in enumerate(start):
+
+        matrix = matrix_generator.next()
+
+        try:
+            i = matrix.index(c)
+        except ValueError:
+            raise ValueError(u"The 'start' argument must be correctly "\
+                             u"formated. Check doctstring for more info.")
+
+        try:
+            next_char = matrix[i+1]
+            next_tag.append(next_char)
+            try:
+                next_tag.extend(start[index+1:])
+                break
+            except IndexError:
+                pass
+        except IndexError:
+            next_tag.append(matrix[0])
+            try:
+                start[index+1]
+            except IndexError:
+                matrix = matrix_generator.next()
+                next_tag.append(matrix[0])
+                break
+
+    return ''.join(next_tag)
 
 def create_patient(health_provider, patient_name, birthdate, deathdate, gender):
     first_name, middle_name, last_name = split_name(patient_name)
@@ -239,7 +298,7 @@ def patient_label(patient):
 
 def fix_location(sender, **kwargs):
     print "pre_delete on %s : %s" % (sender, str(kwargs['instance'].pk))
-    if sender == Area:
+    if sender == Location:
         location = kwargs['instance']
         if location.parent:
             for c in HealthProvider.objects.filter(reporting_location = location):
@@ -322,7 +381,7 @@ def xform_received_handler(sender, **kwargs):
         muac_label = "Severe Acute Malnutrition" if (submission.eav.muac_category == 'R') else "Risk of Malnutrition"
         submission.response = "%s has been identified with %s" % (patient_label(patient), muac_label)
         submission.save()
-        return
+
     elif xform.keyword == 'birth':
         patient = get_or_create_patient(health_provider, submission.eav.birth_name, birthdate=datetime.datetime.now(), gender=submission.eav.birth_gender)
         check_validity(xform.keyword, submission, health_provider, patient, 3)
@@ -335,7 +394,7 @@ def xform_received_handler(sender, **kwargs):
         birth_location = "a facility" if submission.eav.birth_place == 'FACILITY' else 'home'
         submission.response = "Thank you for registering the birth of %s. We have recorded that the birth took place at %s." % (patient_label(patient), birth_location)
         submission.save()
-        return
+
     elif xform.keyword == 'death':
         days = submission.eav.death_age
         birthdate = datetime.datetime.now() - datetime.timedelta(days=days)
@@ -349,26 +408,28 @@ def xform_received_handler(sender, **kwargs):
                 valid=True)
         submission.response = "We have recorded the death of %s." % patient_label(patient)
         submission.save()
-        return
-    elif xform.keyword == 'epi':
-        check_basic_validity('epi', submission, health_provider, 1)
-        value_list = []
-        for v in submission.eav.get_values():
-            value_list.append("%s %d" % (v.attribute.name, v.value_int))
-        value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
-        submission.response = "You reported %s" % ','.join(value_list)
-        submission.save()
-        return
-    elif xform.keyword == 'home':
-        check_basic_validity('home', submission, health_provider, 1)
-        value_list = []
-        for v in submission.eav.get_values():
-            value_list.append("%s %d" % (v.attribute.name, v.value_int))
-        value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
-        submission.response = "You reported %s" % ','.join(value_list)
-        submission.save()
-        return
 
+    elif xform.keyword in ['com','mal','rutf','home','epi']:
+        check_basic_validity(xform.keyword, submission, health_provider, 1)
+        value_list = []
+        for v in submission.eav.get_values():
+            value_list.append("%s %d" % (v.attribute.name, v.value_int))
+        value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
+        submission.response = "You reported %s.If there is an error,please resend." % ','.join(value_list)
+
+        # aliasing for different epi commands
+        if xform.keyword == 'epi':
+            for v in submission.eav.get_values():
+                if v.attribute.slug == 'epi_rb':
+                    submission.eav.epi_ra = (submission.eav.epi_ra or 0) + v.value_int
+                elif v.attribute.slug == 'epi_dy':
+                    submission.eav.epi_bd = (submission.eav.epi_bd or 0) + v.value_int
+        submission.save()
+
+    if not (submission.connection.contact and submission.connection.contact.active):
+        submission.has_errors = True
+        submission.save()
+        return
 
 def cvs_autoreg(**kwargs):
     connection = kwargs['connection']

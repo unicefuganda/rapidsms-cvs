@@ -4,15 +4,15 @@ from django.template import RequestContext
 from django.shortcuts import get_object_or_404
 from healthmodels.models.HealthFacility import HealthFacility
 from healthmodels.models.HealthProvider import HealthProvider
-from simple_locations.models import AreaType,Point,Area
+from rapidsms.contrib.locations.models import Location
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
 from django.db import connection
-from cvs.utils import total_submissions,active_reporters, total_attribute_value, reorganize_timespan, get_expected_epi, get_group_by, GROUP_BY_WEEK, GROUP_BY_DAY
+from cvs.utils import total_submissions,active_reporters, total_attribute_value, reorganize_timespan, get_group_by, GROUP_BY_WEEK, GROUP_BY_DAY
 from cvs.forms import DateRangeForm
 import datetime
 from django.utils.datastructures import SortedDict
-from cvs.utils import get_dates
+from cvs.views.dates import get_dates, get_expected_epi
 from rapidsms_xforms.models import XForm, XFormField
 
 def active_reporters_chart(request,location_id=None, start_date=None,end_date=None):
@@ -25,9 +25,9 @@ def active_reporters_chart(request,location_id=None, start_date=None,end_date=No
     end_date=dates.get('end')
 
     if location_id:
-        location = get_object_or_404(Area, pk=location_id)
+        location = get_object_or_404(Location, pk=location_id)
     else:
-        location = Area.tree.root_nodes()[0]
+        location = Location.tree.root_nodes()[0]
     if not location.get_children():
         return HttpResponse(status=400)
 
@@ -85,9 +85,9 @@ def chart(request,xform_keyword=None, attribute_keyword=None, attribute_value=No
 
     group_by = get_group_by(start_date, end_date)
     if location_id:
-        location = get_object_or_404(Area, pk=location_id)
+        location = get_object_or_404(Location, pk=location_id)
     else:
-        location = Area.tree.root_nodes()[0]
+        location = Location.tree.root_nodes()[0]
 
     if not location.get_children():
         return HttpResponse(status=400)

@@ -7,7 +7,7 @@ from django.utils import simplejson
 from django.http import HttpResponse
 from django.db import connection
 from django.conf import settings
-from cvs.utils import get_dates
+from cvs.views.dates import get_dates
 from cvs.forms import DateRangeForm
 
 from healthmodels.models.HealthFacility import HealthFacility
