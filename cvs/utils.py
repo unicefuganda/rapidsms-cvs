@@ -87,10 +87,13 @@ def init_xforms():
              ('facility','facility','Your facility code', True),
         ],
     }
+    
+    init_xforms_from_tuples(XFORMS, XFORM_FIELDS)
 
+def init_xforms_from_tuples(xforms, xform_fields):
     user = User.objects.get(username='admin')
     xform_dict = {}
-    for tuple in XFORMS:
+    for tuple in xforms:
         xform, created = XForm.objects.get_or_create(
             keyword=tuple[0],
             defaults={
@@ -107,7 +110,7 @@ def init_xforms():
         )
         xform_dict[tuple[0]] = xform
 
-    for form_key, attributes in XFORM_FIELDS.items():
+    for form_key, attributes in xform_fields.items():
         order = 0
         form = xform_dict[form_key]
         for attribute in attributes:
