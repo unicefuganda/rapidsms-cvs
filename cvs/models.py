@@ -10,6 +10,7 @@ from django.db.models.signals import pre_delete
 from rapidsms.models import Contact
 from poll.models import Poll
 from eav.models import Attribute
+import itertools
 
 def parse_timedelta(command, value):
     lvalue = value.lower().strip()
@@ -46,13 +47,6 @@ def parse_timedelta(command, value):
                             return number*unit_amounts[key]
             
     raise ValidationError("Expected an age got: %s." % value)
-    #do something to parse a time delta
-    #raise ValidationError("unknown time length or something")
-
-    #cleaned_value = like a timedelta or something
-    #return cleaned_value
-
-# register timedeltas as a type
 
 def parse_place(command, value):
     lvalue = value.lower().strip()
@@ -102,7 +96,6 @@ def parse_muacreading(command, value):
     raise ValidationError("Expected a muac reading "
                 "(\"green\", \"red\", \"yellow\" or a number), "
                 "but received instead: %s." % value)
-    
 
 def parse_oedema(command, value):
     lvalue = value.lower().strip()
@@ -411,25 +404,24 @@ def xform_received_handler(sender, **kwargs):
         submission.response = "We have recorded the death of %s." % patient_label(patient)
         submission.save()
         return
-    elif xform.keyword == 'epi':
-        check_basic_validity('epi', submission, health_provider, 1)
+    elif xform.keyword in ['com','mal','rutf','home','epi']:
+        check_basic_validity(xform.keyword, submission, health_provider, 1)
         value_list = []
         for v in submission.eav.get_values():
             value_list.append("%s %d" % (v.attribute.name, v.value_int))
         value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
-        submission.response = "You reported %s" % ','.join(value_list)
-        submission.save()
-        return
-    elif xform.keyword == 'home':
-        check_basic_validity('home', submission, health_provider, 1)
-        value_list = []
-        for v in submission.eav.get_values():
-            value_list.append("%s %d" % (v.attribute.name, v.value_int))
-        value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
-        submission.response = "You reported %s" % ','.join(value_list)
-        submission.save()
-        return
+        submission.response = "You reported %s.If there is an error,please resend." % ','.join(value_list)
 
+        # aliasing for different epi commands
+        if xform.keyword == 'epi':
+            for v in submission.eav.get_values():
+                if v.attribute.slug == 'epi_rb':
+                    submission.eav.epi_ra = (submission.eav.epi_ra or 0) + v.value_int
+                elif v.attribute.slug == 'epi_dy':
+                    submission.eav.epi_bd = (submission.eav.epi_bd or 0) + v.value_int
+        submission.save()
+
+        return
 
 xform_received.connect(xform_received_handler, weak=True)
 pre_delete.connect(fix_location, weak=True)
