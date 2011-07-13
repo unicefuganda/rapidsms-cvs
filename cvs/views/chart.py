@@ -8,11 +8,11 @@ from rapidsms.contrib.locations.models import Location
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect,HttpResponse
 from django.db import connection
-from cvs.utils import total_submissions,active_reporters, total_attribute_value, reorganize_timespan, get_expected_epi, get_group_by, GROUP_BY_WEEK, GROUP_BY_DAY
+from cvs.utils import total_submissions,active_reporters, total_attribute_value, reorganize_timespan, get_group_by, GROUP_BY_WEEK, GROUP_BY_DAY
 from cvs.forms import DateRangeForm
 import datetime
 from django.utils.datastructures import SortedDict
-from cvs.utils import get_dates
+from cvs.views.dates import get_dates, get_expected_epi
 from rapidsms_xforms.models import XForm, XFormField
 
 def active_reporters_chart(request,location_id=None, start_date=None,end_date=None):

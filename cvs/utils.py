@@ -4,7 +4,6 @@ from django.db.models import Q, Sum
 from django.utils.datastructures import SortedDict
 from django.contrib.auth.models import Group
 from healthmodels.models.HealthProvider import HealthProvider, HealthProviderBase
-from math import floor
 from rapidsms_xforms.models import *
 import datetime
 from django.http import HttpResponse
@@ -60,8 +59,6 @@ def init_xforms():
         ('','mal',',;:*.\\s"','ITP/OTP Treatment Report','Routine HC report of weekly itp/otp treatments'),
         ('','rutf',',;:*.\\s"','OTC/ITC Stock Report','Routine HC report of weekly otc/itc stock reports'),
         ('','act',',;:*.\\s"', 'ACT Stock Report','Routine report of ACT stock'),
-        # keyword prefix-less version of epi
-#        ('','epi',',;:*.\\s"','Epi Report','Weekly-submitted VHT epidemiological reports'),
     )
 
     XFORM_FIELDS = {
@@ -82,7 +79,6 @@ def init_xforms():
              ('gender', 'cvssex', 'The gender of the person who has died', True),
              ('age', 'cvstdelt', 'The age of the person who has died', True),
          ],
-#        '+epi':DISEASE_CHOICES,
         'epi':DISEASE_CHOICES,
         '+home':HOME_ATTRIBUTES,
         '+reg':[
@@ -403,40 +399,6 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
 
         if not location in location_list:
             location_list.append(location)
-
-#def reorganize_timespan(timespan, report, report_dict, location_list,request=None):
-#    for dict in report:
-#        time = dict[timespan]
-#        if timespan =='month':
-#            time = months[int(time)]
-#        elif timespan =='week':
-#            time = 'Week '+str(int(time))
-#        elif timespan =='quarter':
-#            time = quarters[int(time)]+ ' Quarter'
-#        else:
-#            format = '%d-%m-%Y'
-#            time = time.strftime(format)
-#
-#
-#        report_dict.setdefault(time,{})
-#        location = dict['location_name']
-#        report_dict[time][location] = dict['value']
-#
-#        if not location in location_list:
-#            location_list.append(location)
-
-#@never_cache
-
-def get_expected_epi(location, request):
-    dates = get_dates(request)
-    health_providers = HealthProvider.objects.filter(location__in=location.get_descendants(),
-                                                     groups=Group.objects.get(name='Village Health Team')).count()
-
-    datediff = dates['end'] - dates['start']
-    weeks = floor((datediff.days / 7))
-    if weeks == 0:
-        weeks = 1
-    return health_providers * weeks
 
 def get_group_by(start_date, end_date):
     interval=end_date-start_date

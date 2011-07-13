@@ -376,7 +376,7 @@ def xform_received_handler(sender, **kwargs):
         muac_label = "Severe Acute Malnutrition" if (submission.eav.muac_category == 'R') else "Risk of Malnutrition"
         submission.response = "%s has been identified with %s" % (patient_label(patient), muac_label)
         submission.save()
-        return
+
     elif xform.keyword == 'birth':
         patient = get_or_create_patient(health_provider, submission.eav.birth_name, birthdate=datetime.datetime.now(), gender=submission.eav.birth_gender)
         check_validity(xform.keyword, submission, health_provider, patient, 3)
@@ -389,7 +389,7 @@ def xform_received_handler(sender, **kwargs):
         birth_location = "a facility" if submission.eav.birth_place == 'FACILITY' else 'home'
         submission.response = "Thank you for registering the birth of %s. We have recorded that the birth took place at %s." % (patient_label(patient), birth_location)
         submission.save()
-        return
+
     elif xform.keyword == 'death':
         days = submission.eav.death_age
         birthdate = datetime.datetime.now() - datetime.timedelta(days=days)
@@ -403,7 +403,7 @@ def xform_received_handler(sender, **kwargs):
                 valid=True)
         submission.response = "We have recorded the death of %s." % patient_label(patient)
         submission.save()
-        return
+
     elif xform.keyword in ['com','mal','rutf','home','epi']:
         check_basic_validity(xform.keyword, submission, health_provider, 1)
         value_list = []
@@ -421,6 +421,9 @@ def xform_received_handler(sender, **kwargs):
                     submission.eav.epi_bd = (submission.eav.epi_bd or 0) + v.value_int
         submission.save()
 
+    if not (submission.connection.contact and submission.connection.contact.active):
+        submission.has_errors = True
+        submission.save()
         return
 
 xform_received.connect(xform_received_handler, weak=True)
