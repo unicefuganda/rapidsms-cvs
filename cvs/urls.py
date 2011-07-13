@@ -126,6 +126,7 @@ urlpatterns = patterns('',
       'sort_ascending':False,
       'selectable':False,
     }),
+    url(r'^cvs/stats/(?P<start_date>\d+)/(?P<end_date>\d+)/(?P<xform_keyword>[a-z]+)/((?P<attribute_keyword>[a-zA-Z_]+)/)?', map.map_api),
 )
 
 
