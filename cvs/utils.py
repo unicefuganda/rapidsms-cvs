@@ -134,7 +134,7 @@ def init_xforms():
 def init_xforms_from_tuples(xforms, xform_fields):
     user = User.objects.get(username='admin')
     xform_dict = {}
-    for keyword_prefix,keyword,separator,name,description in XFORMS:
+    for keyword_prefix,keyword,separator,name,description in xforms:
         xform, created = XForm.objects.get_or_create(
             keyword=keyword,
             keyword_prefix=keyword_prefix,
