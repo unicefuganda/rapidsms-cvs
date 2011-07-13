@@ -124,10 +124,13 @@ def init_xforms():
             ('other_balance', 'int', 'Other ACT stock', True),
         ]
     }
+    
+    init_xforms_from_tuples(XFORMS, XFORM_FIELDS)
 
+def init_xforms_from_tuples(xforms, xform_fields):
     user = User.objects.get(username='admin')
     xform_dict = {}
-    for keyword_prefix,keyword,separator,name,description in XFORMS:
+    for keyword_prefix,keyword,separator,name,description in xforms:
         xform, created = XForm.objects.get_or_create(
             keyword=keyword,
             keyword_prefix=keyword_prefix,
@@ -144,7 +147,7 @@ def init_xforms():
         )
         xform_dict["%s%s" % (keyword_prefix, keyword)] = xform
 
-    for form_key, attributes in XFORM_FIELDS.items():
+    for form_key, attributes in xform_fields.items():
         order = 0
         form = xform_dict[form_key]
         for command, field_type, description, required in attributes:
