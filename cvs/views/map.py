@@ -153,5 +153,23 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
                                   context_instance=RequestContext(request))
     return JsonResponse(data_list)
 
+def map_api(request, start_date, end_date, xform_keyword, attribute_keyword=None):
+    start_date=datetime.datetime.fromtimestamp(int(start_date))
+    end_date=datetime.datetime.fromtimestamp(int(end_date))
+    if attribute_keyword:
+        data_function = total_attribute_by_facility
+        keyword = "%s_%s" % (xform_keyword, attribute_keyword)
+    else:
+        data_function = total_submissions_by_facility
+        keyword = xform_keyword
+#    import pdb;pdb.set_trace()
+    data = data_function(keyword, start_date, end_date, (MIN_LAT, MIN_LON, MAX_LAT, MAX_LON))
+    for d in data:
+        d['lat'] = float(d.pop('latitude'))
+        d['lon'] = float(d.pop('longitude'))
+        d['location_id'] = d.pop('facility_id')
+        d['location_name'] = "%s %s" % (d.pop('facility_name'), d.pop('type').upper())
 
+    json_response_data = {'layer_type':'flat', 'data':list(data)}
+    return JsonResponse(json_response_data)
 

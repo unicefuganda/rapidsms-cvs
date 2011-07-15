@@ -1,6 +1,7 @@
 from rapidsms.models import Contact
 from django.conf import settings
 from rapidsms.apps.base import AppBase
+from script.models import ScriptProgress
 
 class App (AppBase):
     
@@ -14,4 +15,9 @@ class App (AppBase):
                 message.connection.contact.save()
                 message.respond(getattr(settings,'ACTIVATION_MESSAGE','Congratulations, you are now active in the system!'))
                 return True
+        elif not message.connection.contact:
+            message.connection.contact == Contact.objects.create(name='Annoymous User')
+            message.connection.save()
+            ScriptProgress.objects.create(script=Script.objects.get(slug="cvs_autoreg"),connection=message.connection)
+            return True
         return False
