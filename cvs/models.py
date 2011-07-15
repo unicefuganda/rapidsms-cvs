@@ -10,7 +10,6 @@ from django.db.models.signals import pre_delete
 from rapidsms.models import Contact
 from poll.models import Poll
 from eav.models import Attribute
-from cvs.forms import FacilityResponseForm
 from script.signals import *
 from script.models import *
 from uganda_common.utils import find_closest_match, find_best_response, parse_district_value
