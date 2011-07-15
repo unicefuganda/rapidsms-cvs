@@ -2,6 +2,7 @@ from rapidsms.models import Contact
 from django.conf import settings
 from rapidsms.apps.base import AppBase
 from script.models import ScriptProgress, Script
+from unregister.models import Blacklist
 
 class App (AppBase):
     

@@ -19,36 +19,37 @@ class Command(BaseCommand):
         
         ## role of CVS reporter
         description = 'CVS Reporter Role'
-        question = 'Welcome to RapidSMS, the Ministry of Health’s data collection system. What is your role?'
+        question = 'Welcome to RapidSMS, the Ministry of Health\'s data collection system. What is your role?'
         default_response = 'Thank you for starting the registration process'
         type = Poll.TYPE_TEXT
         role_poll = Poll.objects.create(name=description,question=question,default_response=default_response,type=type, user=user)
         role_poll.sites.add(Site.objects.get_current())
-        vht_category = role_poll.categories.add(name='VHT')
+        vht_category = role_poll.categories.create(name='VHT')
         vht_category.response = "Thank you for starting the registration process" 
         vht_category.color = '99ff77'
         vht_category.save()
-        pvht_category = role_poll.categories.add(name='PVHT')
+        pvht_category = role_poll.categories.create(name='PVHT')
         pvht_category.response = "Thank you for starting the registration process" 
         pvht_category.color = 'ff9977'
         pvht_category.save()
-        hc_category = role_poll.categories.add(name='HC')
+        hc_category = role_poll.categories.create(name='HC')
         hc_category.response = "Thank you for starting the registration process" 
         hc_category.color = 'ff7799'
         hc_category.save()
-        hf_category = role_poll.categories.add(name='HF')
+        hf_category = role_poll.categories.create(name='HF')
         hf_category.response = "Thank you for starting the registration process" 
         hf_category.color = '77ff99'
         hf_category.save()
-        dht_category = role_poll.categories.add(name='DHT')
+        dht_category = role_poll.categories.create(name='DHT')
         dht_category.response = "Thank you for starting the registration process" 
         dht_category.color = '66ff99'
         dht_category.save()
-        dht_category = role_poll.categories.add(name='DHO')
+        dho_category = role_poll.categories.create(name='DHO')
         dho_category.response = "Thank you for starting the registration process" 
         dho_category.color = 'ff6699'
         dho_category.save()
-        unknown_category = role_poll.categories.get(name='unknown')
+        unknown_category = role_poll.categories.create(name='unknown')
+#        unknown_category = role_poll.categories.get(name='unknown')
         unknown_category.default = False
         unknown_category.color = 'ffff77'
         unknown_category.save()
@@ -81,13 +82,13 @@ class Command(BaseCommand):
         name_poll.start()
         
         script.steps.add(ScriptStep.objects.create(
-               script=consignee_script,
+               script=script,
                poll=name_poll,
                order=1,
                rule=ScriptStep.RESEND_GIVEUP,
                start_offset=0,
                retry_offset=60 * 15,
-               give_up_offset=60*30,
+               giveup_offset=60*30,
                num_tries=3,
                ))
         
@@ -101,13 +102,13 @@ class Command(BaseCommand):
         district_poll.start()
         
         script.steps.add(ScriptStep.objects.create(
-               script=consignee_script,
+               script=script,
                poll=district_poll,
                order=2,
                rule=ScriptStep.RESEND_GIVEUP,
                start_offset=0,
                retry_offset=60 * 15,
-               give_up_offset=60*30,
+               giveup_offset=60*30,
                num_tries=3,
                ))
         
@@ -121,13 +122,13 @@ class Command(BaseCommand):
         hf_poll.start()
         
         script.steps.add(ScriptStep.objects.create(
-               script=consignee_script,
+               script=script,
                poll=hf_poll,
                order=3,
                rule=ScriptStep.RESEND_GIVEUP,
                start_offset=0,
                retry_offset=60 * 15,
-               give_up_offset=60*30,
+               giveup_offset=60*30,
                num_tries=3,
                ))
         
@@ -141,13 +142,13 @@ class Command(BaseCommand):
         village_poll.start()
         
         script.steps.add(ScriptStep.objects.create(
-               script=consignee_script,
+               script=script,
                poll=village_poll,
                order=4,
                rule=ScriptStep.RESEND_GIVEUP,
                start_offset=0,
                retry_offset=60 * 15,
-               give_up_offset=60*30,
+               giveup_offset=60*30,
                num_tries=3,
                ))
         
@@ -161,9 +162,9 @@ class Command(BaseCommand):
         numbers_poll.start()
         
         script.steps.add(ScriptStep.objects.create(
-               script=consignee_script,
+               script=script,
                poll=numbers_poll,
                order=5,
-               rule=ScriptStep.LINIENT,
+               rule=ScriptStep.LENIENT,
                ))
         
