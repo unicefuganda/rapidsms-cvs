@@ -18,6 +18,7 @@ class App (AppBase):
                 return True
             else:
                 message.respond(getattr(settings, 'ALREADY_ACTIVATED_MESSAGE','You are already in the system.You should not SMS the code %s' % getattr(settings,'ACTIVATION_CODE')))
+                return True
         elif message.text.strip().lower() in [i.lower() for i in getattr(settings,'OPT_IN_WORDS',[])] and Blacklist.objects.filter(connection=message.connection).count():
             for b in Blacklist.objects.filter(connection=message.connection):
                 b.delete()

@@ -10,6 +10,7 @@ from django.db.models.signals import pre_delete
 from rapidsms.models import Contact
 from poll.models import Poll
 from eav.models import Attribute
+from cvs.utils import XFORMS
 from script.signals import *
 from script.models import *
 from uganda_common.utils import find_closest_match, find_best_response, parse_district_value
@@ -424,8 +425,9 @@ def xform_received_handler(sender, **kwargs):
                 elif v.attribute.slug == 'epi_dy':
                     submission.eav.epi_bd = (submission.eav.epi_bd or 0) + v.value_int
         submission.save()
-
-    if not (submission.connection.contact and submission.connection.contact.active):
+    print "IN HERE %s %s" % (xform.keyword, [i[1] for i in XFORMS])
+    if xform.keyword in [i[1] for i in XFORMS] and \
+        not (submission.connection.contact and submission.connection.contact.active):
         submission.has_errors = True
         submission.save()
         return
