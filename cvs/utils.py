@@ -14,117 +14,117 @@ from ureport.models import MassText
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location
 
+DISEASE_CHOICES = [
+    ('bd','int','Bloody diarrhea (Dysentery)', False),
+    ('dy','int','Dysentery', False),
+    ('ma','int','Malaria', False),
+    ('tb','int','Tuberculosis', False),
+    ('ab','int','Animal Bites', False),
+    ('af','int','Acute Flaccid Paralysis (Polio)', False),
+    ('mg','int','Meningitis', False),
+    ('me','int','Measles', False),
+    ('ch','int','Cholera', False),
+    ('gw','int','Guinea Worm', False),
+    ('nt','int','Neonatal Tetanus', False),
+    ('yf','int','Yellow Fever', False),
+    ('pl','int','Plague', False),
+    ('ra','int','Rabies', False),
+    ('rb','int','Rabies', False),
+    ('vf','int','Other Viral Hemorrhagic Fevers', False),
+    ('ei','int','Other Emerging Infectious Diseases', False),
+]
+
+HOME_ATTRIBUTES = [
+   ('to','int','Total Homesteads Visited', False),
+   ('it','int','ITTNs/LLINs', False),
+   ('la','int','Latrines', False),
+   ('ha','int','Handwashing Facilities', False),
+   ('wa','int','Safe Drinking Water', False),
+]
+
+XFORMS = (
+    ('','epi',',;:*.\\s"','Epi Report','Weekly-submitted VHT epidemiological reports'),
+    ('+','home',',;:*.\\s"','Home Report','Monthly-submitted PVHT home visitation reports'),
+    ('+','muac',',;:*."','Malnu Report','VHT report of child malnutrition'),
+    ('+','birth',',;:*."','Birth Report','VHT report of a birth'),
+    ('+','death',',;:*."','Death Report','VHT report of a death'),
+    ('+','itp',',','Inpatient Treatment Report','Health Center report of an inpatient treatment',),
+    ('+','otp',',','Outpatient Treatment Report','Health Center report of an outpatient treatment',),
+    ('+','cure',',','Cure Treatment Report','Health Center report of patient cure',),
+    ('+','reg',',','Registration','Registers a reporter with their name',),
+    ('+','pvht',',','PVHT Signup','Registers a PVHT with their facility',),
+    ('+','vht',',','VHT Signup','Registers a VHT with their facility',),
+    ('','com',',;:*.\\s"','VHT Report', 'Routine VHT Report of weekly aggregate indicators'),
+    ('','mal',',;:*.\\s"','ITP/OTP Treatment Report','Routine HC report of weekly itp/otp treatments'),
+    ('','rutf',',;:*.\\s"','OTC/ITC Stock Report','Routine HC report of weekly otc/itc stock reports'),
+    ('','act',',;:*.\\s"', 'ACT Stock Report','Routine report of ACT stock'),
+)
+
+XFORM_FIELDS = {
+    '+muac':[
+         ('name', 'text', 'The name of the malnourished patient', True),
+         ('gender', 'cvssex','The gender of the malnourished patient', True),
+         ('age', 'cvstdelt', 'The age of the malnurished patient', True),
+         ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition', True),
+         ('ignored','cvsodema', 'Occurence of oedema (T/F)', False),
+     ],
+    '+birth':[
+         ('name', 'text', 'The name of the child born', True),
+         ('gender', 'cvssex', 'The gender of the child born', True),
+         ('place','cvsloc', 'At home or at a health facility', True),
+     ],
+     '+death':[
+         ('name','text','The name of the person who has died', True),
+         ('gender', 'cvssex', 'The gender of the person who has died', True),
+         ('age', 'cvstdelt', 'The age of the person who has died', True),
+     ],
+    'epi':DISEASE_CHOICES,
+    '+home':HOME_ATTRIBUTES,
+    '+reg':[
+         ('name','text','Your name', True),
+    ],
+    '+vht':[
+         ('facility','facility','Your facility code', True),
+    ],
+    '+pvht':[
+         ('facility','facility','Your facility code', True),
+    ],
+    'com':[
+        ('fever','int','fever', True),
+        ('diarrhea','int','diarrhea', True),
+        ('death','int','deaths', True),
+        ('bi_od','int','OE', True),
+        ('muac_red','int','Red', True),
+        ('muac_yellow','int','Yel', True),
+        ('muac_green','int','Green', True),
+    ],
+    'mal':[
+        ('total_new','int','new admissions', True),
+        ('total_death','int','deaths', True),
+        ('total_default','int','defaults', True),
+        ('total_admissions','int','total admissions', True),
+    ],
+    'rutf':[
+        ('new_f75_stock','int','F-75 New', True),
+        ('closing_f75_stock','int','F-75 Balance', True),
+        ('new_rutf_stock','int','RUTF New', True),
+        ('closing_rutf_stock','int','RUTF Balance', True),
+    ],
+    'act':[
+        ('yellow_disp', 'int', 'Yellow dispensed', True),
+        ('yellow_balance', 'int', 'Yellow stock', True),
+        ('blue_disp', 'int', 'Blue dispensed', True),
+        ('blue_balance', 'int', 'Blue stock', True),
+        ('brown_disp', 'int', 'Brown dispensed', True),
+        ('brown_balance', 'int', 'Brown stock', True),
+        ('green_disp', 'int', 'Green dispensed', True),
+        ('green_balance', 'int', 'Green stock', True),
+        ('other_disp', 'int', 'Other ACT dispensed', True),
+        ('other_balance', 'int', 'Other ACT stock', True),
+    ]
+}
+
 def init_xforms():
-    DISEASE_CHOICES = [
-        ('bd','int','Bloody diarrhea (Dysentery)', False),
-        ('dy','int','Dysentery', False),
-        ('ma','int','Malaria', False),
-        ('tb','int','Tuberculosis', False),
-        ('ab','int','Animal Bites', False),
-        ('af','int','Acute Flaccid Paralysis (Polio)', False),
-        ('mg','int','Meningitis', False),
-        ('me','int','Measles', False),
-        ('ch','int','Cholera', False),
-        ('gw','int','Guinea Worm', False),
-        ('nt','int','Neonatal Tetanus', False),
-        ('yf','int','Yellow Fever', False),
-        ('pl','int','Plague', False),
-        ('ra','int','Rabies', False),
-        ('rb','int','Rabies', False),
-        ('vf','int','Other Viral Hemorrhagic Fevers', False),
-        ('ei','int','Other Emerging Infectious Diseases', False),
-    ]
-
-    HOME_ATTRIBUTES = [
-       ('to','int','Total Homesteads Visited', False),
-       ('it','int','ITTNs/LLINs', False),
-       ('la','int','Latrines', False),
-       ('ha','int','Handwashing Facilities', False),
-       ('wa','int','Safe Drinking Water', False),
-    ]
-
-    XFORMS = (
-        ('','epi',',;:*.\\s"','Epi Report','Weekly-submitted VHT epidemiological reports'),
-        ('+','home',',;:*.\\s"','Home Report','Monthly-submitted PVHT home visitation reports'),
-        ('+','muac',',;:*."','Malnu Report','VHT report of child malnutrition'),
-        ('+','birth',',;:*."','Birth Report','VHT report of a birth'),
-        ('+','death',',;:*."','Death Report','VHT report of a death'),
-        ('+','itp',',','Inpatient Treatment Report','Health Center report of an inpatient treatment',),
-        ('+','otp',',','Outpatient Treatment Report','Health Center report of an outpatient treatment',),
-        ('+','cure',',','Cure Treatment Report','Health Center report of patient cure',),
-        ('+','reg',',','Registration','Registers a reporter with their name',),
-        ('+','pvht',',','PVHT Signup','Registers a PVHT with their facility',),
-        ('+','vht',',','VHT Signup','Registers a VHT with their facility',),
-        ('','com',',;:*.\\s"','VHT Report', 'Routine VHT Report of weekly aggregate indicators'),
-        ('','mal',',;:*.\\s"','ITP/OTP Treatment Report','Routine HC report of weekly itp/otp treatments'),
-        ('','rutf',',;:*.\\s"','OTC/ITC Stock Report','Routine HC report of weekly otc/itc stock reports'),
-        ('','act',',;:*.\\s"', 'ACT Stock Report','Routine report of ACT stock'),
-    )
-
-    XFORM_FIELDS = {
-        '+muac':[
-             ('name', 'text', 'The name of the malnourished patient', True),
-             ('gender', 'cvssex','The gender of the malnourished patient', True),
-             ('age', 'cvstdelt', 'The age of the malnurished patient', True),
-             ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition', True),
-             ('ignored','cvsodema', 'Occurence of oedema (T/F)', False),
-         ],
-        '+birth':[
-             ('name', 'text', 'The name of the child born', True),
-             ('gender', 'cvssex', 'The gender of the child born', True),
-             ('place','cvsloc', 'At home or at a health facility', True),
-         ],
-         '+death':[
-             ('name','text','The name of the person who has died', True),
-             ('gender', 'cvssex', 'The gender of the person who has died', True),
-             ('age', 'cvstdelt', 'The age of the person who has died', True),
-         ],
-        'epi':DISEASE_CHOICES,
-        '+home':HOME_ATTRIBUTES,
-        '+reg':[
-             ('name','text','Your name', True),
-        ],
-        '+vht':[
-             ('facility','facility','Your facility code', True),
-        ],
-        '+pvht':[
-             ('facility','facility','Your facility code', True),
-        ],
-        'com':[
-            ('fever','int','fever', True),
-            ('diarrhea','int','diarrhea', True),
-            ('death','int','deaths', True),
-            ('bi_od','int','OE', True),
-            ('muac_red','int','Red', True),
-            ('muac_yellow','int','Yel', True),
-            ('muac_green','int','Green', True),
-        ],
-        'mal':[
-            ('total_new','int','new admissions', True),
-            ('total_death','int','deaths', True),
-            ('total_default','int','defaults', True),
-            ('total_admissions','int','total admissions', True),
-        ],
-        'rutf':[
-            ('new_f75_stock','int','F-75 New', True),
-            ('closing_f75_stock','int','F-75 Balance', True),
-            ('new_rutf_stock','int','RUTF New', True),
-            ('closing_rutf_stock','int','RUTF Balance', True),
-        ],
-        'act':[
-            ('yellow_disp', 'int', 'Yellow dispensed', True),
-            ('yellow_balance', 'int', 'Yellow stock', True),
-            ('blue_disp', 'int', 'Blue dispensed', True),
-            ('blue_balance', 'int', 'Blue stock', True),
-            ('brown_disp', 'int', 'Brown dispensed', True),
-            ('brown_balance', 'int', 'Brown stock', True),
-            ('green_disp', 'int', 'Green dispensed', True),
-            ('green_balance', 'int', 'Green stock', True),
-            ('other_disp', 'int', 'Other ACT dispensed', True),
-            ('other_balance', 'int', 'Other ACT stock', True),
-        ]
-    }
-    
     init_xforms_from_tuples(XFORMS, XFORM_FIELDS)
 
 def init_xforms_from_tuples(xforms, xform_fields):
