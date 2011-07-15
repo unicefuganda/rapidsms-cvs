@@ -75,9 +75,9 @@ class Command(BaseCommand):
         ## CVS reporter Name
         description = 'CVS Reporter Name'
         question = 'Please enter only the answers to the questions asked. What is your name?'
-        default_response = 'Thank you for your response'
+#        default_response = 'Thank you for your response'
         type = Poll.TYPE_TEXT
-        name_poll = Poll.objects.create(name=description, question=question, default_response=default_response, type=type, user=user)
+        name_poll = Poll.objects.create(name=description, question=question, type=type, user=user)
         name_poll.sites.add(Site.objects.get_current())
         name_poll.start()
         
@@ -95,9 +95,9 @@ class Command(BaseCommand):
         ## CVS reporter District
         description = 'CVS Reporter District'
         question = 'What is the name of your District?'
-        default_response = 'Thank you for your response'
+#        default_response = 'Thank you for your response'
         type = Poll.TYPE_TEXT
-        district_poll = Poll.objects.create(name=description, question=question, default_response=default_response, type=type, user=user)
+        district_poll = Poll.objects.create(name=description, question=question, type=type, user=user)
         district_poll.sites.add(Site.objects.get_current())
         district_poll.start()
         
@@ -115,9 +115,9 @@ class Command(BaseCommand):
         ## CVS reporter Health Facility
         description = 'CVS Reporter HF'
         question = 'What is the name of your Health Facility?'
-        default_response = 'Thank you for your response'
+#        default_response = 'Thank you for your response'
         type = Poll.TYPE_TEXT
-        hf_poll = Poll.objects.create(name=description, question=question, default_response=default_response, type=type, user=user)
+        hf_poll = Poll.objects.create(name=description, question=question, type=type, user=user)
         hf_poll.sites.add(Site.objects.get_current())
         hf_poll.start()
         
@@ -135,9 +135,9 @@ class Command(BaseCommand):
         ## CVS reporter Village
         description = 'CVS Reporter Village'
         question = 'What is the name of your Village?'
-        default_response = 'Thank you for your response'
+#        default_response = 'Thank you for your response'
         type = Poll.TYPE_TEXT
-        village_poll = Poll.objects.create(name=description, question=question, default_response=default_response, type=type, user=user)
+        village_poll = Poll.objects.create(name=description, question=question, type=type, user=user)
         village_poll.sites.add(Site.objects.get_current())
         village_poll.start()
         
@@ -166,5 +166,7 @@ class Command(BaseCommand):
                poll=numbers_poll,
                order=5,
                rule=ScriptStep.LENIENT,
+               start_offset=0,
+               giveup_offset=60*30,
                ))
         
