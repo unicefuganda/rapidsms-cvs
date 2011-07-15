@@ -10,6 +10,11 @@ from django.db.models.signals import pre_delete
 from rapidsms.models import Contact
 from poll.models import Poll
 from eav.models import Attribute
+from cvs.forms import FacilityResponseForm
+from script.signals import *
+from script.models import *
+from uganda_common.utils import find_closest_match, find_best_response, parse_district_value
+from rapidsms.contrib.locations.models import Location
 import itertools
 
 def parse_timedelta(command, value):
@@ -426,5 +431,52 @@ def xform_received_handler(sender, **kwargs):
         submission.save()
         return
 
+def cvs_autoreg(**kwargs):
+    connection = kwargs['connection']
+    progress = kwargs['sender']
+    if not progress.script.slug == 'cvs_autoreg':
+        return
+    session = ScriptSession.objects.filter(script=progress.script, connection=connection).order_by('-end_time')[0]
+    script = progress.script
+    rolepoll = script.steps.get(order=0).poll
+    namepoll = script.steps.get(order=1).poll
+    districtpoll = script.steps.get(order=2).poll
+    healthfacilitypoll = script.steps.get(order=3).poll
+    villagepoll = script.steps.get(order=4).poll
+    numberspoll = script.steps.get(order=5).poll
+
+    if not connection.contact:
+        connection.contact = Contact.objects.create()
+        connection.save
+    contact = connection.contact
+
+    name = find_best_response(session, namepoll)
+    if name:
+        contact.name = name[:100]
+
+    contact.reporting_location = find_best_response(session, districtpoll)
+
+    village = find_best_response(session, villagepoll)
+    if village:
+        contact.village = find_closest_match(village, Location.objects)
+
+    group = find_best_response(session, rolepoll)
+    default_group = None
+    if Group.objects.filter(name='Other cvsReporters').count():
+        default_group = Group.objects.get(name='Other cvsReporters')
+    if group:
+        group = find_closest_match(group, Group.objects)
+        if group:
+            contact.groups.add(group)
+        elif default_group:
+            contact.groups.add(default_group)
+    elif default_group:
+        contact.groups.add(default_group)
+
+    if not contact.name:
+        contact.name = 'Anonymous User'
+    contact.save()
+
+script_progress_was_completed.connect(cvs_autoreg, weak=False)
 xform_received.connect(xform_received_handler, weak=True)
 pre_delete.connect(fix_location, weak=True)

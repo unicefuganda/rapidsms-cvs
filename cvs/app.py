@@ -1,6 +1,7 @@
 from rapidsms.models import Contact
 from django.conf import settings
 from rapidsms.apps.base import AppBase
+from script.models import ScriptProgress
 
 class App (AppBase):
     
