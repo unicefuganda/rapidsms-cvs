@@ -7,11 +7,38 @@ class App (AppBase):
     def handle (self, message):
         if getattr(settings, 'ACTIVATION_CODE',None) and message.text.strip().lower() == settings.ACTIVATION_CODE:
             if not message.connection.contact:
-                message.connection.contact = Contact.objects.create(name='Anonymous User')
-                message.connection.save()
+                message.respond('You must first register with the system.Text JOIN to 6767 to begin.')
+                return True
             if not message.connection.contact.active:
                 message.connection.contact.active=True
                 message.connection.contact.save()
                 message.respond(getattr(settings,'ACTIVATION_MESSAGE','Congratulations, you are now active in the system!'))
                 return True
+            else:
+                message.respond(getattr(settings, 'ALREADY_ACTIVATED_MESSAGE','You are already in the system.You should not SMS the code %s' % getattr(settings,'ACTIVATION_CODE')))
+        elif message.text.strip().lower() in [i.lower() for i in getattr(settings,'OPT_IN_WORDS',[])] and Blacklist.objects.filter(connection=message.connection).count():
+            for b in Blacklist.objects.filter(connection=message.connection):
+                b.delete()
+        elif message.text.strip().lower() in getattr(settings,'OPT_OUT_WORDS',[]):
+            Blacklist.objects.create(connection=message.connection)
+            if (message.connection.contact):
+                message.connection.contact.active = False
+                message.connection.contact.save()
+            message.respond(getattr(settings,'OPT_OUT_CONFIRMATION',''))
+            return True
+        if message.text.strip().lower() in [i.lower() for i in getattr(settings,'OPT_IN_WORDS',[])]:
+            if Blacklist.objects.filter(connection=message.connection).count() or not message.connection.contact:
+                for b in Blacklist.objects.filter(connection=message.connection):
+                    b.delete()
+                ScriptProgress.objects.create(script=Script.objects.get(slug="cvs_autoreg"),\
+                                          connection=message.connection)
+            else:
+                message.repond("You are already in the system and do not need to 'Join' again.Only if you want to reregister,or change location,please send the word JOIN to 6767.")
+        elif Blacklist.objects.filter(connection=message.connection).count():
+            return True
         return False
+
+    def outgoing(self, msg):
+        if Blacklist.objects.filter(connection=msg.connection).count():
+            return False
+        return True

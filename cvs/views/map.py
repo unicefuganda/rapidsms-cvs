@@ -159,10 +159,11 @@ def map_api(request, start_date, end_date, xform_keyword, attribute_keyword=None
     if attribute_keyword:
         data_function = total_attribute_by_facility
         keyword = "%s_%s" % (xform_keyword, attribute_keyword)
+        title = attribute_keyword
     else:
         data_function = total_submissions_by_facility
         keyword = xform_keyword
-#    import pdb;pdb.set_trace()
+        title = xform_keyword
     data = data_function(keyword, start_date, end_date, (MIN_LAT, MIN_LON, MAX_LAT, MAX_LON))
     for d in data:
         d['lat'] = float(d.pop('latitude'))
@@ -170,6 +171,6 @@ def map_api(request, start_date, end_date, xform_keyword, attribute_keyword=None
         d['location_id'] = d.pop('facility_id')
         d['location_name'] = "%s %s" % (d.pop('facility_name'), d.pop('type').upper())
 
-    json_response_data = {'layer_type':'flat', 'data':list(data)}
+    json_response_data = {'layer_title':title,'layer_type':'flat', 'data':list(data)}
     return JsonResponse(json_response_data)
 
