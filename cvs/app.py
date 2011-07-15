@@ -19,9 +19,6 @@ class App (AppBase):
             else:
                 message.respond(getattr(settings, 'ALREADY_ACTIVATED_MESSAGE','You are already in the system.You should not SMS the code %s' % getattr(settings,'ACTIVATION_CODE')))
                 return True
-        elif message.text.strip().lower() in [i.lower() for i in getattr(settings,'OPT_IN_WORDS',[])] and Blacklist.objects.filter(connection=message.connection).count():
-            for b in Blacklist.objects.filter(connection=message.connection):
-                b.delete()
         elif message.text.strip().lower() in getattr(settings,'OPT_OUT_WORDS',[]):
             Blacklist.objects.create(connection=message.connection)
             if (message.connection.contact):
@@ -29,7 +26,7 @@ class App (AppBase):
                 message.connection.contact.save()
             message.respond(getattr(settings,'OPT_OUT_CONFIRMATION',''))
             return True
-        if message.text.strip().lower() in [i.lower() for i in getattr(settings,'OPT_IN_WORDS',[])]:
+        elif message.text.strip().lower() in [i.lower() for i in getattr(settings,'OPT_IN_WORDS',[])]:
             if Blacklist.objects.filter(connection=message.connection).count() or not message.connection.contact:
                 for b in Blacklist.objects.filter(connection=message.connection):
                     b.delete()
@@ -37,6 +34,7 @@ class App (AppBase):
                                           connection=message.connection)
             else:
                 message.repond("You are already in the system and do not need to 'Join' again.Only if you want to reregister,or change location,please send the word JOIN to 6767.")
+            return True
         elif Blacklist.objects.filter(connection=message.connection).count():
             return True
         return False
