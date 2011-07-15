@@ -49,7 +49,6 @@ class Command(BaseCommand):
         dho_category.color = 'ff6699'
         dho_category.save()
         unknown_category = role_poll.categories.create(name='unknown')
-#        unknown_category = role_poll.categories.get(name='unknown')
         unknown_category.default = False
         unknown_category.color = 'ffff77'
         unknown_category.save()
@@ -75,7 +74,6 @@ class Command(BaseCommand):
         ## CVS reporter Name
         description = 'CVS Reporter Name'
         question = 'Please enter only the answers to the questions asked. What is your name?'
-#        default_response = 'Thank you for your response'
         type = Poll.TYPE_TEXT
         name_poll = Poll.objects.create(name=description, question=question, type=type, user=user)
         name_poll.sites.add(Site.objects.get_current())
@@ -95,7 +93,6 @@ class Command(BaseCommand):
         ## CVS reporter District
         description = 'CVS Reporter District'
         question = 'What is the name of your District?'
-#        default_response = 'Thank you for your response'
         type = Poll.TYPE_TEXT
         district_poll = Poll.objects.create(name=description, question=question, type=type, user=user)
         district_poll.sites.add(Site.objects.get_current())
@@ -115,7 +112,6 @@ class Command(BaseCommand):
         ## CVS reporter Health Facility
         description = 'CVS Reporter HF'
         question = 'What is the name of your Health Facility?'
-#        default_response = 'Thank you for your response'
         type = Poll.TYPE_TEXT
         hf_poll = Poll.objects.create(name=description, question=question, type=type, user=user)
         hf_poll.sites.add(Site.objects.get_current())
@@ -135,7 +131,6 @@ class Command(BaseCommand):
         ## CVS reporter Village
         description = 'CVS Reporter Village'
         question = 'What is the name of your Village?'
-#        default_response = 'Thank you for your response'
         type = Poll.TYPE_TEXT
         village_poll = Poll.objects.create(name=description, question=question, type=type, user=user)
         village_poll.sites.add(Site.objects.get_current())
@@ -155,9 +150,8 @@ class Command(BaseCommand):
         ## CVS reporter Alternative Phone numbers
         description = 'CVS Reporter numbers'
         question = 'Do you have any other phone numbers?'
-        default_response = 'Thanks for registering! You have just entered training mode.'
         type = Poll.TYPE_TEXT
-        numbers_poll = Poll.objects.create(name=description, question=question, default_response=default_response, type=type, user=user)
+        numbers_poll = Poll.objects.create(name=description, question=question, type=type, user=user)
         numbers_poll.sites.add(Site.objects.get_current())
         numbers_poll.start()
         
@@ -168,5 +162,15 @@ class Command(BaseCommand):
                rule=ScriptStep.LENIENT,
                start_offset=0,
                giveup_offset=60*30,
+               ))
+        
+        ## CVS reporter Thanks for registering message!
+        script.steps.add(ScriptStep.objects.create(
+               script=script,
+               message='Thank you  for registering! You have just entered training mode.',
+               order=6,
+               rule=ScriptStep.WAIT_MOVEON,
+               start_offset=0,
+               giveup_offset=0,
                ))
         
