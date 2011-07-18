@@ -433,6 +433,13 @@ def xform_received_handler(sender, **kwargs):
         return
 
 def cvs_autoreg(**kwargs):
+    
+    ''' 
+    CVS autoreg post registration particulars handling. 
+    This method responds to a signal sent by the Script module on completion of the cvs_autoreg script
+    TODO: Handle extra numbers submitted by user
+    '''
+    
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'cvs_autoreg':
