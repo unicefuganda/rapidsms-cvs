@@ -433,6 +433,13 @@ def xform_received_handler(sender, **kwargs):
         return
 
 def cvs_autoreg(**kwargs):
+    
+    ''' 
+    CVS autoreg post registration particulars handling. 
+    This method responds to a signal sent by the Script module on completion of the cvs_autoreg script
+    TODO: Handle extra numbers submitted by user
+    '''
+    
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'cvs_autoreg':
@@ -456,7 +463,7 @@ def cvs_autoreg(**kwargs):
         contact.name = name[:100]
 
     contact.reporting_location = find_best_response(session, districtpoll)
-
+    
     village = find_best_response(session, villagepoll)
     if village:
         contact.village = find_closest_match(village, Location.objects)
@@ -477,6 +484,16 @@ def cvs_autoreg(**kwargs):
     if not contact.name:
         contact.name = 'Anonymous User'
     contact.save()
+    
+    healthfacility = find_best_response(session, healthfacilitypoll)
+    if healthfacility:
+        facility = find_closest_match(healthfacility, HealthFacility.objects)
+    
+    HealthProvider.objects.create(
+            name = name[:100],
+            facility = facility,
+            location = find_best_response(session, district)
+            )
 
 script_progress_was_completed.connect(cvs_autoreg, weak=False)
 xform_received.connect(xform_received_handler, weak=True)
