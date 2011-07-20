@@ -1,7 +1,5 @@
 from django.utils.datastructures import SortedDict
 
-
-
 ## set the overlay colors and icons
 MAP_LAYERS = SortedDict([
     #('health_facilities', ['Health Facilities', '/cvs/map/health_facilities','#4572A7']),
@@ -15,10 +13,10 @@ MAP_LAYERS = SortedDict([
     ])
 
 #map bounding box
-MIN_LAT = '31.19800'
-MAX_LAT = '33.80176'
-MIN_LON = '2.1444'
-MAX_LON = '3.88875'
+MIN_LON = '31.19800'
+MAX_LON = '33.80176'
+MIN_LAT = '2.1444'
+MAX_LAT = '3.88875'
 
 ##google maps api key
 MAP_KEY = \

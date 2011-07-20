@@ -3,12 +3,13 @@ from cvs.views.stats import *
 from cvs.views.chart import *
 from cvs.views import basic, reporters, map
 from healthmodels import *
-from generic.views import generic, generic_row, generic_dashboard
+from generic.views import generic, generic_row, generic_dashboard, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
 from cvs.forms import FacilityFilterForm, ChartModuleForm, StatsModuleForm,MapModuleForm
 from cvs.utils import get_reporters
 from cvs.sorters import LatestSubmissionSorter
+from cvs.views.dates import get_dates
 from healthmodels.models.HealthProvider import HealthProviderBase
 from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
@@ -127,6 +128,13 @@ urlpatterns = patterns('',
       'selectable':False,
     }),
     url(r'^cvs/stats/(?P<start_date>\d+)/(?P<end_date>\d+)/(?P<xform_keyword>[a-z]+)/((?P<attribute_keyword>[a-zA-Z_]+)/)?', map.map_api),
+    url(r'^cvs/stats/healthfacility', map.health_facility_api),
+    url(r'^cvs/maptest/', generic_map, { 
+        'map_layers' : [{'name':'HCs','url':'/cvs/stats/healthfacility','autoload':True},
+                        {'name':'MUAC','url':'/cvs/stats/1278450000/1310504400/muac/','color':'#3D96AE','needs_date':True},
+                       ],
+        'dates': get_dates,\
+    }),
 )
 
 

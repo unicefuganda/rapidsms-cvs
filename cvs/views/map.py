@@ -164,13 +164,48 @@ def map_api(request, start_date, end_date, xform_keyword, attribute_keyword=None
         data_function = total_submissions_by_facility
         keyword = xform_keyword
         title = xform_keyword
+    print "start date %s, end date %s" % (str(start_date), str(end_date))
     data = data_function(keyword, start_date, end_date, (MIN_LAT, MIN_LON, MAX_LAT, MAX_LON))
+    print "data %s" % data
     for d in data:
-        d['lat'] = float(d.pop('latitude'))
-        d['lon'] = float(d.pop('longitude'))
+        d['lat'] = '%.5f' % float(d.pop('latitude'))
+        d['lon'] = '%.5f' % float(d.pop('longitude'))
         d['location_id'] = d.pop('facility_id')
         d['location_name'] = "%s %s" % (d.pop('facility_name'), d.pop('type').upper())
 
     json_response_data = {'layer_title':title,'layer_type':'flat', 'data':list(data)}
+    return JsonResponse(json_response_data)
+
+def health_facility_api(request):
+    data = list(HealthFacility.objects.exclude(location=None).values('location__latitude','location__longitude','pk','name','type__name'))
+    icons_lookup = {
+        'dho':'d',
+        'hcii':'2',
+        'ministry':'M',
+        'hospital':'H',
+        'hciv':'4',
+        'hciii':'3',
+    }
+    icon_root = str(settings.MEDIA_URL) + 'cvs/icons/' 
+    facility_icons={
+        'd':icon_root + 'HOSPITAL.png',
+        '2':icon_root + 'HCII.png',
+        '3':icon_root + 'HCIII.png',
+        '4':icon_root + 'HCIV.png',
+        'H':icon_root + 'HOSPITAL.png',
+        'M':icon_root + 'HOSPITAL.png',
+    }
+
+    for d in data:
+        d['lat'] = '%.5f' % float(d.pop('location__latitude'))
+        d['lon'] = '%.5f' % float(d.pop('location__longitude'))
+        d['location_id'] = d.pop('pk')
+        type = d.pop('type__name')
+        d['location_name'] = "%s %s" % (d.pop('name'), type.upper())
+        d['icon'] = icons_lookup[type]
+    json_response_data = {'layer_title':'Health Facility',
+                          'layer_type':'marker',
+                          'data':data,
+                          'icons':facility_icons}
     return JsonResponse(json_response_data)
 
