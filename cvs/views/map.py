@@ -153,20 +153,69 @@ def map_index(request,layer=None,kind=None,template="cvs/map.html"):
                                   context_instance=RequestContext(request))
     return JsonResponse(data_list)
 
+TITLE_DICT = {
+    'epi_ma':'Malaria',
+    'epi_tb':'Tuberclosis',
+    'epi_bd': 'Bloody Diarrhea',
+    'epi_ab':'Animal Bites',
+    'epi_af':'Polio',
+    'epi_mg':'Meningitis',
+    'epi_me':'Measles',
+    'epi_ch':'Cholera',
+    'epi_gw':'Guinea Worm',
+    'epi_nt':'Neonatal Tetanus',
+    'epi_yf':'Yellow Fever',
+    'epi_pl':'Plague',
+    'epi_ra':'Rabies',
+    'epi_vf':'Hemorrhagic Fevers',
+    'epi_ei':'Infectious Diseases',
+    'epi_to':'Total Household Visited',
+    'epi_wa':'Safe Drinking Water',
+    'epi_ha':'Hand Washing Facilites',
+    'epi_la':'Latrines',
+    'epi_it':'ITTNs/LLINs',
+    'epi':'Total Epi Reports',
+    'home':'Total Home Reports',
+    'muac':'Cases of Malnutrition',
+    'death':'Total Deaths',
+    'birth':'Total Births',
+}
+
+def map_other_api(request, start_date, end_date):
+    start_date=datetime.datetime.fromtimestamp(int(start_date))
+    end_date=datetime.datetime.fromtimestamp(int(end_date))
+
+    to_ret_data = {}
+    for att in ['me','ab','af','yf','ch','gw','mg','nt','pl','rb']:
+        data = total_attribute_by_facility('epi_%s'%att, start_date, end_date, (MIN_LAT, MIN_LON, MAX_LAT, MAX_LON))
+        for d in data:
+            id = d.pop('facility_id')
+            to_ret_data.setdefault(id,\
+                {'location_id':id,\
+                 'location_name':"%s %s" % (d.pop('facility_name'), d.pop('type').upper()),\
+                 'lat':'%.5f' % float(d.pop('latitude')),
+                 'lon':'%.5f' % float(d.pop('longitude')),
+                 'description':'',
+                 'value':0})
+            to_ret_data[id]['description'] += "%s : %d<br/>" % (TITLE_DICT["epi_%s"%att], d['value'])
+            to_ret_data[id]['value'] += d['value']
+
+    json_response_data = {'layer_title':'Other Diseases','layer_type':'flat', 'data':list(to_ret_data.values())}
+    return JsonResponse(json_response_data)
+
 def map_api(request, start_date, end_date, xform_keyword, attribute_keyword=None):
     start_date=datetime.datetime.fromtimestamp(int(start_date))
     end_date=datetime.datetime.fromtimestamp(int(end_date))
+
     if attribute_keyword:
         data_function = total_attribute_by_facility
         keyword = "%s_%s" % (xform_keyword, attribute_keyword)
-        title = attribute_keyword
     else:
         data_function = total_submissions_by_facility
         keyword = xform_keyword
-        title = xform_keyword
-    print "start date %s, end date %s" % (str(start_date), str(end_date))
+
+    title = TITLE_DICT[keyword]
     data = data_function(keyword, start_date, end_date, (MIN_LAT, MIN_LON, MAX_LAT, MAX_LON))
-    print "data %s" % data
     for d in data:
         d['lat'] = '%.5f' % float(d.pop('latitude'))
         d['lon'] = '%.5f' % float(d.pop('longitude'))

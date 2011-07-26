@@ -207,7 +207,7 @@ def chart_params(xform_keyword, attribute_keyword, attribute_value=None):
     'it':'ITTNs/LLINs',
     'epi':'Total Epi',
     'home':'Total Home',
-    }   
+    }
     value_dict = {
                   'G':'Green',
                   'G__T':'Green + Oedema',

@@ -128,12 +128,20 @@ urlpatterns = patterns('',
       'selectable':False,
     }),
     url(r'^cvs/stats/(?P<start_date>\d+)/(?P<end_date>\d+)/(?P<xform_keyword>[a-z]+)/((?P<attribute_keyword>[a-zA-Z_]+)/)?', map.map_api),
+    url(r'^cvs/stats/(?P<start_date>\d+)/(?P<end_date>\d+)/2/epi/other/', map.map_other_api),
     url(r'^cvs/stats/healthfacility', map.health_facility_api),
     url(r'^cvs/maptest/', generic_map, { 
-        'map_layers' : [{'name':'HCs','url':'/cvs/stats/healthfacility','autoload':True},
-                        {'name':'MUAC','url':'/cvs/stats/1278450000/1310504400/muac/','color':'#3D96AE','needs_date':True},
+        'map_layers' : [{'name':'Health Facilities','url':'/cvs/stats/healthfacility','autoload':True},
+                        {'name':'Malnutrition','url':'/cvs/stats/<start_ts>/<end_ts>/muac/','color':'#80699B','needs_date':True},
+                        {'name':'Deaths','url':'/cvs/stats/<start_ts>/<end_ts>/death/','color':'#AA4643','needs_date':True},
+                        {'name':'Births','url':'/cvs/stats/<start_ts>/<end_ts>/births/','color':'#89A54E','needs_date':True},
+                        {'name':'Malaria','url':'/cvs/stats/<start_ts>/<end_ts>/epi/ma/','color':'#3D96AE','needs_date':True},
+                        {'name':'Dysentery','url':'/cvs/stats/<start_ts>/<end_ts>/epi/bd/','color':'#DB843D','needs_date':True},
+                        {'name':'Tuberculosis','url':'/cvs/stats/<start_ts>/<end_ts>/epi/tb/','color':'#92A8CD','needs_date':True},
+                        {'name':'Other Diseases','url':'/cvs/stats/<start_ts>/<end_ts>/2/epi/other/','color':'#A47D7C','needs_date':True},
                        ],
         'dates': get_dates,\
+        'display_autoload': False,\
     }),
 )
 
