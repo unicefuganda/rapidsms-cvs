@@ -41,15 +41,7 @@ urlpatterns = patterns('',
    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)', chart),
     url(r'^cvs/chart/(?P<location_id>\d+)/active_reporters/$', active_reporters_chart),
-   #map urls
-   url(r'^cvs/map/(?P<layer>[a-z_]+)/(?P<kind>[-a-z]+)', map.map_index,name='map'),
-   url(r'^cvs/map/(?P<layer>[a-z_]+)',map.map_index),
-   url(r'^cvs/map/$',map.map_index),
-#   url(r'^cvs/map/health_facilities', map.health_facilities),
-#   url(r'^cvs/map/births', map.births),
-#   url(r'^cvs/map/epi/(?P<kind>[-a-z]+)', map.epi_kind),
-#   url(r'^cvs/map/malnutrition', map.malnutrition),
-#   url(r'^cvs/map/deaths', map.deaths),
+
    #reporters
     url(r'^cvs/reporter/$', login_required(generic), {
       'model':HealthProviderBase,
@@ -127,10 +119,14 @@ urlpatterns = patterns('',
       'sort_ascending':False,
       'selectable':False,
     }),
+
+    # map API calls
     url(r'^cvs/stats/(?P<start_date>\d+)/(?P<end_date>\d+)/(?P<xform_keyword>[a-z]+)/((?P<attribute_keyword>[a-zA-Z_]+)/)?', map.map_api),
     url(r'^cvs/stats/(?P<start_date>\d+)/(?P<end_date>\d+)/2/epi/other/', map.map_other_api),
     url(r'^cvs/stats/healthfacility', map.health_facility_api),
-    url(r'^cvs/maptest/', generic_map, { 
+
+    # map view
+    url(r'^cvs/map/', generic_map, { 
         'map_layers' : [{'name':'Health Facilities','url':'/cvs/stats/healthfacility','autoload':True},
                         {'name':'Malnutrition','url':'/cvs/stats/<start_ts>/<end_ts>/muac/','color':'#80699B','needs_date':True},
                         {'name':'Deaths','url':'/cvs/stats/<start_ts>/<end_ts>/death/','color':'#AA4643','needs_date':True},
@@ -142,7 +138,7 @@ urlpatterns = patterns('',
                        ],
         'dates': get_dates,\
         'display_autoload': False,\
-    }),
+    }, name="cvs-map"),
 )
 
 
