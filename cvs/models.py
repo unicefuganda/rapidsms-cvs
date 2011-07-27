@@ -452,48 +452,60 @@ def cvs_autoreg(**kwargs):
     healthfacilitypoll = script.steps.get(order=3).poll
     villagepoll = script.steps.get(order=4).poll
     numberspoll = script.steps.get(order=5).poll
-
-    if not connection.contact:
-        connection.contact = Contact.objects.create()
-        connection.save
-    contact = connection.contact
-
-    name = find_best_response(session, namepoll)
-    if name:
-        contact.name = name[:100]
-
-    contact.reporting_location = find_best_response(session, districtpoll)
-    
-    village = find_best_response(session, villagepoll)
-    if village:
-        contact.village = find_closest_match(village, Location.objects)
-
-    group = find_best_response(session, rolepoll)
-    default_group = None
-    if Group.objects.filter(name='Other cvsReporters').count():
-        default_group = Group.objects.get(name='Other cvsReporters')
-    if group:
-        group = find_closest_match(group, Group.objects)
-        if group:
-            contact.groups.add(group)
-        elif default_group:
-            contact.groups.add(default_group)
-    elif default_group:
-        contact.groups.add(default_group)
-
-    if not contact.name:
-        contact.name = 'Anonymous User'
-    contact.save()
     
     healthfacility = find_best_response(session, healthfacilitypoll)
     if healthfacility:
         facility = find_closest_match(healthfacility, HealthFacility.objects)
+
+    existing_contact =  Contact.objects.filter(name=find_best_reponse(session, namepoll),\
+                                  reporting_location=find_best_response(session, districtpoll),\
+                                  village=find_best_response(session, village))
+    if existing_contact:
+        existing_contact.connection = connection
+        existing_contact.save()
+        if facility:
+            healthprovider = HealthProvider.objects.filter(name = name[:100],location = find_best_response(session, district))
+            healthprovider.facility = facility
+            healthprovider.save()          
+    else:
+        if not connection.contact:
+            connection.contact = Contact.objects.create()
+            connection.save
+        contact = connection.contact
     
-    HealthProvider.objects.create(
-            name = name[:100],
-            facility = facility,
-            location = find_best_response(session, district)
-            )
+        name = find_best_response(session, namepoll)
+        if name:
+            contact.name = name[:100]
+    
+        contact.reporting_location = find_best_response(session, districtpoll)
+        
+        village = find_best_response(session, villagepoll)
+        if village:
+            contact.village = find_closest_match(village, Location.objects)
+    
+        group = find_best_response(session, rolepoll)
+        default_group = None
+        if Group.objects.filter(name='Other cvsReporters').count():
+            default_group = Group.objects.get(name='Other cvsReporters')
+        if group:
+            group = find_closest_match(group, Group.objects)
+            if group:
+                contact.groups.add(group)
+            elif default_group:
+                contact.groups.add(default_group)
+        elif default_group:
+            contact.groups.add(default_group)
+    
+        if not contact.name:
+            contact.name = 'Anonymous User'
+        contact.save()
+        
+        if facility:
+            HealthProvider.objects.create(
+                name = name[:100],
+                facility = facility,
+                location = find_best_response(session, district)
+                )
 
 script_progress_was_completed.connect(cvs_autoreg, weak=False)
 xform_received.connect(xform_received_handler, weak=True)
