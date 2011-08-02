@@ -21,11 +21,11 @@ def parse_timedelta(command, value):
     lvalue = value.lower().strip()
     now = datetime.datetime.now()
     try:
-        return (now -  datetime.datetime.strptime(lvalue, '%m-%d-%Y')).days
+        return (now - datetime.datetime.strptime(lvalue, '%m-%d-%Y')).days
     except ValueError:
         try:
-            return (now -  datetime.datetime.strptime(lvalue, '%m/%d/%Y')).days
-        except ValueError:   
+            return (now - datetime.datetime.strptime(lvalue, '%m/%d/%Y')).days
+        except ValueError:
             rx = re.compile('[0-9]*')
             m = rx.match(lvalue)
             number = lvalue[m.start():m.end()].strip()
@@ -39,23 +39,23 @@ def parse_timedelta(command, value):
                     'y':365,
                 }
                 unit_dict = {
-                    'd':('day','days','dys','ds'),
-                    'w':('wk','wks','weeks','week'),
-                    'm':('mo','months','month','mnths','mos','ms','mns','mnth'),
-                    'y':('year','years','yr','yrs'),
+                    'd':('day', 'days', 'dys', 'ds'),
+                    'w':('wk', 'wks', 'weeks', 'week'),
+                    'm':('mo', 'months', 'month', 'mnths', 'mos', 'ms', 'mns', 'mnth'),
+                    'y':('year', 'years', 'yr', 'yrs'),
                 }
                 for key, words in unit_dict.iteritems():
                     if unit == key:
-                        return number*unit_amounts[key]
+                        return number * unit_amounts[key]
                     for word in words:
                         if dl_distance(word, unit) <= 1:
-                            return number*unit_amounts[key]
-            
+                            return number * unit_amounts[key]
+
     raise ValidationError("Expected an age got: %s." % value)
 
 def parse_place(command, value):
     lvalue = value.lower().strip()
-    for w in ('clinic', 'facility', 'hc','hospital'):
+    for w in ('clinic', 'facility', 'hc', 'hospital'):
         if dl_distance(lvalue, w) <= 1:
             return 'FACILITY'
     if dl_distance(lvalue, 'home') <= 1:
@@ -95,7 +95,7 @@ def parse_muacreading(command, value):
         else:
             return 'Y'
     except ValueError:
-        for category, word in (('R', 'red'), ('Y','yellow'), ('G','green')):
+        for category, word in (('R', 'red'), ('Y', 'yellow'), ('G', 'green')):
             if (lvalue == category.lower()) or (dl_distance(lvalue, word) <= 1):
                 return category
     raise ValidationError("Expected a muac reading "
@@ -136,7 +136,7 @@ XFormField.register_field_type('cvsodema', 'Oedema Occurrence', parse_oedema,
 XFormField.register_field_type('facility', 'Facility Code', parse_facility,
                                db_type=XFormField.TYPE_OBJECT, xforms_type='string')
 
-Poll.register_poll_type('facility', 'Facility Code Response', parse_facility_value, db_type=Attribute.TYPE_OBJECT, view_template='cvs/partials/response_facility_view.html',edit_template='cvs/partials/response_facility_edit.html',report_columns=(('Original Text', 'text'),('Health Facility','custom',),),edit_form='cvs.forms.FacilityResponseForm')
+Poll.register_poll_type('facility', 'Facility Code Response', parse_facility_value, db_type=Attribute.TYPE_OBJECT, view_template='cvs/partials/response_facility_view.html', edit_template='cvs/partials/response_facility_edit.html', report_columns=(('Original Text', 'text'), ('Health Facility', 'custom',),), edit_form='cvs.forms.FacilityResponseForm')
 
 def split_name(patient_name):
     names = patient_name.split(' ')
@@ -215,17 +215,17 @@ def generate_tracking_tag(start='2a2', base_numbers='2345679',
                              u"formated. Check doctstring for more info.")
 
         try:
-            next_char = matrix[i+1]
+            next_char = matrix[i + 1]
             next_tag.append(next_char)
             try:
-                next_tag.extend(start[index+1:])
+                next_tag.extend(start[index + 1:])
                 break
             except IndexError:
                 pass
         except IndexError:
             next_tag.append(matrix[0])
             try:
-                start[index+1]
+                start[index + 1]
             except IndexError:
                 matrix = matrix_generator.next()
                 next_tag.append(matrix[0])
@@ -241,7 +241,7 @@ def create_patient(health_provider, patient_name, birthdate, deathdate, gender):
         healthcode = HealthId.objects.order_by('-pk')[0].health_id
         healthcode = generate_tracking_tag(healthcode)
     healthid = HealthId.objects.create(
-        health_id = healthcode
+        health_id=healthcode
     )
     healthid.save()
     patient = Patient.objects.create(
@@ -256,13 +256,13 @@ def create_patient(health_provider, patient_name, birthdate, deathdate, gender):
     patient.save()
     healthid.issued_to = patient
     healthid.save()
-    patient.health_worker=health_provider
+    patient.health_worker = health_provider
     patient.save()
     return patient
 
 def check_validity(xform_type, submission, health_provider, patient, day_range):
     xform = XForm.objects.get(keyword=xform_type)
-    start_date = datetime.datetime.now() - datetime.timedelta(hours=(day_range*24))
+    start_date = datetime.datetime.now() - datetime.timedelta(hours=(day_range * 24))
     for s in XFormSubmission.objects.filter(connection__contact__healthproviderbase__healthprovider=health_provider,
                                             xform=xform,
                                             created__gte=start_date,
@@ -276,7 +276,7 @@ def check_validity(xform_type, submission, health_provider, patient, day_range):
 
 def check_basic_validity(xform_type, submission, health_provider, day_range):
     xform = XForm.objects.get(keyword=xform_type)
-    start_date = datetime.datetime.now() - datetime.timedelta(hours=(day_range*24))
+    start_date = datetime.datetime.now() - datetime.timedelta(hours=(day_range * 24))
     for s in XFormSubmission.objects.filter(connection__contact__healthproviderbase__healthprovider=health_provider,
                                             xform=xform,
                                             created__gte=start_date).exclude(pk=submission.pk):
@@ -297,15 +297,14 @@ def patient_label(patient):
         return "%s, %s %s" % (patient.full_name(), gender, age_string)
 
 def fix_location(sender, **kwargs):
-    print "pre_delete on %s : %s" % (sender, str(kwargs['instance'].pk))
     if sender == Location:
         location = kwargs['instance']
         if location.parent:
-            for c in HealthProvider.objects.filter(reporting_location = location):
+            for c in HealthProvider.objects.filter(reporting_location=location):
                 c.reporting_location = location.parent
                 c.location = location.parent
                 c.save()
-            for h in HealthFacility.objects.filter(catchment_areas = location):
+            for h in HealthFacility.objects.filter(catchment_areas=location):
                 h.catchment_areas.add(location.parent)
                 h.save()
 
@@ -409,7 +408,7 @@ def xform_received_handler(sender, **kwargs):
         submission.response = "We have recorded the death of %s." % patient_label(patient)
         submission.save()
 
-    elif xform.keyword in ['com','mal','rutf','home','epi']:
+    elif xform.keyword in ['com', 'mal', 'rutf', 'home', 'epi']:
         check_basic_validity(xform.keyword, submission, health_provider, 1)
         value_list = []
         for v in submission.eav.get_values():
@@ -433,13 +432,13 @@ def xform_received_handler(sender, **kwargs):
         return
 
 def cvs_autoreg(**kwargs):
-    
+
     ''' 
     CVS autoreg post registration particulars handling. 
     This method responds to a signal sent by the Script module on completion of the cvs_autoreg script
     TODO: Handle extra numbers submitted by user
     '''
-    
+
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'cvs_autoreg':
@@ -463,7 +462,7 @@ def cvs_autoreg(**kwargs):
         contact.name = name[:100]
 
     contact.reporting_location = find_best_response(session, districtpoll)
-    
+
     village = find_best_response(session, villagepoll)
     if village:
         contact.village = find_closest_match(village, Location.objects)
@@ -484,16 +483,13 @@ def cvs_autoreg(**kwargs):
     if not contact.name:
         contact.name = 'Anonymous User'
     contact.save()
-    
+
     healthfacility = find_best_response(session, healthfacilitypoll)
     if healthfacility:
         facility = find_closest_match(healthfacility, HealthFacility.objects)
-    
-    HealthProvider.objects.create(
-            name = name[:100],
-            facility = facility,
-            location = find_best_response(session, district)
-            )
+        h = HealthProvider(pk=contact.pk, facility=facility, location=contact.reporting_location)
+        h.save()
+
 
 script_progress_was_completed.connect(cvs_autoreg, weak=False)
 xform_received.connect(xform_received_handler, weak=True)
