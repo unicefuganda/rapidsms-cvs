@@ -6,11 +6,11 @@ from healthmodels.models.HealthProvider import HealthProviderBase
 from rapidsms.contrib.locations.models import Location
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Group
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, post_syncdb
 from rapidsms.models import Contact
 from poll.models import Poll
 from eav.models import Attribute
-from cvs.utils import XFORMS
+from cvs.utils import XFORMS, init_cvsautoreg
 from script.signals import *
 from script.models import *
 from uganda_common.utils import find_closest_match, find_best_response, parse_district_value
@@ -450,20 +450,22 @@ def cvs_autoreg(**kwargs):
     districtpoll = script.steps.get(order=2).poll
     healthfacilitypoll = script.steps.get(order=3).poll
     villagepoll = script.steps.get(order=4).poll
-    numberspoll = script.steps.get(order=5).poll
+    name = find_best_response(session, namepoll)
+    district = find_best_response(session, districtpoll)
+    village = find_best_response(session, villagepoll)
 
     healthfacility = find_best_response(session, healthfacilitypoll)
     if healthfacility:
         facility = find_closest_match(healthfacility, HealthFacility.objects)
 
-    existing_contact = Contact.objects.filter(name=find_best_reponse(session, namepoll), \
-                                  reporting_location=find_best_response(session, districtpoll), \
-                                  village=find_best_response(session, village))
+    existing_contact = Contact.objects.filter(name=name, \
+                                  reporting_location=district, \
+                                  village=find_closest_match(village, Location.objects))
     if existing_contact:
         existing_contact.connection = connection
         existing_contact.save()
         if facility:
-            healthprovider = HealthProvider.objects.filter(name=name[:100], location=find_best_response(session, district))
+            healthprovider = HealthProvider.objects.filter(name=name[:100], location=district)
             healthprovider.facility = facility
             healthprovider.save()
     else:
@@ -472,29 +474,27 @@ def cvs_autoreg(**kwargs):
             connection.save
         contact = connection.contact
 
-        name = find_best_response(session, namepoll)
         if name:
+            name = ' '.join([n.capitalize() for n in name.lower().split(' ')])
             contact.name = name[:100]
 
-        contact.reporting_location = find_best_response(session, districtpoll)
+        if district:
+            contact.reporting_location = district
+        else:
+            contact.reporting_location = Location.tree.root_nodes()[0]
 
-        village = find_best_response(session, villagepoll)
         if village:
             contact.village = find_closest_match(village, Location.objects)
 
-        group = find_best_response(session, rolepoll)
-        default_group = None
-        if Group.objects.filter(name='Other cvsReporters').count():
-            default_group = Group.objects.get(name='Other cvsReporters')
+        role = find_best_response(session, rolepoll)
 
-        if group:
-            group = find_closest_match(group, Group.objects)
-            if group:
-                contact.groups.add(group)
-            elif default_group:
-                contact.groups.add(default_group)
-        elif default_group:
-            contact.groups.add(default_group)
+        group = Group.objects.get(name='Other CVS Reporters')
+        default_group = group
+        if role:
+            group = find_closest_match(role, Group.objects)
+            if not group:
+                group = default_group
+        contact.groups.add(group)
 
         if not contact.name:
             contact.name = 'Anonymous User'
@@ -505,6 +505,7 @@ def cvs_autoreg(**kwargs):
             h.save()
 
 
+post_syncdb.connect(init_cvsautoreg, weak=False)
 script_progress_was_completed.connect(cvs_autoreg, weak=False)
 xform_received.connect(xform_received_handler, weak=True)
 pre_delete.connect(fix_location, weak=True)
