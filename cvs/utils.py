@@ -13,102 +13,110 @@ from rapidsms_httprouter.models import Message
 from ureport.models import MassText
 from poll.models import Poll
 from rapidsms.contrib.locations.models import Location
+from django.conf import settings
+from script.models import Script, ScriptStep
+from poll.models import Category
+
+try:
+    from django.contrib.sites import Site
+except ImportError:
+    pass
 
 DISEASE_CHOICES = [
-    ('bd','int','Bloody diarrhea (Dysentery)', False),
-    ('dy','int','Dysentery', False),
-    ('ma','int','Malaria', False),
-    ('tb','int','Tuberculosis', False),
-    ('ab','int','Animal Bites', False),
-    ('af','int','Acute Flaccid Paralysis (Polio)', False),
-    ('mg','int','Meningitis', False),
-    ('me','int','Measles', False),
-    ('ch','int','Cholera', False),
-    ('gw','int','Guinea Worm', False),
-    ('nt','int','Neonatal Tetanus', False),
-    ('yf','int','Yellow Fever', False),
-    ('pl','int','Plague', False),
-    ('ra','int','Rabies', False),
-    ('rb','int','Rabies', False),
-    ('vf','int','Other Viral Hemorrhagic Fevers', False),
-    ('ei','int','Other Emerging Infectious Diseases', False),
+    ('bd', 'int', 'Bloody diarrhea (Dysentery)', False),
+    ('dy', 'int', 'Dysentery', False),
+    ('ma', 'int', 'Malaria', False),
+    ('tb', 'int', 'Tuberculosis', False),
+    ('ab', 'int', 'Animal Bites', False),
+    ('af', 'int', 'Acute Flaccid Paralysis (Polio)', False),
+    ('mg', 'int', 'Meningitis', False),
+    ('me', 'int', 'Measles', False),
+    ('ch', 'int', 'Cholera', False),
+    ('gw', 'int', 'Guinea Worm', False),
+    ('nt', 'int', 'Neonatal Tetanus', False),
+    ('yf', 'int', 'Yellow Fever', False),
+    ('pl', 'int', 'Plague', False),
+    ('ra', 'int', 'Rabies', False),
+    ('rb', 'int', 'Rabies', False),
+    ('vf', 'int', 'Other Viral Hemorrhagic Fevers', False),
+    ('ei', 'int', 'Other Emerging Infectious Diseases', False),
 ]
 
 HOME_ATTRIBUTES = [
-   ('to','int','Total Homesteads Visited', False),
-   ('it','int','ITTNs/LLINs', False),
-   ('la','int','Latrines', False),
-   ('ha','int','Handwashing Facilities', False),
-   ('wa','int','Safe Drinking Water', False),
+   ('to', 'int', 'Total Homesteads Visited', False),
+   ('it', 'int', 'ITTNs/LLINs', False),
+   ('la', 'int', 'Latrines', False),
+   ('ha', 'int', 'Handwashing Facilities', False),
+   ('wa', 'int', 'Safe Drinking Water', False),
 ]
 
 XFORMS = (
-    ('','epi',',;:*.\\s"','Epi Report','Weekly-submitted VHT epidemiological reports'),
-    ('+','home',',;:*.\\s"','Home Report','Monthly-submitted PVHT home visitation reports'),
-    ('+','muac',',;:*."','Malnu Report','VHT report of child malnutrition'),
-    ('+','birth',',;:*."','Birth Report','VHT report of a birth'),
-    ('+','death',',;:*."','Death Report','VHT report of a death'),
-    ('+','itp',',','Inpatient Treatment Report','Health Center report of an inpatient treatment',),
-    ('+','otp',',','Outpatient Treatment Report','Health Center report of an outpatient treatment',),
-    ('+','cure',',','Cure Treatment Report','Health Center report of patient cure',),
-    ('+','reg',',','Registration','Registers a reporter with their name',),
-    ('+','pvht',',','PVHT Signup','Registers a PVHT with their facility',),
-    ('+','vht',',','VHT Signup','Registers a VHT with their facility',),
-    ('','com',',;:*.\\s"','VHT Report', 'Routine VHT Report of weekly aggregate indicators'),
-    ('','mal',',;:*.\\s"','ITP/OTP Treatment Report','Routine HC report of weekly itp/otp treatments'),
-    ('','rutf',',;:*.\\s"','OTC/ITC Stock Report','Routine HC report of weekly otc/itc stock reports'),
-    ('','act',',;:*.\\s"', 'ACT Stock Report','Routine report of ACT stock'),
+    ('', 'epi', ',;:*.\\s"', 'Epi Report', 'Weekly-submitted VHT epidemiological reports'),
+    ('+', 'home', ',;:*.\\s"', 'Home Report', 'Monthly-submitted PVHT home visitation reports'),
+    ('+', 'muac', ',;:*."', 'Malnu Report', 'VHT report of child malnutrition'),
+    ('+', 'birth', ',;:*."', 'Birth Report', 'VHT report of a birth'),
+    ('+', 'death', ',;:*."', 'Death Report', 'VHT report of a death'),
+    ('+', 'itp', ',', 'Inpatient Treatment Report', 'Health Center report of an inpatient treatment',),
+    ('+', 'otp', ',', 'Outpatient Treatment Report', 'Health Center report of an outpatient treatment',),
+    ('+', 'cure', ',', 'Cure Treatment Report', 'Health Center report of patient cure',),
+    ('+', 'reg', ',', 'Registration', 'Registers a reporter with their name',),
+    ('+', 'pvht', ',', 'PVHT Signup', 'Registers a PVHT with their facility',),
+    ('+', 'vht', ',', 'VHT Signup', 'Registers a VHT with their facility',),
+    ('', 'com', ',;:*.\\s"', 'VHT Report', 'Routine VHT Report of weekly aggregate indicators'),
+    ('', 'mal', ',;:*.\\s"', 'ITP/OTP Treatment Report', 'Routine HC report of weekly itp/otp treatments'),
+    ('', 'rutf', ',;:*.\\s"', 'OTC/ITC Stock Report', 'Routine HC report of weekly otc/itc stock reports'),
+    ('', 'act', ',;:*.\\s"', 'ACT Stock Report', 'Routine report of ACT stock'),
 )
 
 XFORM_FIELDS = {
     '+muac':[
          ('name', 'text', 'The name of the malnourished patient', True),
-         ('gender', 'cvssex','The gender of the malnourished patient', True),
+         ('gender', 'cvssex', 'The gender of the malnourished patient', True),
          ('age', 'cvstdelt', 'The age of the malnurished patient', True),
-         ('category','cvsmuacr', 'Red, yellow, or green case of malnutrition', True),
-         ('ignored','cvsodema', 'Occurence of oedema (T/F)', False),
+         ('category', 'cvsmuacr', 'Red, yellow, or green case of malnutrition', True),
+         ('ignored', 'cvsodema', 'Occurence of oedema (T/F)', False),
      ],
     '+birth':[
          ('name', 'text', 'The name of the child born', True),
          ('gender', 'cvssex', 'The gender of the child born', True),
-         ('place','cvsloc', 'At home or at a health facility', True),
+         ('place', 'cvsloc', 'At home or at a health facility', True),
      ],
      '+death':[
-         ('name','text','The name of the person who has died', True),
+         ('name', 'text', 'The name of the person who has died', True),
          ('gender', 'cvssex', 'The gender of the person who has died', True),
          ('age', 'cvstdelt', 'The age of the person who has died', True),
      ],
     'epi':DISEASE_CHOICES,
     '+home':HOME_ATTRIBUTES,
     '+reg':[
-         ('name','text','Your name', True),
+         ('name', 'text', 'Your name', True),
     ],
     '+vht':[
-         ('facility','facility','Your facility code', True),
+         ('facility', 'facility', 'Your facility code', True),
     ],
     '+pvht':[
-         ('facility','facility','Your facility code', True),
+         ('facility', 'facility', 'Your facility code', True),
     ],
     'com':[
-        ('fever','int','fever', True),
-        ('diarrhea','int','diarrhea', True),
-        ('death','int','deaths', True),
-        ('bi_od','int','OE', True),
-        ('muac_red','int','Red', True),
-        ('muac_yellow','int','Yel', True),
-        ('muac_green','int','Green', True),
+        ('fever', 'int', 'fever', True),
+        ('diarrhea', 'int', 'diarrhea', True),
+        ('death', 'int', 'deaths', True),
+        ('bi_od', 'int', 'OE', True),
+        ('muac_red', 'int', 'Red', True),
+        ('muac_yellow', 'int', 'Yel', True),
+        ('muac_green', 'int', 'Green', True),
     ],
     'mal':[
-        ('total_new','int','new admissions', True),
-        ('total_death','int','deaths', True),
-        ('total_default','int','defaults', True),
-        ('total_admissions','int','total admissions', True),
+        ('total_new', 'int', 'new admissions', True),
+        ('total_death', 'int', 'deaths', True),
+        ('total_default', 'int', 'defaults', True),
+        ('total_admissions', 'int', 'total admissions', True),
     ],
     'rutf':[
-        ('new_f75_stock','int','F-75 New', True),
-        ('closing_f75_stock','int','F-75 Balance', True),
-        ('new_rutf_stock','int','RUTF New', True),
-        ('closing_rutf_stock','int','RUTF Balance', True),
+        ('new_f75_stock', 'int', 'F-75 New', True),
+        ('closing_f75_stock', 'int', 'F-75 Balance', True),
+        ('new_rutf_stock', 'int', 'RUTF New', True),
+        ('closing_rutf_stock', 'int', 'RUTF Balance', True),
     ],
     'act':[
         ('yellow_disp', 'int', 'Yellow dispensed', True),
@@ -130,7 +138,7 @@ def init_xforms():
 def init_xforms_from_tuples(xforms, xform_fields):
     user = User.objects.get(username='admin')
     xform_dict = {}
-    for keyword_prefix,keyword,separator,name,description in xforms:
+    for keyword_prefix, keyword, separator, name, description in xforms:
         xform, created = XForm.objects.get_or_create(
             keyword=keyword,
             keyword_prefix=keyword_prefix,
@@ -179,7 +187,7 @@ GROUP_BY_MONTH = 2
 GROUP_BY_DAY = 16
 GROUP_BY_QUARTER = 32
 
-months={
+months = {
     1: 'Jan',
     2: 'Feb',
     3: 'Mar',
@@ -202,15 +210,15 @@ quarters = {
 }
 
 GROUP_BY_SELECTS = {
-    GROUP_BY_DAY:('day','date(rapidsms_xforms_xformsubmission.created)',),
-    GROUP_BY_WEEK:('week','extract(week from rapidsms_xforms_xformsubmission.created)',),
-    GROUP_BY_MONTH:('month','extract(month from rapidsms_xforms_xformsubmission.created)',),
-    GROUP_BY_QUARTER:('quarter','extract(quarter from rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_DAY:('day', 'date(rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_WEEK:('week', 'extract(week from rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_MONTH:('month', 'extract(month from rapidsms_xforms_xformsubmission.created)',),
+    GROUP_BY_QUARTER:('quarter', 'extract(quarter from rapidsms_xforms_xformsubmission.created)',),
 }
 
 def total_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None):
     if extra_filters:
-        extra_filters = dict([(str(k),v) for k,v in extra_filters.items()])
+        extra_filters = dict([(str(k), v) for k, v in extra_filters.items()])
         q = XFormSubmission.objects.filter(**extra_filters)
         tnum = 8
     else:
@@ -223,13 +231,13 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
         'lft':'T%d.lft' % tnum,
     }
 
-    values = ['location_name','location_id','lft','rght']
+    values = ['location_name', 'location_id', 'lft', 'rght']
     if group_by_timespan:
          select_value = GROUP_BY_SELECTS[group_by_timespan][0]
          select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
          select.update({select_value:select_clause,
-                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)',})
-         values.extend([select_value,'year'])
+                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)', })
+         values.extend([select_value, 'year'])
     if location.get_children().count() > 1:
         location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list(\
                        'pk', flat=True)))))
@@ -244,15 +252,15 @@ def total_submissions(keyword, start_date, end_date, location, extra_filters=Non
                'connection__contact__reporting_location__name').extra(
                tables=['locations_location'],
                where=[\
-                   'T%d.lft <= locations_location.lft' % tnum,\
-                   'T%d.rght >= locations_location.rght' % tnum,\
+                   'T%d.lft <= locations_location.lft' % tnum, \
+                   'T%d.rght >= locations_location.rght' % tnum, \
                    location_children_where]).extra(\
                select=select).values(*values).annotate(value=Count('id')).extra(order_by=['location_name'])
 
 def active_reporters(start_date, end_date, location, group_by_timespan=None):
     """ get all active reporters  """
 
-    tnum=5
+    tnum = 5
     select = {
         'location_name':'T%d.name' % tnum,
         'location_id':'T%d.id' % tnum,
@@ -260,13 +268,13 @@ def active_reporters(start_date, end_date, location, group_by_timespan=None):
         'lft':'T%d.lft' % tnum
     }
 
-    values = ['location_name','location_id','lft','rght']
+    values = ['location_name', 'location_id', 'lft', 'rght']
     if group_by_timespan:
          select_value = GROUP_BY_SELECTS[group_by_timespan][0]
          select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
          select.update({select_value:select_clause,
-                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)',})
-         values.extend([select_value,'year'])
+                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)', })
+         values.extend([select_value, 'year'])
     if location.get_children().count() > 1:
         location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list(\
                        'pk', flat=True)))))
@@ -279,29 +287,29 @@ def active_reporters(start_date, end_date, location, group_by_timespan=None):
                'connection__contact__reporting_location__name').extra(
                tables=['locations_location'],
                where=[\
-                   'T%d.lft <= locations_location.lft' % tnum,\
-                   'T%d.rght >= locations_location.rght' % tnum,\
+                   'T%d.lft <= locations_location.lft' % tnum, \
+                   'T%d.rght >= locations_location.rght' % tnum, \
                    location_children_where]).extra(\
                select=select).values(*values).annotate(value=Count('connection__id')).extra(order_by=['location_name'])
 
 def registered_reporters(location):
-    tnum=6
+    tnum = 6
     select = {
-        'location_name':'T%d.name'%tnum,
-        'location_id':'T%d.id'%tnum,
-        'rght':'T%d.rght'%tnum,
-        'lft':'T%d.lft'%tnum,
+        'location_name':'T%d.name' % tnum,
+        'location_id':'T%d.id' % tnum,
+        'rght':'T%d.rght' % tnum,
+        'lft':'T%d.lft' % tnum,
     }
-    values = ['location_name','location_id','rght','lft']
+    values = ['location_name', 'location_id', 'rght', 'lft']
     if location.get_children().count() > 1:
         location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list(\
                        'pk', flat=True)))))
     else:
         location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
     return  HealthProviderBase.objects.filter(groups=Group.objects.get(name='Village Health Team')).values('location__name').extra(
-            tables=['locations_location'],where=[\
-                   'T%d.lft <= locations_location.lft' % tnum,\
-                   'T%d.rght >= locations_location.rght' % tnum,\
+            tables=['locations_location'], where=[\
+                   'T%d.lft <= locations_location.lft' % tnum, \
+                   'T%d.rght >= locations_location.rght' % tnum, \
                    location_children_where]).extra(select=select).values(*values).annotate(value=Count('id'))
 
 
@@ -313,8 +321,8 @@ def total_submissions_by_facility(keyword, start_date, end_date, map_window):
         'has_errors':False,
         'created__lte':end_date,
         'created__gte':start_date,
-        'connection__contact__healthproviderbase__facility__location__latitude__range':(str(minlat),str(maxlat),),
-        'connection__contact__healthproviderbase__facility__location__longitude__range':(str(minlon),str(maxlon),)})\
+        'connection__contact__healthproviderbase__facility__location__latitude__range':(str(minlat), str(maxlat),),
+        'connection__contact__healthproviderbase__facility__location__longitude__range':(str(minlon), str(maxlon),)})\
         .extra(
         tables=['healthmodels_healthfacilitytypebase'],
         where=['healthmodels_healthfacilitybase.type_id=healthmodels_healthfacilitytypebase.id'])\
@@ -324,7 +332,7 @@ def total_submissions_by_facility(keyword, start_date, end_date, map_window):
         'latitude':'locations_point.latitude',
         'longitude':'locations_point.longitude',
         'type':'healthmodels_healthfacilitytypebase.name'})\
-        .values('facility_name','facility_id','latitude','longitude','type')\
+        .values('facility_name', 'facility_id', 'latitude', 'longitude', 'type')\
         .annotate(value=Count('id'))
 
 def total_attribute_value(attribute_slug, start_date, end_date, location, group_by_timespan=None):
@@ -334,13 +342,13 @@ def total_attribute_value(attribute_slug, start_date, end_date, location, group_
         'rght':'T8.rght',
         'lft':'T8.lft',
     }
-    values = ['location_name','location_id','lft','rght']
+    values = ['location_name', 'location_id', 'lft', 'rght']
     if group_by_timespan:
          select_value = GROUP_BY_SELECTS[group_by_timespan][0]
          select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
          select.update({select_value:select_clause,
-                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)',})
-         values.extend([select_value,'year'])
+                        'year':'extract (year from rapidsms_xforms_xformsubmission.created)', })
+         values.extend([select_value, 'year'])
     if location.get_children().count() > 1:
         location_children_where = 'T8.id in %s' % (str(tuple(location.get_children().values_list(\
                        'pk', flat=True))))
@@ -366,8 +374,8 @@ def total_attribute_by_facility(attribute_slug, start_date, end_date, map_window
                'attribute__slug':attribute_slug,
                'submission__created__lte':end_date,
                'submission__created__gte':start_date,
-               'submission__connection__contact__healthproviderbase__facility__location__latitude__range':(str(minlat),str(maxlat),),
-               'submission__connection__contact__healthproviderbase__facility__location__longitude__range':(str(minlon),str(maxlon),)})\
+               'submission__connection__contact__healthproviderbase__facility__location__latitude__range':(str(minlat), str(maxlat),),
+               'submission__connection__contact__healthproviderbase__facility__location__longitude__range':(str(minlon), str(maxlon),)})\
         .extra(
         tables=['healthmodels_healthfacilitytypebase'],
         where=['healthmodels_healthfacilitybase.type_id=healthmodels_healthfacilitytypebase.id'])\
@@ -377,26 +385,26 @@ def total_attribute_by_facility(attribute_slug, start_date, end_date, map_window
         'latitude':'locations_point.latitude',
         'longitude':'locations_point.longitude',
         'type':'healthmodels_healthfacilitytypebase.name'})\
-        .values('facility_name','facility_id','latitude','longitude','type')\
+        .values('facility_name', 'facility_id', 'latitude', 'longitude', 'type')\
         .annotate(value=Sum('value_int'))
 
 def reorganize_location(key, report, report_dict):
     for dict in report:
         location = dict['location_name']
-        report_dict.setdefault(location,{'location_id':dict['location_id'],'diff':(dict['rght']-dict['lft'])})
+        report_dict.setdefault(location, {'location_id':dict['location_id'], 'diff':(dict['rght'] - dict['lft'])})
         report_dict[location][key] = dict['value']
 
-def reorganize_timespan(timespan, report, report_dict, location_list,request=None):
+def reorganize_timespan(timespan, report, report_dict, location_list, request=None):
     for dict in report:
         time = dict[timespan]
-        if timespan =='month':
+        if timespan == 'month':
             time = datetime.datetime(int(dict['year']), int(time), 1)
-        elif timespan =='week':
-            time = datetime.datetime(int(dict['year']), 1, 1) + datetime.timedelta(days = (int(time)*7))
-        elif timespan =='quarter':
-            time = datetime.datetime(int(dict['year']), int(time)*3, 1)
+        elif timespan == 'week':
+            time = datetime.datetime(int(dict['year']), 1, 1) + datetime.timedelta(days=(int(time) * 7))
+        elif timespan == 'quarter':
+            time = datetime.datetime(int(dict['year']), int(time) * 3, 1)
 
-        report_dict.setdefault(time,{})
+        report_dict.setdefault(time, {})
         location = dict['location_name']
         report_dict[time][location] = dict['value']
 
@@ -404,18 +412,18 @@ def reorganize_timespan(timespan, report, report_dict, location_list,request=Non
             location_list.append(location)
 
 def get_group_by(start_date, end_date):
-    interval=end_date-start_date
-    if interval<=datetime.timedelta(days=21):
-        group_by=GROUP_BY_DAY
+    interval = end_date - start_date
+    if interval <= datetime.timedelta(days=21):
+        group_by = GROUP_BY_DAY
         prefix = 'day'
-    elif datetime.timedelta(days=21) <=interval<=datetime.timedelta(days=90):
-        group_by=GROUP_BY_WEEK
+    elif datetime.timedelta(days=21) <= interval <= datetime.timedelta(days=90):
+        group_by = GROUP_BY_WEEK
         prefix = 'week'
-    elif datetime.timedelta(days=90) <=interval<=datetime.timedelta(days=270):
-        group_by=GROUP_BY_MONTH
+    elif datetime.timedelta(days=90) <= interval <= datetime.timedelta(days=270):
+        group_by = GROUP_BY_MONTH
         prefix = 'month'
     else:
-        group_by=GROUP_BY_QUARTER
+        group_by = GROUP_BY_QUARTER
         prefix = 'quarter'
     return {'group_by':group_by, 'group_by_name':prefix}
 
@@ -444,7 +452,7 @@ def get_mass_messages(**kwargs):
     return [(p.question, p.start_date, p.user.username, p.contacts.count(), 'Poll Message') for p in Poll.objects.exclude(start_date=None)] + [(m.text, m.date, m.user.username, m.contacts.count(), 'Mass Text') for m in MassText.objects.all()]
 
 class ExcelResponse(HttpResponse):
-    def __init__(self,data, output_name='excel_report',headers=None,force_csv=False, encoding='utf8'):
+    def __init__(self, data, output_name='excel_report', headers=None, force_csv=False, encoding='utf8'):
         # Make sure we've got the right type of data to work with
         valid_data = False
         if hasattr(data, '__getitem__'):
@@ -507,7 +515,7 @@ class ExcelResponse(HttpResponse):
                         cell_style = styles['date']
                     elif isinstance(value, datetime.time):
                         cell_style = styles['time']
-                    elif rowx==0:
+                    elif rowx == 0:
                         cell_style = styles['header']
                     else:
                         cell_style = styles['default']
@@ -534,3 +542,186 @@ class ExcelResponse(HttpResponse):
         self['Content-Disposition'] = 'attachment;filename="%s.%s"' % \
             (output_name.replace('"', '\"'), file_ext)
 
+
+models_created = []
+structures_initialized = False
+
+def init_cvsautoreg(sender, **kwargs):
+    global models_created
+    global structures_initialized
+    models_created.append(sender.__name__)
+    required_models = ['eav.models', 'poll.models', 'script.models', 'django.contrib.auth.models']
+    if 'django.contrib.sites' in settings.INSTALLED_APPS:
+        required_models.append('django.contrib.sites.models')
+    if 'authsites' in settings.INSTALLED_APPS:
+        required_models.append('authsites.models')
+    for required in required_models:
+        if required not in models_created:
+            return
+    if not structures_initialized:
+        if 'django.contrib.sites' in settings.INSTALLED_APPS:
+            site_id = getattr(settings, 'SITE_ID', 1)
+            Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidcvs.org'})
+        init_groups()
+        init_autoreg(sender)
+        structures_initialized = True
+
+def init_groups():
+    for g in ['VHT', 'PVHT', 'HC', 'HF', 'DHT', 'DHO', 'Other CVS Reporters']:
+        Group.objects.get_or_create(name=g)
+
+def init_autoreg(sender, **kwargs):
+    script, created = Script.objects.get_or_create(
+            slug="cvs_autoreg", defaults={
+            'name':"Community Vulnerability Suveillance Script"})
+    if created:
+        if 'django.contrib.sites' in settings.INSTALLED_APPS:
+            script.sites.add(Site.objects.get_current())
+        user, created = User.objects.get_or_create(username="admin")
+
+        ## role of CVS reporter
+        role_poll = Poll.objects.create(
+                            name='cvs_role', \
+                            question='Welcome to RapidSMS, the Ministry of Health\'s data collection system. What is your role?', \
+                            default_response='Thank you for starting the registration process', \
+                            type=Poll.TYPE_TEXT, \
+                            user=user\
+                        )
+        vht_category = role_poll.categories.create(name='VHT')
+        vht_category.response = "Thank you for starting the registration process"
+        vht_category.color = '99ff77'
+        vht_category.save()
+        pvht_category = role_poll.categories.create(name='PVHT')
+        pvht_category.response = "Thank you for starting the registration process"
+        pvht_category.color = 'ff9977'
+        pvht_category.save()
+        hc_category = role_poll.categories.create(name='HC')
+        hc_category.response = "Thank you for starting the registration process"
+        hc_category.color = 'ff7799'
+        hc_category.save()
+        hf_category = role_poll.categories.create(name='HF')
+        hf_category.response = "Thank you for starting the registration process"
+        hf_category.color = '77ff99'
+        hf_category.save()
+        dht_category = role_poll.categories.create(name='DHT')
+        dht_category.response = "Thank you for starting the registration process"
+        dht_category.color = '66ff99'
+        dht_category.save()
+        dho_category = role_poll.categories.create(name='DHO')
+        dho_category.response = "Thank you for starting the registration process"
+        dho_category.color = 'ff6699'
+        dho_category.save()
+        unknown_category = role_poll.categories.create(name='unknown')
+        unknown_category.default = False
+        unknown_category.color = 'ffff77'
+        unknown_category.save()
+        unclear_category = Category.objects.create(
+            poll=role_poll,
+            name='unclear',
+            default=True,
+            color='ffff77',
+            response='We did not understand your answer. Kindly note that this number is for official use only',
+            priority=3
+        )
+
+        script.steps.add(ScriptStep.objects.create(
+            script=script,
+            poll=role_poll,
+            order=0,
+            rule=ScriptStep.WAIT_MOVEON,
+            start_offset=0,
+            giveup_offset=60,
+        ))
+
+        ## CVS reporter Name
+        name_poll = Poll.objects.create(
+                            name='cvs_name', \
+                            question='Please enter only the answers to the questions asked. What is your name?', \
+                            type=Poll.TYPE_TEXT, \
+                            user=user\
+                        )
+
+        script.steps.add(ScriptStep.objects.create(
+               script=script,
+               poll=name_poll,
+               order=1,
+               rule=ScriptStep.RESEND_GIVEUP,
+               start_offset=0,
+               retry_offset=60 * 15,
+               giveup_offset=60 * 30,
+               num_tries=3,
+               ))
+
+        ## CVS reporter District
+        district_poll = Poll.objects.create(
+                            name='cvs_district', \
+                            question='What is the name of your District?', \
+                            type='district', \
+                            user=user\
+                        )
+
+        script.steps.add(ScriptStep.objects.create(
+               script=script,
+               poll=district_poll,
+               order=2,
+               rule=ScriptStep.RESEND_GIVEUP,
+               start_offset=0,
+               retry_offset=60 * 15,
+               giveup_offset=60 * 30,
+               num_tries=3,
+               ))
+
+        ## CVS reporter Health Facility
+        hf_poll = Poll.objects.create(
+                            name='cvs_healthfacility', \
+                            question='What is the name of your Health Facility?', \
+                            type=Poll.TYPE_TEXT, \
+                            user=user\
+                        )
+
+        script.steps.add(ScriptStep.objects.create(
+               script=script,
+               poll=hf_poll,
+               order=3,
+               rule=ScriptStep.RESEND_GIVEUP,
+               start_offset=0,
+               retry_offset=60 * 15,
+               giveup_offset=60 * 30,
+               num_tries=3,
+               ))
+
+        ## CVS reporter Village
+        village_poll = Poll.objects.create(
+                            name='cvs_village', \
+                            question='What is the name of your Village?', \
+                            type=Poll.TYPE_TEXT, \
+                            user=user\
+                        )
+
+        script.steps.add(ScriptStep.objects.create(
+               script=script,
+               poll=village_poll,
+               order=4,
+               rule=ScriptStep.RESEND_GIVEUP,
+               start_offset=0,
+               retry_offset=60 * 15,
+               giveup_offset=60 * 30,
+               num_tries=3,
+               ))
+
+        ## CVS reporter Thanks for registering message!
+        script.steps.add(ScriptStep.objects.create(
+               script=script,
+               message='Thank you  for registering! You have just entered training mode.',
+               order=6,
+               rule=ScriptStep.WAIT_MOVEON,
+               start_offset=0,
+               giveup_offset=0,
+               ))
+
+        if 'django.contrib.sites' in settings.INSTALLED_APPS:
+            for poll in [role_poll, name_poll, district_poll, hf_poll, village_poll]:
+                poll.sites.add(Site.objects.get_current())
+
+        for poll in [role_poll, name_poll, district_poll, hf_poll, village_poll]:
+            poll.start()
