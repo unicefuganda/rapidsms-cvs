@@ -709,21 +709,6 @@ def init_autoreg(sender, **kwargs):
                num_tries=3,
                ))
 
-        ## CVS reporter Alternative Phone numbers
-#        description = 'CVS Reporter numbers'
-#        question = 'Do you have any other phone numbers?'
-#        type = Poll.TYPE_TEXT
-#        numbers_poll = Poll.objects.create(name=description, question=question, type=type, user=user)
-#
-#        script.steps.add(ScriptStep.objects.create(
-#               script=script,
-#               poll=numbers_poll,
-#               order=5,
-#               rule=ScriptStep.LENIENT,
-#               start_offset=0,
-#               giveup_offset=60 * 30,
-#               ))
-
         ## CVS reporter Thanks for registering message!
         script.steps.add(ScriptStep.objects.create(
                script=script,
@@ -739,4 +724,4 @@ def init_autoreg(sender, **kwargs):
                 poll.sites.add(Site.objects.get_current())
 
         for poll in [role_poll, name_poll, district_poll, hf_poll, village_poll]:
-                poll.start()
+            poll.start()

@@ -432,13 +432,10 @@ def xform_received_handler(sender, **kwargs):
         return
 
 def cvs_autoreg(**kwargs):
-
     ''' 
     CVS autoreg post registration particulars handling. 
     This method responds to a signal sent by the Script module on completion of the cvs_autoreg script
-    TODO: Handle extra numbers submitted by user
     '''
-
     connection = kwargs['connection']
     progress = kwargs['sender']
     if not progress.script.slug == 'cvs_autoreg':
@@ -450,32 +447,38 @@ def cvs_autoreg(**kwargs):
     districtpoll = script.steps.get(order=2).poll
     healthfacilitypoll = script.steps.get(order=3).poll
     villagepoll = script.steps.get(order=4).poll
+
+    role = find_best_response(session, rolepoll)
     name = find_best_response(session, namepoll)
     district = find_best_response(session, districtpoll)
     village = find_best_response(session, villagepoll)
-
     healthfacility = find_best_response(session, healthfacilitypoll)
-    if healthfacility:
-        facility = find_closest_match(healthfacility, HealthFacility.objects)
+    if name:
+        name = ' '.join([n.capitalize() for n in name.lower().split()])
 
-    existing_contact = Contact.objects.filter(name=name, \
+    try:
+        existing_contact = Contact.objects.get(name=name[:100], \
                                   reporting_location=district, \
                                   village=find_closest_match(village, Location.objects))
-    if existing_contact:
-        existing_contact.connection = connection
-        existing_contact.save()
+        if not connection.contact:
+            connection.contact = existing_contact
+            connection.save()
+        if healthfacility:
+            facility = find_closest_match(healthfacility, HealthFacility.objects)
         if facility:
             healthprovider = HealthProvider.objects.filter(name=name[:100], location=district)
-            healthprovider.facility = facility
-            healthprovider.save()
-    else:
+            healthprovider[0].facility = facility
+            healthprovider[0].save()
+    except Contact.MultipleObjectsReturned:
+        pass
+    except Contact.DoesNotExist:
+
         if not connection.contact:
             connection.contact = Contact.objects.create()
-            connection.save
+            connection.save()
         contact = connection.contact
 
         if name:
-            name = ' '.join([n.capitalize() for n in name.lower().split(' ')])
             contact.name = name[:100]
 
         if district:
@@ -486,24 +489,27 @@ def cvs_autoreg(**kwargs):
         if village:
             contact.village = find_closest_match(village, Location.objects)
 
-        role = find_best_response(session, rolepoll)
-
-        group = Group.objects.get(name='Other CVS Reporters')
-        default_group = group
         if role:
             group = find_closest_match(role, Group.objects)
             if not group:
-                group = default_group
+                group = Group.objects.get(name='Other CVS Reporters')
         contact.groups.add(group)
-
-        if not contact.name:
-            contact.name = 'Anonymous User'
         contact.save()
 
-        if facility:
-            h = HealthProvider(pk=contact.pk, facility=facility, location=contact.reporting_location)
-            h.save()
-
+        if healthfacility:
+            facility = find_closest_match(healthfacility, HealthFacility.objects)
+            if facility:
+                h, created = HealthProvider.objects.get_or_create(\
+                            pk=contact.pk, \
+                            facility=facility, \
+                            location=contact.reporting_location, \
+                            name=contact.name, \
+                            reporting_location=contact.reporting_location, \
+                            village=contact.village
+                            )
+                if created:
+                    h.save()
+#        session = ScriptSession.objects.filter(connection=connection, end_date=None, script__slug='cvs_autoreg').update(end_date=datetime.datetime.now())
 
 post_syncdb.connect(init_cvsautoreg, weak=False)
 script_progress_was_completed.connect(cvs_autoreg, weak=False)
