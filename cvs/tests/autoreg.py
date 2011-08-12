@@ -29,7 +29,7 @@ class ModelTest(TestCase): #pragma: no cover
         if connection is None:
             connection = self.connection
         router = get_router()
-        router.handle_incoming(connection.backend.name, connection.identity, message)
+        return router.handle_incoming(connection.backend.name, connection.identity, message)
 
 
     def spoof_incoming_obj(self, message, connection=None):
@@ -94,7 +94,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.makindye_village = Location.objects.create(type=village, name='Makindye')
         self.ntinda_village = Location.objects.create(type=village, name='Ntinda')
         self.mulago_healthfacility = HealthFacility.objects.create(name="Mulago")
-        self.mengo_healthfacility = HealthFacility.objects.create(name="Mengo Hospital")
+        self.mengo_healthfacility = HealthFacility.objects.create(name="Mengo")
         def test_run(self):
              return
         HttpRouterThread.run = test_run
@@ -134,7 +134,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(contact.name, 'Testy Mctesterton')
         self.assertEquals(contact.reporting_location, self.kampala_district)
         self.assertEquals(contact.village, self.makindye_village)
-        self.assertEquals(HealthFacility.objects.get(pk=contact.pk), self.mulago_healthfacility)
+        self.assertEquals(HealthProvider.objects.get(pk=contact.pk).facility, self.mulago_healthfacility)
         self.assertEquals(Contact.objects.count(), 1)
         self.assertEquals(HealthProvider.objects.count(), 1)
 
@@ -156,6 +156,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(contact.reporting_location, self.root_node)
         self.assertEquals(contact.village, None)
         self.assertEquals(contact.name, 'Bad Tester')
+        self.assertEquals(HealthProvider.objects.count(), 0)
 
     def testMultipleRegistrations(self):
 
@@ -187,7 +188,7 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(HealthProvider.objects.count(), 1)
         self.assertEquals(Connection.objects.filter(contact=Contact.objects.all()[0]).count(), 2)
         contact = Contact.objects.all()[0]
-        self.assertEquals(HealthFacility.objects.get(pk=contact.pk), self.mulago_healthfacility)
+        self.assertEquals(HealthProvider.objects.get(pk=contact.pk).facility, self.mulago_healthfacility)
 
     def testQuitRejoin(self):
 
@@ -202,7 +203,7 @@ class ModelTest(TestCase): #pragma: no cover
         ])
 
         contact = Contact.objects.all()[0]
-        self.assertEquals(HealthFacility.objects.get(pk=contact.pk), self.mulago_healthfacility)
+        self.assertEquals(HealthProvider.objects.get(pk=contact.pk).facility, self.mulago_healthfacility)
 
         #Fellow quits the system
         self.fake_incoming('quit')
@@ -230,5 +231,33 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(HealthProvider.objects.count(), 1)
         self.assertEquals(Blacklist.objects.count(), 0)
         contact = Contact.objects.all()[0]
-        self.assertEquals(HealthFacility.objects.get(pk=contact.pk), self.mengo_healthfacility)
-        self.assertEquals(contact.name, 'Testy McTesterton')
+        self.assertEquals(HealthProvider.objects.get(pk=contact.pk).facility, self.mengo_healthfacility)
+        self.assertEquals(contact.name, 'Testy Mctesterton')
+
+    def testActivateAutoReg(self):
+
+        #attempt activation without registering
+        resp = self.fake_incoming('1234')
+        self.assertEquals(resp.responses.all()[0].text, 'You must first register with the system.Text JOIN to 6767 to begin.')
+
+        #user joins
+        self.fake_incoming('join')
+        script_prog = ScriptProgress.objects.all()[0]
+        self.fake_script_dialog(script_prog, self.connection, [\
+            ('cvs_role', 'vht'), \
+            ('cvs_name', 'testy mctesterton'), \
+            ('cvs_district', 'kampala'), \
+            ('cvs_healthfacility', 'mengo'), \
+            ('cvs_village', 'makindye'), \
+        ])
+
+        self.assertEquals(Contact.objects.all()[0].active, False)
+
+        #activate registration 
+        resp = self.fake_incoming('1234')
+        self.assertEquals(resp.responses.all()[0].text, getattr(settings, 'ACTIVATION_MESSAGE', 'Congratulations, you are now active in the system!'))
+        self.assertEquals(Contact.objects.all()[0].active, True)
+
+        #activate registration again
+        resp = self.fake_incoming('1234')
+        self.assertEquals(resp.responses.all()[0].text, getattr(settings, 'ALREADY_ACTIVATED_MESSAGE', 'You are already in the system.You should not SMS the code %s' % getattr(settings, 'ACTIVATION_CODE')))
