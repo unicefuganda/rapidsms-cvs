@@ -550,7 +550,7 @@ def init_cvsautoreg(sender, **kwargs):
     global models_created
     global structures_initialized
     models_created.append(sender.__name__)
-    required_models = ['eav.models', 'poll.models', 'script.models', 'django.contrib.auth.models']
+    required_models = ['eav.models', 'rapidsms_httprouter.models', 'poll.models', 'script.models', 'django.contrib.auth.models']
     if 'django.contrib.sites' in settings.INSTALLED_APPS:
         required_models.append('django.contrib.sites.models')
     if 'authsites' in settings.INSTALLED_APPS:
