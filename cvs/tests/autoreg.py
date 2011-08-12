@@ -20,7 +20,8 @@ from script.signals import script_progress_was_completed, script_progress
 from script.utils.outgoing import check_progress
 from unregister.models import Blacklist
 import datetime
-
+import traceback
+from rapidsms_httprouter.router import get_router, HttpRouterThread
 
 class ModelTest(TestCase): #pragma: no cover
 
@@ -75,7 +76,6 @@ class ModelTest(TestCase): #pragma: no cover
             self.failUnless(submission.has_errors)
         return
 
-
     def setUp(self):
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             site_id = getattr(settings, 'SITE_ID', 1)
@@ -95,6 +95,10 @@ class ModelTest(TestCase): #pragma: no cover
         self.ntinda_village = Location.objects.create(type=village, name='Ntinda')
         self.mulago_healthfacility = HealthFacility.objects.create(name="Mulago")
         self.mengo_healthfacility = HealthFacility.objects.create(name="Mengo Hospital")
+        def test_run(self):
+             return
+        HttpRouterThread.run = test_run
+
 
 
     def fake_script_dialog(self, script_prog, connection, responses, emit_signal=True):
@@ -103,8 +107,10 @@ class ModelTest(TestCase): #pragma: no cover
         for poll_name, resp in responses:
             poll = script.steps.get(poll__name=poll_name).poll
             poll.process_response(self.spoof_incoming_obj(resp))
-            resp = poll.responses.all()[0]
+            resp = poll.responses.all().order_by('-date')[0]
             ScriptResponse.objects.create(session=ss, response=resp)
+        ss.end_time = datetime.datetime.now()
+        ss.save()
         if emit_signal:
             script_progress_was_completed.send(connection=connection, sender=script_prog)
         return ss
@@ -208,7 +214,6 @@ class ModelTest(TestCase): #pragma: no cover
 
         #First Cleanup ScriptProgress to pave way for rejoining
         ScriptProgress.objects.all().delete()
-#        ScriptResponse.objects.all().delete()
 
         #Same fellow now starts reporting for different hospital altogether but same locality
         self.fake_incoming('join')
@@ -227,4 +232,3 @@ class ModelTest(TestCase): #pragma: no cover
         contact = Contact.objects.all()[0]
         self.assertEquals(HealthFacility.objects.get(pk=contact.pk), self.mengo_healthfacility)
         self.assertEquals(contact.name, 'Testy McTesterton')
-
