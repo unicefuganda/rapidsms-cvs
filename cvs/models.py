@@ -460,22 +460,24 @@ def cvs_autoreg(**kwargs):
         existing_contact = Contact.objects.get(name=name[:100], \
                                   reporting_location=district, \
                                   village=find_closest_match(village, Location.objects))
-        if not connection.contact:
+        if connection.contact:
+            if healthfacility:
+                facility = find_closest_match(healthfacility, HealthFacility.objects)
+                if facility:
+                    provider = HealthProvider.objects.get(pk=existing_contact.pk)
+                    provider.facility = facility
+                    provider.save()
+        else:
             connection.contact = existing_contact
             connection.save()
-        if healthfacility:
-            facility = find_closest_match(healthfacility, HealthFacility.objects)
-        if facility:
-            healthprovider = HealthProvider.objects.filter(name=name[:100], location=district)
-            healthprovider[0].facility = facility
-            healthprovider[0].save()
+
     except Contact.MultipleObjectsReturned:
         pass
+
     except Contact.DoesNotExist:
 
-        if not connection.contact:
-            connection.contact = Contact.objects.create()
-            connection.save()
+        connection.contact = Contact.objects.create()
+        connection.save()
         contact = connection.contact
 
         if name:
@@ -509,7 +511,6 @@ def cvs_autoreg(**kwargs):
                             )
                 if created:
                     h.save()
-#        session = ScriptSession.objects.filter(connection=connection, end_date=None, script__slug='cvs_autoreg').update(end_date=datetime.datetime.now())
 
 post_syncdb.connect(init_cvsautoreg, weak=False)
 script_progress_was_completed.connect(cvs_autoreg, weak=False)
