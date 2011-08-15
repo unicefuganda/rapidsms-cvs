@@ -23,7 +23,10 @@ import datetime
 class ModelTest(TestCase): #pragma: no cover
 
     def setUp(self):
-        User.objects.create_user('admin', 'test@doesntmatter.com', 'password')
+        try:
+            User.objects.get(username='admin')
+        except User.DoesNotExist:
+            User.objects.create_user('admin', 'test@doesntmatter.com', 'password')
         init_xforms()
         hp = HealthProvider.objects.create(name='David McCann')
         b = Backend.objects.create(name='test')
@@ -267,7 +270,7 @@ class ModelTest(TestCase): #pragma: no cover
 
     def testVHTRegistration(self):
         ht = HealthFacilityType.objects.create(name="Drug Store", slug="ds")
-        hc = HealthFacility.objects.create(name="Dave's Drug Emporium", code="AWESOME")
+        hc = HealthFacility.objects.create(name="Dave's Drug Emporium", code="AWESOME", type=ht)
         s = fake_incoming('+vht AWESOME')
         self.assertEquals(hc,HealthProvider.objects.all()[0].facility)
 
