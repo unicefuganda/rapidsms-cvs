@@ -237,7 +237,7 @@ class ModelTest(TestCase): #pragma: no cover
     def testActivateAutoReg(self):
 
         #attempt activation without registering
-        resp = self.fake_incoming('1234')
+        resp = self.fake_incoming(getattr(settings, 'ACTIVATION_CODE', '1234'))
         self.assertEquals(resp.responses.all()[0].text, 'You must first register with the system.Text JOIN to 6767 to begin.')
 
         #user joins
@@ -254,10 +254,10 @@ class ModelTest(TestCase): #pragma: no cover
         self.assertEquals(Contact.objects.all()[0].active, False)
 
         #activate registration 
-        resp = self.fake_incoming('1234')
+        resp = self.fake_incoming(getattr(settings, 'ACTIVATION_CODE', '1234'))
         self.assertEquals(resp.responses.all()[0].text, getattr(settings, 'ACTIVATION_MESSAGE', 'Congratulations, you are now active in the system!'))
         self.assertEquals(Contact.objects.all()[0].active, True)
 
         #activate registration again
-        resp = self.fake_incoming('1234')
+        resp = self.fake_incoming(getattr(settings, 'ACTIVATION_CODE', '1234'))
         self.assertEquals(resp.responses.all()[0].text, getattr(settings, 'ALREADY_ACTIVATED_MESSAGE', 'You are already in the system.You should not SMS the code %s' % getattr(settings, 'ACTIVATION_CODE')))
