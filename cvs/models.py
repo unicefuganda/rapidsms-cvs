@@ -13,7 +13,8 @@ from eav.models import Attribute
 from cvs.utils import XFORMS, init_cvsautoreg
 from script.signals import *
 from script.models import *
-from uganda_common.utils import find_closest_match, find_best_response, parse_district_value
+from uganda_common.utils import parse_district_value
+from script.utils.handling import find_closest_match, find_best_response
 from rapidsms.contrib.locations.models import Location
 import itertools
 
