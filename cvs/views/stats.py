@@ -6,9 +6,10 @@ from healthmodels.models.HealthFacility import HealthFacility
 from healthmodels.models.HealthProvider import HealthProvider
 from rapidsms.contrib.locations.models import Location
 from django.views.decorators.cache import cache_control
-from django.http import HttpResponseRedirect,HttpResponse
-from cvs.utils import total_submissions,total_attribute_value,active_reporters,registered_reporters, reorganize_location, reorganize_timespan, GROUP_BY_WEEK,GROUP_BY_MONTH,GROUP_BY_DAY,GROUP_BY_QUARTER,get_group_by,ExcelResponse
-from cvs.views.dates import get_dates, get_expected_epi
+from django.http import HttpResponseRedirect, HttpResponse
+from cvs.utils import total_submissions, total_attribute_value, active_reporters, registered_reporters, reorganize_location, reorganize_timespan, GROUP_BY_WEEK, GROUP_BY_MONTH, GROUP_BY_DAY, GROUP_BY_QUARTER, get_group_by, ExcelResponse
+from cvs.views.dates import get_expected_epi
+from uganda_common.utils import get_dates
 from cvs.forms import DateRangeForm
 import datetime
 import time
@@ -17,9 +18,9 @@ from rapidsms_xforms.models import XFormSubmission, XFormSubmissionValue
 from rapidsms.models import Contact
 import re
 from django.utils.safestring import mark_safe
-from django.db.models import Count,Sum
+from django.db.models import Count, Sum
 
-Num_REG=re.compile('\d+')
+Num_REG = re.compile('\d+')
 
 def index(request, location_id=None):
     """
@@ -44,13 +45,13 @@ def index(request, location_id=None):
     if not location.get_children():
         return HttpResponse(status=400)
 
-    chart=request.session.get('stats',None)
+    chart = request.session.get('stats', None)
     if chart :
 
-        chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
-        request.session['stats']=chart_path
+        chart_path = Num_REG.sub(str(location.pk), chart).rsplit("?")[0] + "?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()) , time.mktime(dates['end'].timetuple()))
+        request.session['stats'] = chart_path
     else:
-        request.session['stats']=mark_safe("/cvs/charts/"+str(location.pk)+"/muac/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
+        request.session['stats'] = mark_safe("/cvs/charts/" + str(location.pk) + "/muac/?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()) , time.mktime(dates['end'].timetuple())))
     start_date = dates['start']
     end_date = dates['end']
     muac = total_submissions('muac', start_date, end_date, location)
@@ -62,19 +63,19 @@ def index(request, location_id=None):
     percentage_safe_water = total_attribute_value('home_wa', start_date, end_date, location)
     home_total = total_attribute_value('home_to', start_date, end_date, location)
     percentage_epi = total_submissions('muac', start_date, end_date, location)
-    active_lower_bound=datetime.datetime.now()
-    active_upper_bound=datetime.datetime.now()-datetime.timedelta(days=14)
-    activeReporters = active_reporters(active_upper_bound,active_lower_bound, location)
+    active_lower_bound = datetime.datetime.now()
+    active_upper_bound = datetime.datetime.now() - datetime.timedelta(days=14)
+    activeReporters = active_reporters(active_upper_bound, active_lower_bound, location)
     registeredReporters = registered_reporters(location)
 
-    expected_epi = get_expected_epi(location,request)
+    expected_epi = get_expected_epi(location, request)
 
     y = 0
     while y < len(percentage_epi):
         epi_divide = float(percentage_epi[y]['value'])
         epi_divide /= expected_epi
-        percentage_epi[y]['value'] = round(epi_divide*100,1)
-        y +=1
+        percentage_epi[y]['value'] = round(epi_divide * 100, 1)
+        y += 1
 
     report_dict = SortedDict()
     reorganize_location('muac', muac, report_dict)
@@ -92,34 +93,34 @@ def index(request, location_id=None):
         if 'home_total' in val_dict and 'percentage_safe_water' in val_dict:
             home_total = float(val_dict['home_total'])
             percentage_safe_water = float(val_dict['percentage_safe_water'])
-            val_dict['percentage_safe_water'] = round(((percentage_safe_water / home_total)*100), 1)
+            val_dict['percentage_safe_water'] = round(((percentage_safe_water / home_total) * 100), 1)
         else:
             val_dict['percentage_safe_water'] = 'N/A'
 
     # label, link, colspan
-    topColumns = (('','',1),
+    topColumns = (('', '', 1),
                   ('Malnutrition', '/cvs/muac/?root=true', 1),
-                  ('Epi','/cvs/epi/?root=true',3),
-                  ('Birth','/cvs/birth/?root=true',1),
-                  ('Death','/cvs/death/?root=true',1),
-                  ('Home', '/cvs/home/?root=true',1),
-                  ('Reporters','/cvs/reporter/',2)
+                  ('Epi', '/cvs/epi/?root=true', 3),
+                  ('Birth', '/cvs/birth/?root=true', 1),
+                  ('Death', '/cvs/death/?root=true', 1),
+                  ('Home', '/cvs/home/?root=true', 1),
+                  ('Reporters', '/cvs/reporter/', 2)
                   )
 
     chart_root = "loadChart('../" + ("../" if location_id else "")
     charts_root = chart_root + "charts/" + str(location.pk)
     columns = (
-               ('','',1,''),
-               ('Total New Cases','javascript:void(0)',1,charts_root + "/muac/')"),
-               ('Malaria','javascript:void(0)',1,charts_root + "/epi/ma/')"),
-               ('Tb','javascript:void(0)',1,charts_root + "/epi/tb/')"),
-               ('Bloody Diarrhea','javascript:void(0)',1,charts_root + "/epi/bd/')"),
-               ('Total','javascript:void(0)',1,charts_root + "/birth/')"),
-               ('Total Child Deaths','javascript:void(0)',1,charts_root + "/death/')"),
-               ('Safe Drinking Water (% of homesteads)','javascript:void(0)',1,charts_root + "/home/wa/percentage/')"),
+               ('', '', 1, ''),
+               ('Total New Cases', 'javascript:void(0)', 1, charts_root + "/muac/')"),
+               ('Malaria', 'javascript:void(0)', 1, charts_root + "/epi/ma/')"),
+               ('Tb', 'javascript:void(0)', 1, charts_root + "/epi/tb/')"),
+               ('Bloody Diarrhea', 'javascript:void(0)', 1, charts_root + "/epi/bd/')"),
+               ('Total', 'javascript:void(0)', 1, charts_root + "/birth/')"),
+               ('Total Child Deaths', 'javascript:void(0)', 1, charts_root + "/death/')"),
+               ('Safe Drinking Water (% of homesteads)', 'javascript:void(0)', 1, charts_root + "/home/wa/percentage/')"),
                #('% of expected weekly Epi reports received','javascript:void(0)',1,charts_root + "/epi/percentage/')"),
-               ('Active Reporters','javascript:void(0)',1,chart_root + "chart/" + str(location.pk) + "/active_reporters/')"),
-               ('Registered Reporters','',1),
+               ('Active Reporters', 'javascript:void(0)', 1, chart_root + "chart/" + str(location.pk) + "/active_reporters/')"),
+               ('Registered Reporters', '', 1),
     )
 
     return render_to_response("cvs/stats.html",
@@ -141,7 +142,7 @@ def index(request, location_id=None):
                                 }, context_instance=RequestContext(request))
 
 
-def muac_detail(request,location_id=None):
+def muac_detail(request, location_id=None):
     """
     malnutrition stats
     """
@@ -157,12 +158,12 @@ def muac_detail(request,location_id=None):
 
     module = request.GET.get('module', False)
     if not module:
-        chart=request.session.get('muac',None)
+        chart = request.session.get('muac', None)
         if chart :
-            chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
-            request.session['muac']=chart_path
+            chart_path = Num_REG.sub(str(location.pk), chart).rsplit("?")[0] + "?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()) , time.mktime(dates['end'].timetuple()))
+            request.session['muac'] = chart_path
         else:
-            request.session['muac']=mark_safe("/cvs/charts/"+str(location.pk)+"/muac/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
+            request.session['muac'] = mark_safe("/cvs/charts/" + str(location.pk) + "/muac/?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()) , time.mktime(dates['end'].timetuple())))
     start_date = dates['start']
     end_date = dates['end']
     total = total_submissions('muac', start_date, end_date, location)
@@ -194,13 +195,13 @@ def muac_detail(request,location_id=None):
 
     muac_chart_root = "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/muac/"
 
-    columns = (('','',1),
+    columns = (('', '', 1),
                   ('Total', '', 1),
-                  ('Green','javascript:void(0)',1,muac_chart_root + "category/G/')"),
-                  ('Green+oe','javascript:void(0)',1,muac_chart_root + "category__ignored/G__T/')"),
-                  ('Yellow','javascript:void(0)',1,muac_chart_root + "category/Y/')"),
-                  ('Red','javascript:void(0)',1,muac_chart_root + "category/R/')"),
-                  ('Red+oe','javascript:void(0)',1,muac_chart_root + "category__ignored/R__T/')")
+                  ('Green', 'javascript:void(0)', 1, muac_chart_root + "category/G/')"),
+                  ('Green+oe', 'javascript:void(0)', 1, muac_chart_root + "category__ignored/G__T/')"),
+                  ('Yellow', 'javascript:void(0)', 1, muac_chart_root + "category/Y/')"),
+                  ('Red', 'javascript:void(0)', 1, muac_chart_root + "category/R/')"),
+                  ('Red+oe', 'javascript:void(0)', 1, muac_chart_root + "category__ignored/R__T/')")
                   )
 
     stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
@@ -237,33 +238,33 @@ def epi_detail(request, location_id=None):
 
     module = request.GET.get('module', False)
     if not module:
-        chart=request.session.get('epi',None)
+        chart = request.session.get('epi', None)
         if chart:
-            chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
-            request.session['epi']=chart_path
+            chart_path = Num_REG.sub(str(location.pk), chart).rsplit("?")[0] + "?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()) , time.mktime(dates['end'].timetuple()))
+            request.session['epi'] = chart_path
         else:
-            request.session['epi']=mark_safe("/cvs/charts/"+str(location.pk)+"/epi/ma/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
+            request.session['epi'] = mark_safe("/cvs/charts/" + str(location.pk) + "/epi/ma/?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()) , time.mktime(dates['end'].timetuple())))
 
     categories = (
-                  ('bd','Bloody Diarrhea'),
-                  ('ma','Malaria'),
-                  ('tb','Tb'),
-                  ('ab','Animal Bite'),
-                  ('af','Polio'),
-                  ('mg','Meningitis'),
-                  ('me','Measles'),
-                  ('ch','Cholera'),
-                  ('gw','Ginuea Worm'),
-                  ('nt','Neonatal Tetanus'),
-                  ('yf','Yellow Fever'),
-                  ('pl','Plague'),
-                  ('ra','Rabies'),
-                  ('vf','Hemorrhagic Fevers'),
-                  ('ei','Infectious Diseases')
+                  ('bd', 'Bloody Diarrhea'),
+                  ('ma', 'Malaria'),
+                  ('tb', 'Tb'),
+                  ('ab', 'Animal Bite'),
+                  ('af', 'Polio'),
+                  ('mg', 'Meningitis'),
+                  ('me', 'Measles'),
+                  ('ch', 'Cholera'),
+                  ('gw', 'Ginuea Worm'),
+                  ('nt', 'Neonatal Tetanus'),
+                  ('yf', 'Yellow Fever'),
+                  ('pl', 'Plague'),
+                  ('ra', 'Rabies'),
+                  ('vf', 'Hemorrhagic Fevers'),
+                  ('ei', 'Infectious Diseases')
     )
     report_dict = {}
-    start_date=dates['start']
-    end_date=dates['end']
+    start_date = dates['start']
+    end_date = dates['end']
     total = total_submissions('epi', start_date, end_date, location)
 #    total = report('epi', location=location, group_by = GROUP_BY_LOCATION, start_date=dates['start'], end_date=dates['end'],request=request)
     reorganize_location('total', total, report_dict)
@@ -272,15 +273,15 @@ def epi_detail(request, location_id=None):
         reorganize_location(attrib_keyword, dictx, report_dict)
 
     columns = [
-        ('','',1),
-        ('Total','javascript:void(0)',1, "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/')")
+        ('', '', 1),
+        ('Total', 'javascript:void(0)', 1, "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/')")
     ]
 
     epi_chart_root = "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/epi/"
     for k, v in categories:
         link = 'javascript:void(0)'
         colspan = 1
-        onclick = epi_chart_root+k+"/')"
+        onclick = epi_chart_root + k + "/')"
         tup = (v, link, colspan, onclick)
         columns.append(tup)
 
@@ -320,14 +321,14 @@ def birth_detail(request, location_id=None):
 
     module = request.GET.get('module', False)
     if not module:
-        chart=request.session.get('birth',None)
+        chart = request.session.get('birth', None)
         if chart :
-            chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
-            request.session['birth']=chart_path
+            chart_path = Num_REG.sub(str(location.pk), chart).rsplit("?")[0] + "?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()) , time.mktime(dates['end'].timetuple()))
+            request.session['birth'] = chart_path
         else:
-            request.session['birth']=mark_safe("/cvs/charts/"+str(location.pk)+"/birth/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
-    start_date=dates['start']
-    end_date=dates['end']
+            request.session['birth'] = mark_safe("/cvs/charts/" + str(location.pk) + "/birth/?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()) , time.mktime(dates['end'].timetuple())))
+    start_date = dates['start']
+    end_date = dates['end']
     total = total_submissions('birth', start_date, end_date, location)
     boys = total_submissions('birth', start_date, end_date, location, {
                 'eav__birth_gender':'M',
@@ -360,7 +361,7 @@ def birth_detail(request, location_id=None):
         if 'total' in val_dict and 'percentage_at_home' in val_dict:
             total = float(val_dict['total'])
             percentage_at_home = float(val_dict['percentage_at_home'])
-            val_dict['percentage_at_home'] = round(((percentage_at_home / total)*100), 1)
+            val_dict['percentage_at_home'] = round(((percentage_at_home / total) * 100), 1)
         else:
             val_dict['percentage_at_home'] = 'N/A'
 
@@ -368,19 +369,19 @@ def birth_detail(request, location_id=None):
         if 'total' in val_dict and 'percentage_at_facility' in val_dict:
             total = float(val_dict['total'])
             percentage_at_facility = float(val_dict['percentage_at_facility'])
-            val_dict['percentage_at_facility'] = round(((percentage_at_facility / total)*100), 1)
+            val_dict['percentage_at_facility'] = round(((percentage_at_facility / total) * 100), 1)
         else:
             val_dict['percentage_at_facility'] = 'N/A'
 
     birth_chart_root = "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/birth/"
-    columns = (('','',1),
+    columns = (('', '', 1),
                   ('Total Births', '', 1),
-                  ('Boys','javascript:void(0)',1,birth_chart_root + "gender/M/')"),
-                  ('Girls','javascript:void(0)',1,birth_chart_root + "gender/F/')"),
-                  ('Delivered at Home','javascript:void(0)',1,birth_chart_root + "place/HOME/')"),
-                  ('Delivered at Facility','javascript:void(0)',1,birth_chart_root + "place/FACILITY/')"),
-                  ('% Delivered at Home','javascript:void(0)',1,birth_chart_root + "place/HOME/percentage/')"),
-                  ('% Delivered at Facility','javascript:void(0)',1,birth_chart_root + "place/FACILITY/percentage/')")
+                  ('Boys', 'javascript:void(0)', 1, birth_chart_root + "gender/M/')"),
+                  ('Girls', 'javascript:void(0)', 1, birth_chart_root + "gender/F/')"),
+                  ('Delivered at Home', 'javascript:void(0)', 1, birth_chart_root + "place/HOME/')"),
+                  ('Delivered at Facility', 'javascript:void(0)', 1, birth_chart_root + "place/FACILITY/')"),
+                  ('% Delivered at Home', 'javascript:void(0)', 1, birth_chart_root + "place/HOME/percentage/')"),
+                  ('% Delivered at Facility', 'javascript:void(0)', 1, birth_chart_root + "place/FACILITY/percentage/')")
                   )
 
     stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
@@ -418,14 +419,14 @@ def death_detail(request, location_id=None):
 
     module = request.GET.get('module', False)
     if not module:
-        chart=request.session.get('death',None)
+        chart = request.session.get('death', None)
         if chart :
-            chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
-            request.session['death']=chart_path
+            chart_path = Num_REG.sub(str(location.pk), chart).rsplit("?")[0] + "?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()) , time.mktime(dates['end'].timetuple()))
+            request.session['death'] = chart_path
         else:
-            request.session['death']=mark_safe("/cvs/charts/"+str(location.pk)+"/death/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) ))
-    start_date=dates['start']
-    end_date=dates['end']
+            request.session['death'] = mark_safe("/cvs/charts/" + str(location.pk) + "/death/?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()) , time.mktime(dates['end'].timetuple())))
+    start_date = dates['start']
+    end_date = dates['end']
     total = total_submissions('death', start_date, end_date, location)
     boys = total_submissions('death', start_date, end_date, location, {
                 'eav__death_gender':'M',
@@ -437,13 +438,13 @@ def death_detail(request, location_id=None):
                 'eav__death_age__lt':28,
             })
     upto_3months = total_submissions('death', start_date, end_date, location, {
-                'eav__death_age__range':(28,90)
+                'eav__death_age__range':(28, 90)
             })
     upto_12months = total_submissions('death', start_date, end_date, location, {
-                'eav__death_age__range':(90,365)
+                'eav__death_age__range':(90, 365)
             })
     upto_5years = total_submissions('death', start_date, end_date, location, {
-                'eav__death_age__range':(365,1825)
+                'eav__death_age__range':(365, 1825)
             })
 
     report_dict = {}
@@ -456,14 +457,14 @@ def death_detail(request, location_id=None):
     reorganize_location('upto_5years', upto_5years, report_dict)
 
     death_chart_root = "loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/death/"
-    columns = (('','',1),
+    columns = (('', '', 1),
                   ('Total Child Deaths', '', 1),
-                  ('Male Deaths','javascript:void(0)',1,death_chart_root + "gender/M/')"),
-                  ('Female Deaths','javascript:void(0)',1,death_chart_root + "gender/F/')"),
-                  ('Deaths Under 28 days','javascript:void(0)',1,death_chart_root + "age/under_28/')"),
-                  ('Deaths 28 days to 3 months','javascript:void(0)',1,death_chart_root + "age/between_28_90/')"),
-                  ('Deaths 3 months to 12 months','javascript:void(0)',1,death_chart_root + "age/between_90_365/')"),
-                  ('Deaths 1 year to 5 years','javascript:void(0)',1,death_chart_root + "age/between_365_1825/')")
+                  ('Male Deaths', 'javascript:void(0)', 1, death_chart_root + "gender/M/')"),
+                  ('Female Deaths', 'javascript:void(0)', 1, death_chart_root + "gender/F/')"),
+                  ('Deaths Under 28 days', 'javascript:void(0)', 1, death_chart_root + "age/under_28/')"),
+                  ('Deaths 28 days to 3 months', 'javascript:void(0)', 1, death_chart_root + "age/between_28_90/')"),
+                  ('Deaths 3 months to 12 months', 'javascript:void(0)', 1, death_chart_root + "age/between_90_365/')"),
+                  ('Deaths 1 year to 5 years', 'javascript:void(0)', 1, death_chart_root + "age/between_365_1825/')")
                   )
 
     stats_template = "cvs/stats_module.html" if module else "cvs/stats.html"
@@ -501,14 +502,14 @@ def home_detail(request, location_id=None):
 
     module = request.GET.get('module', False)
     if not module:
-        chart=request.session.get('home',None)
+        chart = request.session.get('home', None)
         if chart:
-            chart_path=Num_REG.sub(str(location.pk),chart).rsplit("?")[0]+"?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()) ,time.mktime(dates['end'].timetuple()) )
-            request.session['home']=chart_path
+            chart_path = Num_REG.sub(str(location.pk), chart).rsplit("?")[0] + "?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()) , time.mktime(dates['end'].timetuple()))
+            request.session['home'] = chart_path
         else:
-            request.session['home']="/cvs/charts/"+str(location.pk)+"/home/to/?start_date=%d&end_date=%d"%(time.mktime(dates['start'].timetuple()),time.mktime(dates['end'].timetuple()) )
-    start_date=dates['start']
-    end_date=dates['end']
+            request.session['home'] = "/cvs/charts/" + str(location.pk) + "/home/to/?start_date=%d&end_date=%d" % (time.mktime(dates['start'].timetuple()), time.mktime(dates['end'].timetuple()))
+    start_date = dates['start']
+    end_date = dates['end']
     total_reports = total_submissions('home', start_date, end_date, location)
     total = total_attribute_value('home_to', start_date, end_date, location)
     safe_drinking_water = total_attribute_value('home_wa', start_date, end_date, location)
@@ -544,25 +545,25 @@ def home_detail(request, location_id=None):
             if 'total' in val_dict and str(dictx_name) in val_dict:
                 total = float(val_dict['total'])
                 percentage_divisor = float(val_dict.get(dictx_name))
-                val_dict[dictx_name] = round(((percentage_divisor / total)*100), 1)
+                val_dict[dictx_name] = round(((percentage_divisor / total) * 100), 1)
             else:
                 val_dict[dictx_name] = 'N/A'
 
     columns = (
         ('', '', 3),
-        ('Safe Drinking Water','',2),
-        ('Hand Washing Facilities','',2),
-        ('Latrines','',2),
-        ('ITTNs/LLINs','',2),
+        ('Safe Drinking Water', '', 2),
+        ('Hand Washing Facilities', '', 2),
+        ('Latrines', '', 2),
+        ('ITTNs/LLINs', '', 2),
     )
-    
+
     home_chart_root = "javascript:loadChart('../" + ("../" if location_id else "") + "charts/" + str(location.pk) + "/home/"
     bottom_columns = (
-        ('','',1),
+        ('', '', 1),
         ('Total Reports', home_chart_root + "')", 1),
         ('Total Households Visited', home_chart_root + "to/')", 1),
         ('Total', '', 1),
-        ("% of Total", home_chart_root + "wa/percentage/')", 1,""),
+        ("% of Total", home_chart_root + "wa/percentage/')", 1, ""),
         ('Total', '', 1),
         ('% of Total', home_chart_root + "ha/percentage/')", 1),
         ('Total', '', 1),
@@ -591,85 +592,85 @@ def home_detail(request, location_id=None):
                                 }, context_instance=RequestContext(request))
 
 
-def get_district(lst,lft,rght):
+def get_district(lst, lft, rght):
     "get a district name give a location's rght and lft"
     for d in lst:
-        if d[1][0] <=lft and d[1][1] >=rght:
+        if d[1][0] <= lft and d[1][1] >= rght:
             return d[0]
 
 
 def export_as_excel(request):
-    submissions =XFormSubmission.objects.select_related('connection','connection__identity','connection__contact','connection__contact__name').all()
-    health_providers=HealthProvider.objects.select_related('location','facility','location__name','facility__name','location__lft','loction__rght')
-    export_data_list=[]
-    districts=[]
+    submissions = XFormSubmission.objects.select_related('connection', 'connection__identity', 'connection__contact', 'connection__contact__name').all()
+    health_providers = HealthProvider.objects.select_related('location', 'facility', 'location__name', 'facility__name', 'location__lft', 'loction__rght')
+    export_data_list = []
+    districts = []
     for d in Location.objects.filter(type__slug='district'):
-        districts.append((d.name,[d.lft,d.rght]))
+        districts.append((d.name, [d.lft, d.rght]))
     for submission in submissions:
-        export_data=SortedDict()
+        export_data = SortedDict()
         if submission.connection.contact:
-            export_data['reporter_name']=submission.connection.contact.name
+            export_data['reporter_name'] = submission.connection.contact.name
         else:
-            export_data['reporter_name']=''
+            export_data['reporter_name'] = ''
 
-        export_data['reporter_number']=submission.connection.identity
+        export_data['reporter_number'] = submission.connection.identity
         if submission.connection.contact:
             try:
-                loc=health_providers.filter(contact_ptr=submission.connection.contact.pk)[0].location
-                export_data['location']=loc.name
-                export_data['district']=get_district(districts,loc.lft,loc.rght)
+                loc = health_providers.filter(contact_ptr=submission.connection.contact.pk)[0].location
+                export_data['location'] = loc.name
+                export_data['district'] = get_district(districts, loc.lft, loc.rght)
             except:
-                export_data['location']=''
-                export_data['district']=''
+                export_data['location'] = ''
+                export_data['district'] = ''
         else:
-             export_data['location']=''
-             export_data['district']=''
+             export_data['location'] = ''
+             export_data['district'] = ''
 
-        export_data['time']=str(submission.created)
+        export_data['time'] = str(submission.created)
         if submission.connection.contact :
             try:
-                export_data['facility']=health_providers.filter(contact_ptr=submission.connection.contact)[0].facility.name
+                export_data['facility'] = health_providers.filter(contact_ptr=submission.connection.contact)[0].facility.name
             except:
-                export_data['facility']=''
+                export_data['facility'] = ''
 
         else:
-            export_data['facility']=''
-        export_data['message']=submission.raw
-        data={}
+            export_data['facility'] = ''
+        export_data['message'] = submission.raw
+        data = {}
         for d in submission.values.all():
-            data[d.attribute.slug]=d.value
-        export_data['report_keyword']=submission.xform.keyword
-        export_data['muac_name']=data.get('muac_name','')
-        export_data['muac_gender']=data.get('muac_gender','')
-        export_data['muac_age']=data.get('muac_age','')
-        export_data['muac_category']=data.get('muac_category','')
-        export_data['muac_eodema']=data.get('muac_eodema','')
-        export_data['home_it']=data.get('home_it','')
-        export_data['home_to']=data.get('home_to','')
-        export_data['home_la']=data.get('home_la','')
-        export_data['home_ha']=data.get('home_ha','')
-        export_data['home_wa']=data.get('home_wa','')
-        export_data['death_name']=data.get('death_name','')
-        export_data['death_gender']=data.get('death_gender','')
-        export_data['death_age']=data.get('death_age','')
-        export_data['birth_name']=data.get('birth_name','')
-        export_data['birth_place']=data.get('birth_place','')
-        export_data['birth_gender']=data.get('birth_gender','')
-        export_data['epi_ma']=data.get('epi_ma','')
-        export_data['epi_bd']=data.get('epi_bd','')
-        export_data['epi_tb']=data.get('epi_tb','')
-        export_data['epi_ab']=data.get('epi_ab','')
-        export_data['epi_af']=data.get('epi_af','')
-        export_data['epi_mg']=data.get('epi_mg','')
-        export_data['epi_me']=data.get('epi_me','')
-        export_data['epi_ch']=data.get('epi_ch','')
-        export_data['epi_gw']=data.get('epi_gw','')
-        export_data['epi_nt']=data.get('epi_nt','')
-        export_data['epi_yf']=data.get('epi_yf','')
-        export_data['epi_pl']=data.get('epi_pl','')
-        export_data['epi_ra']=data.get('epi_ra','')
-        export_data['epi_vf']=data.get('epi_vf','')
-        export_data['epi_ei']=data.get('epi_ei','')
+            data[d.attribute.slug] = d.value
+        export_data['report_keyword'] = submission.xform.keyword
+        export_data['muac_name'] = data.get('muac_name', '')
+        export_data['muac_gender'] = data.get('muac_gender', '')
+        export_data['muac_age'] = data.get('muac_age', '')
+        export_data['muac_category'] = data.get('muac_category', '')
+        export_data['muac_eodema'] = data.get('muac_eodema', '')
+        export_data['home_it'] = data.get('home_it', '')
+        export_data['home_to'] = data.get('home_to', '')
+        export_data['home_la'] = data.get('home_la', '')
+        export_data['home_ha'] = data.get('home_ha', '')
+        export_data['home_wa'] = data.get('home_wa', '')
+        export_data['death_name'] = data.get('death_name', '')
+        export_data['death_gender'] = data.get('death_gender', '')
+        export_data['death_age'] = data.get('death_age', '')
+        export_data['birth_name'] = data.get('birth_name', '')
+        export_data['birth_place'] = data.get('birth_place', '')
+        export_data['birth_gender'] = data.get('birth_gender', '')
+        export_data['epi_ma'] = data.get('epi_ma', '')
+        export_data['epi_bd'] = data.get('epi_bd', '')
+        export_data['epi_tb'] = data.get('epi_tb', '')
+        export_data['epi_ab'] = data.get('epi_ab', '')
+        export_data['epi_af'] = data.get('epi_af', '')
+        export_data['epi_mg'] = data.get('epi_mg', '')
+        export_data['epi_me'] = data.get('epi_me', '')
+        export_data['epi_ch'] = data.get('epi_ch', '')
+        export_data['epi_gw'] = data.get('epi_gw', '')
+        export_data['epi_nt'] = data.get('epi_nt', '')
+        export_data['epi_yf'] = data.get('epi_yf', '')
+        export_data['epi_pl'] = data.get('epi_pl', '')
+        export_data['epi_ra'] = data.get('epi_ra', '')
+        export_data['epi_vf'] = data.get('epi_vf', '')
+        export_data['epi_ei'] = data.get('epi_ei', '')
         export_data_list.append(export_data)
 
     return ExcelResponse(export_data_list)
