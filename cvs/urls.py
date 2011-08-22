@@ -6,10 +6,11 @@ from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
-from cvs.forms import FacilityFilterForm, ChartModuleForm, StatsModuleForm,MapModuleForm
+from cvs.forms import FacilityFilterForm, ChartModuleForm, StatsModuleForm, MapModuleForm
 from cvs.utils import get_reporters
 from cvs.sorters import LatestSubmissionSorter
 from cvs.views.dates import get_dates
+from cvs.views.basic import ussd_test
 from healthmodels.models.HealthProvider import HealthProviderBase
 from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
@@ -19,7 +20,7 @@ from ureport.models import MassText
 from contact.forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
 
 urlpatterns = patterns('',
-   url(r'^cvs/stats/$', index,name='stats'),
+   url(r'^cvs/stats/$', index, name='stats'),
    url(r'^cvs/stats/(?P<location_id>\d+)/$', index),
    url(r'^cvs/muac/$', muac_detail),
    url(r'^cvs/muac/(?P<location_id>\d+)/$', muac_detail),
@@ -37,7 +38,7 @@ urlpatterns = patterns('',
    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-zA-Z_]+)/(?P<attribute_value>[0-9a-zA-Z_]+)/', chart),
    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
-   url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/',chart),
+   url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/', chart),
    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)', chart),
     url(r'^cvs/chart/(?P<location_id>\d+)/active_reporters/$', active_reporters_chart),
@@ -58,14 +59,17 @@ urlpatterns = patterns('',
                  ('District', False, 'district', None,),
                  ('Last Reporting Date', True, 'latest_submission_date', LatestSubmissionSorter(),),
                  ('Total Reports', True, 'connection__submissions__count', SimpleSorter(),),
-                 ('Facility',True,'facility__name', SimpleSorter(),),
-                 ('Location',True,'location__name', SimpleSorter(),),
-                 ('',False,'',None,)],
+                 ('Facility', True, 'facility__name', SimpleSorter(),),
+                 ('Location', True, 'location__name', SimpleSorter(),),
+                 ('', False, '', None,)],
     }, name="cvs-contact"),
+    url(r'^cvs/test/$', generic, {
+        'model':Location,
+    }),
     url(r'^cvs/reporter/(?P<reporter_pk>\d+)/edit', reporters.editReporter),
     url(r'^cvs/reporter/(?P<reporter_pk>\d+)/delete', reporters.deleteReporter),
     url(r'^cvs/reporter/(?P<pk>\d+)/show', generic_row, {'model':HealthProviderBase, 'partial_row':'cvs/partials/reporter_row.html'}),
-    url(r'^cvs/forms/$', login_required(generic),  {
+    url(r'^cvs/forms/$', login_required(generic), {
         'model':XForm,
 #        'queryset':get_contacts,
 #        'filter_forms':[FreeSearchForm, DistictFilterForm, FilterGroupsForm],
@@ -77,13 +81,13 @@ urlpatterns = patterns('',
         'results_title':'Forms',
         'columns':[('Name', True, 'name', SimpleSorter()),
                  ('Description', True, 'description', SimpleSorter(),),
-                 ('',False,'',None)],
+                 ('', False, '', None)],
     }, name="cvs-forms"),
     url(r'^cvs/module_stats/(?P<location_id>\d+)/(?P<view_name>[a-z_]+)/$', module_stats),
     url(r"^cvs/forms/(\d+)/submissions/$", login_required(basic.view_submissions)),
-    url(r'^cvs/dashboard/$', generic_dashboard,{
+    url(r'^cvs/dashboard/$', generic_dashboard, {
            'slug':'cvs',
-        'module_types':[('chart', ChartModuleForm, 'CVS Chart Module',),('map',MapModuleForm,'Cvs Map Module',),('module_stats', StatsModuleForm, 'CVS Statistics Module',),],
+        'module_types':[('chart', ChartModuleForm, 'CVS Chart Module',), ('map', MapModuleForm, 'Cvs Map Module',), ('module_stats', StatsModuleForm, 'CVS Statistics Module',), ],
         'base_template':'generic/dashboard_base.html',
    }),
    url(r'^cvs/messagelog/$', login_required(generic), {
@@ -126,19 +130,21 @@ urlpatterns = patterns('',
     url(r'^cvs/stats/healthfacility', map.health_facility_api),
 
     # map view
-    url(r'^cvs/map/', generic_map, { 
-        'map_layers' : [{'name':'Health Facilities','url':'/cvs/stats/healthfacility','autoload':True},
-                        {'name':'Malnutrition','url':'/cvs/stats/<start_ts>/<end_ts>/muac/','color':'#80699B','needs_date':True},
-                        {'name':'Deaths','url':'/cvs/stats/<start_ts>/<end_ts>/death/','color':'#AA4643','needs_date':True},
-                        {'name':'Births','url':'/cvs/stats/<start_ts>/<end_ts>/births/','color':'#89A54E','needs_date':True},
-                        {'name':'Malaria','url':'/cvs/stats/<start_ts>/<end_ts>/epi/ma/','color':'#3D96AE','needs_date':True},
-                        {'name':'Dysentery','url':'/cvs/stats/<start_ts>/<end_ts>/epi/bd/','color':'#DB843D','needs_date':True},
-                        {'name':'Tuberculosis','url':'/cvs/stats/<start_ts>/<end_ts>/epi/tb/','color':'#92A8CD','needs_date':True},
-                        {'name':'Other Diseases','url':'/cvs/stats/<start_ts>/<end_ts>/2/epi/other/','color':'#A47D7C','needs_date':True},
+    url(r'^cvs/map/', generic_map, {
+        'map_layers' : [{'name':'Health Facilities', 'url':'/cvs/stats/healthfacility', 'autoload':True},
+                        {'name':'Malnutrition', 'url':'/cvs/stats/<start_ts>/<end_ts>/muac/', 'color':'#80699B', 'needs_date':True},
+                        {'name':'Deaths', 'url':'/cvs/stats/<start_ts>/<end_ts>/death/', 'color':'#AA4643', 'needs_date':True},
+                        {'name':'Births', 'url':'/cvs/stats/<start_ts>/<end_ts>/births/', 'color':'#89A54E', 'needs_date':True},
+                        {'name':'Malaria', 'url':'/cvs/stats/<start_ts>/<end_ts>/epi/ma/', 'color':'#3D96AE', 'needs_date':True},
+                        {'name':'Dysentery', 'url':'/cvs/stats/<start_ts>/<end_ts>/epi/bd/', 'color':'#DB843D', 'needs_date':True},
+                        {'name':'Tuberculosis', 'url':'/cvs/stats/<start_ts>/<end_ts>/epi/tb/', 'color':'#92A8CD', 'needs_date':True},
+                        {'name':'Other Diseases', 'url':'/cvs/stats/<start_ts>/<end_ts>/2/epi/other/', 'color':'#A47D7C', 'needs_date':True},
                        ],
-        'dates': get_dates,\
-        'display_autoload': False,\
+        'dates': get_dates, \
+        'display_autoload': False, \
     }, name="cvs-map"),
+
+    url(r'^ussd/', ussd_test)
 )
 
 

@@ -4,6 +4,7 @@ from rapidsms_xforms.models import XForm, XFormSubmission
 from generic.views import generic
 from generic.sorters import SimpleSorter
 from cvs.sorters import SubmissionValueSorter
+from django.http import HttpResponse
 def index(request):
     return render_to_response("cvs/index.html", {}, RequestContext(request))
 
@@ -13,10 +14,10 @@ def view_submissions(req, form_id):
     submissions = xform.submissions.all().order_by('-pk')
     fields = xform.fields.all().order_by('pk')
 
-    breadcrumbs = (('XForms', '/xforms/'),('Submissions', ''))
-    columns = [('Type',False,'type',None), ('Date',True,'created',SimpleSorter())]
+    breadcrumbs = (('XForms', '/xforms/'), ('Submissions', ''))
+    columns = [('Type', False, 'type', None), ('Date', True, 'created', SimpleSorter())]
     for field in fields:
-        columns.append((field.name.capitalize(), True,field.slug,SubmissionValueSorter()))
+        columns.append((field.name.capitalize(), True, field.slug, SubmissionValueSorter()))
 
     return generic(req,
         model=XFormSubmission,
@@ -33,3 +34,5 @@ def view_submissions(req, form_id):
         partial_row='cvs/partials/submission_row.html',
     )
 
+def ussd_test(req):
+    return HttpResponse(content='responseString=Hello%2C+World%21&action=end', status=200)
