@@ -3,11 +3,8 @@
 
 
 import datetime
-import time
 
-from cvs.views.dates import get_dates
-from cvs.forms import DateRangeForm
-from cvs.settings import MAP_KEY, MIN_LAT, MAX_LAT, MIN_LON, MAX_LON
+from cvs.settings import MIN_LAT, MAX_LAT, MIN_LON, MAX_LON
 from cvs.utils import total_submissions_by_facility, total_attribute_by_facility
 
 from django.http import HttpResponse
@@ -58,30 +55,30 @@ TITLE_DICT = {
 }
 
 def map_other_api(request, start_date, end_date):
-    start_date=datetime.datetime.fromtimestamp(int(start_date))
-    end_date=datetime.datetime.fromtimestamp(int(end_date))
+    start_date = datetime.datetime.fromtimestamp(int(start_date))
+    end_date = datetime.datetime.fromtimestamp(int(end_date))
 
     to_ret_data = {}
-    for att in ['me','ab','af','yf','ch','gw','mg','nt','pl','rb']:
-        data = total_attribute_by_facility('epi_%s'%att, start_date, end_date, (MIN_LAT, MIN_LON, MAX_LAT, MAX_LON))
+    for att in ['me', 'ab', 'af', 'yf', 'ch', 'gw', 'mg', 'nt', 'pl', 'rb']:
+        data = total_attribute_by_facility('epi_%s' % att, start_date, end_date, (MIN_LAT, MIN_LON, MAX_LAT, MAX_LON))
         for d in data:
             id = d.pop('facility_id')
-            to_ret_data.setdefault(id,\
-                {'location_id':id,\
-                 'location_name':"%s %s" % (d.pop('facility_name'), d.pop('type').upper()),\
+            to_ret_data.setdefault(id, \
+                {'location_id':id, \
+                 'location_name':"%s %s" % (d.pop('facility_name'), d.pop('type').upper()), \
                  'lat':'%.5f' % float(d.pop('latitude')),
                  'lon':'%.5f' % float(d.pop('longitude')),
                  'description':'',
                  'value':0})
-            to_ret_data[id]['description'] += "%s : %d<br/>" % (TITLE_DICT["epi_%s"%att], d['value'])
+            to_ret_data[id]['description'] += "%s : %d<br/>" % (TITLE_DICT["epi_%s" % att], d['value'])
             to_ret_data[id]['value'] += d['value']
 
-    json_response_data = {'layer_title':'Other Diseases','layer_type':'flat', 'data':list(to_ret_data.values())}
+    json_response_data = {'layer_title':'Other Diseases', 'layer_type':'flat', 'data':list(to_ret_data.values())}
     return JsonResponse(json_response_data)
 
 def map_api(request, start_date, end_date, xform_keyword, attribute_keyword=None):
-    start_date=datetime.datetime.fromtimestamp(int(start_date))
-    end_date=datetime.datetime.fromtimestamp(int(end_date))
+    start_date = datetime.datetime.fromtimestamp(int(start_date))
+    end_date = datetime.datetime.fromtimestamp(int(end_date))
 
     if attribute_keyword:
         data_function = total_attribute_by_facility
@@ -98,11 +95,11 @@ def map_api(request, start_date, end_date, xform_keyword, attribute_keyword=None
         d['location_id'] = d.pop('facility_id')
         d['location_name'] = "%s %s" % (d.pop('facility_name'), d.pop('type').upper())
 
-    json_response_data = {'layer_title':title,'layer_type':'flat', 'data':list(data)}
+    json_response_data = {'layer_title':title, 'layer_type':'flat', 'data':list(data)}
     return JsonResponse(json_response_data)
 
 def health_facility_api(request):
-    data = list(HealthFacility.objects.exclude(location=None).values('location__latitude','location__longitude','pk','name','type__name'))
+    data = list(HealthFacility.objects.exclude(location=None).values('location__latitude', 'location__longitude', 'pk', 'name', 'type__name'))
     icons_lookup = {
         'dho':'d',
         'hcii':'2',
@@ -111,8 +108,8 @@ def health_facility_api(request):
         'hciv':'4',
         'hciii':'3',
     }
-    icon_root = str(settings.MEDIA_URL) + 'cvs/icons/' 
-    facility_icons={
+    icon_root = str(settings.MEDIA_URL) + 'cvs/icons/'
+    facility_icons = {
         'd':icon_root + 'HOSPITAL.png',
         '2':icon_root + 'HCII.png',
         '3':icon_root + 'HCIII.png',

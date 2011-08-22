@@ -16,6 +16,7 @@ from rapidsms.contrib.locations.models import Location
 from django.conf import settings
 from script.models import Script, ScriptStep
 from poll.models import Category
+from rapidsms.models import Contact
 
 try:
     from django.contrib.sites import Site
@@ -725,3 +726,38 @@ def init_autoreg(sender, **kwargs):
 
         for poll in [role_poll, name_poll, district_poll, hf_poll, village_poll]:
             poll.start()
+
+def monthly_reports():
+    for contact in Contact.objects.filter(Q(groups__name__iexact='Village Health Team')\
+                                  | Q(groups__name__iexact='OTC')\
+                                  | Q(groups__name__iexact='ITC')):
+        if len(set(contact.groups.all().values_list('name', flat=True)) & set(['OTC', 'ITC'])) > 0:
+            reports = XFormSubmission.objects.filter(\
+                        connection__contact=contact, \
+                        has_errors=False, \
+                        xform__keyword__iexact='mal', \
+                        created__gte=datetime.datetime.now() - datetime.timedelta(days=30)
+                        ).count()
+        else:
+            reports = XFormSubmission.objects.filter(\
+                        connection__contact=contact, \
+                        has_errors=False, \
+                        xform__keyword__iexact='com', \
+                        created__gte=datetime.datetime.now() - datetime.timedelta(days=30)
+                        ).count()
+
+        msg = 'Last month you submitted %s timely reports in 4 weeks:' % reports
+
+        if reports >= 4:
+            msg = msg + ' You are one of our best reporters! Thank you for serving your community.'
+        elif reports == 3:
+            msg = msg + ' Thanks for your good work. Please remember to send your reports.'
+        elif reports == 2:
+            msg = msg + ' Thanks for your effort. Please remember to submit on time.'
+        else:
+            msg = msg + ' Your reports are important. Please make an effort to submit on time.'
+
+        Message.objects.create(connection=contact.default_connection,
+                                     text=msg,
+                                     direction='O',
+                                     status='Q')
