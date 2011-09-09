@@ -554,8 +554,6 @@ def init_cvsautoreg(sender, **kwargs):
     required_models = ['eav.models', 'rapidsms_httprouter.models', 'poll.models', 'script.models', 'django.contrib.auth.models']
     if 'django.contrib.sites' in settings.INSTALLED_APPS:
         required_models.append('django.contrib.sites.models')
-    if 'authsites' in settings.INSTALLED_APPS:
-        required_models.append('authsites.models')
     for required in required_models:
         if required not in models_created:
             return
@@ -576,8 +574,7 @@ def init_autoreg(sender, **kwargs):
             slug="cvs_autoreg", defaults={
             'name':"Community Vulnerability Suveillance Script"})
     if created:
-        if 'django.contrib.sites' in settings.INSTALLED_APPS:
-            script.sites.add(Site.objects.get_current())
+        script.sites.add(Site.objects.get_current())
         user, created = User.objects.get_or_create(username="admin")
 
         ## role of CVS reporter
@@ -720,12 +717,8 @@ def init_autoreg(sender, **kwargs):
                giveup_offset=0,
                ))
 
-        if 'django.contrib.sites' in settings.INSTALLED_APPS:
-            for poll in [role_poll, name_poll, district_poll, hf_poll, village_poll]:
-                poll.sites.add(Site.objects.get_current())
-
         for poll in [role_poll, name_poll, district_poll, hf_poll, village_poll]:
-            poll.start()
+            poll.sites.add(Site.objects.get_current())
 
 def monthly_reports():
     for contact in Contact.objects.filter(Q(groups__name__iexact='Village Health Team')\
