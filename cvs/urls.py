@@ -144,7 +144,7 @@ urlpatterns = patterns('',
         'display_autoload': False, \
     }, name="cvs-map"),
 
-    url(r'^ussd/', ussd_test)
+#    url(r'^ussd/', ussd_test)
 )
 
 
