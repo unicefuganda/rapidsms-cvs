@@ -129,8 +129,8 @@ class StatsModuleForm(ModuleForm):
         ('home_detail', 'Variation of Homesteads reports'),
     ), label="Statistics to Show")
     title = forms.CharField(max_length=40)
-    root_node = Location.tree.root_nodes()[0]
-    district = forms.ChoiceField(choices=(('', '----------'), (int(root_node.pk),
+    root_node = Location.tree.root_nodes()[0] if Location.tree.root_nodes().count() else None
+    district = forms.ChoiceField(choices=(('', '----------'), (int(root_node.pk) if root_node else - 1,
                                  'All Districts')) + tuple([(int(d.pk),
                                  d.name) for d in
                                  Location.objects.filter(type__slug='district'
