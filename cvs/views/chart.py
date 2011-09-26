@@ -13,7 +13,7 @@ from cvs.forms import DateRangeForm
 import datetime
 from django.utils.datastructures import SortedDict
 from cvs.views.dates import get_expected_epi
-from uganda_common.utils import get_dates
+from uganda_common.utils import get_xform_dates as get_dates
 from rapidsms_xforms.models import XForm, XFormField
 
 def active_reporters_chart(request, location_id=None, start_date=None, end_date=None):

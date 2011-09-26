@@ -264,7 +264,8 @@ class ModelTest(TestCase): #pragma: no cover
         s = fake_incoming('+reg David McCann', c)
         c = Connection.objects.get(identity='8675310')
         self.assertEquals(c.contact.name, 'David McCann')
-
+        c.contact.active = True
+        c.contact.save()
         s = fake_incoming('+muac Sean Blaschke, M,2 dys,yellow', c)
         self.failIf(s.has_errors)
 
@@ -272,7 +273,7 @@ class ModelTest(TestCase): #pragma: no cover
         ht = HealthFacilityType.objects.create(name="Drug Store", slug="ds")
         hc = HealthFacility.objects.create(name="Dave's Drug Emporium", code="AWESOME", type=ht)
         s = fake_incoming('+vht AWESOME')
-        self.assertEquals(hc,HealthProvider.objects.all()[0].facility)
+        self.assertEquals(hc, HealthProvider.objects.all()[0].facility)
 
     def testDoubleRegister(self):
         fake_incoming('+reg newname')
@@ -282,9 +283,9 @@ class ModelTest(TestCase): #pragma: no cover
         fake_incoming('+reg David McCann')
         self.incomingResponse('+BIRTH Terra Weikel, F, HOME', 'Thank you for registering the birth of Terra Weikel, female (infant). We have recorded that the birth took place at home.')
         self.incomingResponse('+DEATH Malthe Borch, M,1DAY', 'We have recorded the death of Malthe Borch, male (infant).')
-        self.incomingResponse('+muac Matt Berg, M,5months,yellow','Matt Berg, male (5 months old) has been identified with Risk of Malnutrition')
-        self.incomingResponse('+epi ma 12, bd 5','You reported Bloody diarrhea (Dysentery) 5, and Malaria 12.If there is an error,please resend.')
-        self.incomingResponse('+home 12, wa 1, it 6','You reported Total Homesteads Visited 12,ITTNs/LLINs 6, and Safe Drinking Water 1.If there is an error,please resend.')
+        self.incomingResponse('+muac Matt Berg, M,5months,yellow', 'Matt Berg, male (5 months old) has been identified with Risk of Malnutrition')
+        self.incomingResponse('+epi ma 12, bd 5', 'You reported Malaria 12, and Bloody diarrhea (Dysentery) 5.If there is an error,please resend.')
+        self.incomingResponse('+home 12, wa 1, it 6', 'You reported Total Homesteads Visited 12,Safe Drinking Water 1, and ITTNs/LLINs 6.If there is an error,please resend.')
 
     def testErrors(self):
         #TODO make proper fields required

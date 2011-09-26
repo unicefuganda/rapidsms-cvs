@@ -7,12 +7,9 @@ from unregister.models import Blacklist
 class App (AppBase):
 
     def handle (self, message):
-        opt_out_words = getattr(settings, 'OPT_OUT_WORDS', [])
-        print "ACTIVATION CODE IS %s" % getattr(settings, 'ACTIVATION_CODE', 'NOT IN SETTINGS')
-        print "OPT_OUT_WORDS ARE %s" % str(opt_out_words)
-        print "MESSAGE IS '%s'" % message.text.strip().lower()
-        print "MESSAGE IS AN OPT OUT WORD? %s" % str(message.text.strip().lower() in opt_out_words)
-        if getattr(settings, 'ACTIVATION_CODE', None) and message.text.strip().lower() == settings.ACTIVATION_CODE:
+        opt_out_words = [w.lower() for w in getattr(settings, 'OPT_OUT_WORDS', [])]
+        opt_in_words = [w.lower() for w in getattr(settings, 'OPT_IN_WORDS', [])]
+        if getattr(settings, 'ACTIVATION_CODE', None) and message.text.strip().lower().startswith(settings.ACTIVATION_CODE.lower()):
             if not message.connection.contact:
                 message.respond('You must first register with the system.Text JOIN to 6767 to begin.')
                 return True
@@ -24,14 +21,14 @@ class App (AppBase):
             else:
                 message.respond(getattr(settings, 'ALREADY_ACTIVATED_MESSAGE', 'You are already in the system.You should not SMS the code %s' % getattr(settings, 'ACTIVATION_CODE')))
                 return True
-        elif message.text.strip().lower() in getattr(settings, 'OPT_OUT_WORDS', []):
+        elif message.text.strip().lower() in opt_out_words:
             Blacklist.objects.create(connection=message.connection)
             if (message.connection.contact):
                 message.connection.contact.active = False
                 message.connection.contact.save()
             message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', ''))
             return True
-        elif message.text.strip().lower() in [i.lower() for i in getattr(settings, 'OPT_IN_WORDS', [])]:
+        elif message.text.strip().lower() in opt_in_words:
             if Blacklist.objects.filter(connection=message.connection).count() or not message.connection.contact:
                 for b in Blacklist.objects.filter(connection=message.connection):
                     b.delete()

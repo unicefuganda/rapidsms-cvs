@@ -11,11 +11,10 @@ from django.db.models import Count
 from uganda_common.utils import TIME_RANGES
 from rapidsms_httprouter.models import Message
 from ureport.models import MassText
-from poll.models import Poll
+from poll.models import Poll, Category, Rule
 from rapidsms.contrib.locations.models import Location
 from django.conf import settings
 from script.models import Script, ScriptStep
-from poll.models import Category
 from rapidsms.models import Contact
 
 try:
@@ -566,7 +565,7 @@ def init_cvsautoreg(sender, **kwargs):
         structures_initialized = True
 
 def init_groups():
-    for g in ['VHT', 'PVHT', 'HC', 'HF', 'DHT', 'DHO', 'Other CVS Reporters']:
+    for g in ['VHT', 'PVHT', 'HC', 'DHT', 'Other CVS Reporters']:
         Group.objects.get_or_create(name=g)
 
 def init_autoreg(sender, **kwargs):
@@ -581,52 +580,36 @@ def init_autoreg(sender, **kwargs):
         role_poll = Poll.objects.create(
                             name='cvs_role', \
                             question='Welcome to RapidSMS, the Ministry of Health\'s data collection system. What is your role?', \
-                            default_response='Thank you for starting the registration process', \
+                            default_response='', \
                             type=Poll.TYPE_TEXT, \
                             user=user\
                         )
-        vht_category = role_poll.categories.create(name='VHT')
-        vht_category.response = "Thank you for starting the registration process"
-        vht_category.color = '99ff77'
-        vht_category.save()
-        pvht_category = role_poll.categories.create(name='PVHT')
-        pvht_category.response = "Thank you for starting the registration process"
-        pvht_category.color = 'ff9977'
-        pvht_category.save()
-        hc_category = role_poll.categories.create(name='HC')
-        hc_category.response = "Thank you for starting the registration process"
-        hc_category.color = 'ff7799'
-        hc_category.save()
-        hf_category = role_poll.categories.create(name='HF')
-        hf_category.response = "Thank you for starting the registration process"
-        hf_category.color = '77ff99'
-        hf_category.save()
-        dht_category = role_poll.categories.create(name='DHT')
-        dht_category.response = "Thank you for starting the registration process"
-        dht_category.color = '66ff99'
-        dht_category.save()
-        dho_category = role_poll.categories.create(name='DHO')
-        dho_category.response = "Thank you for starting the registration process"
-        dho_category.color = 'ff6699'
-        dho_category.save()
-        unknown_category = role_poll.categories.create(name='unknown')
-        unknown_category.default = False
-        unknown_category.color = 'ffff77'
-        unknown_category.save()
-        unclear_category = Category.objects.create(
+
+        for role_list in [['vht', 'village health team', 'village'], \
+                          ['pvht', 'peer'], \
+                          ['hc', 'hf', 'health center', 'facility', 'center', 'itc', 'otc', 'itp', 'otp'], \
+                          ['dht', 'dho', 'district']]:
+            category = Category.objects.create(poll=role_poll, name=role_list[0].upper)
+            rule = Rule.objects.create(category=category, \
+                                       rule_string="|".join(role_list), \
+                                       rule_type=Rule.TYPE_STARTSWITH)
+            rule.update_regex()
+
+        unclear_category = role_poll.categories.create(
             poll=role_poll,
             name='unclear',
+            response='We did not understand your answer.  Kindly note that this number is for official use only.',
             default=True,
-            color='ffff77',
-            response='We did not understand your answer. Kindly note that this number is for official use only',
-            priority=3
+            error_category=True,
         )
 
         script.steps.add(ScriptStep.objects.create(
             script=script,
             poll=role_poll,
             order=0,
-            rule=ScriptStep.WAIT_MOVEON,
+            rule=ScriptStep.STRICT_MOVEON,
+            num_tries=3,
+            retry_offset=900,
             start_offset=0,
             giveup_offset=60,
         ))
@@ -637,18 +620,18 @@ def init_autoreg(sender, **kwargs):
                             question='Please enter only the answers to the questions asked. What is your name?', \
                             type=Poll.TYPE_TEXT, \
                             user=user\
-                        )
+        )
 
         script.steps.add(ScriptStep.objects.create(
                script=script,
                poll=name_poll,
                order=1,
-               rule=ScriptStep.RESEND_GIVEUP,
+               rule=ScriptStep.RESEND_MOVEON,
                start_offset=0,
-               retry_offset=60 * 15,
-               giveup_offset=60 * 30,
+               retry_offset=900,
+               giveup_offset=1800,
                num_tries=3,
-               ))
+        ))
 
         ## CVS reporter District
         district_poll = Poll.objects.create(
@@ -656,18 +639,18 @@ def init_autoreg(sender, **kwargs):
                             question='What is the name of your District?', \
                             type='district', \
                             user=user\
-                        )
+        )
 
         script.steps.add(ScriptStep.objects.create(
                script=script,
                poll=district_poll,
                order=2,
-               rule=ScriptStep.RESEND_GIVEUP,
+               rule=ScriptStep.STRICT_MOVEON,
                start_offset=0,
-               retry_offset=60 * 15,
-               giveup_offset=60 * 30,
+               retry_offset=900,
+               giveup_offset=1800,
                num_tries=3,
-               ))
+        ))
 
         ## CVS reporter Health Facility
         hf_poll = Poll.objects.create(
@@ -675,18 +658,18 @@ def init_autoreg(sender, **kwargs):
                             question='What is the name of your Health Facility?', \
                             type=Poll.TYPE_TEXT, \
                             user=user\
-                        )
+        )
 
         script.steps.add(ScriptStep.objects.create(
                script=script,
                poll=hf_poll,
                order=3,
-               rule=ScriptStep.RESEND_GIVEUP,
+               rule=ScriptStep.RESEND_MOVEON,
                start_offset=0,
-               retry_offset=60 * 15,
-               giveup_offset=60 * 30,
+               retry_offset=900,
+               giveup_offset=1800,
                num_tries=3,
-               ))
+        ))
 
         ## CVS reporter Village
         village_poll = Poll.objects.create(
@@ -694,7 +677,7 @@ def init_autoreg(sender, **kwargs):
                             question='What is the name of your Village?', \
                             type=Poll.TYPE_TEXT, \
                             user=user\
-                        )
+        )
 
         script.steps.add(ScriptStep.objects.create(
                script=script,
@@ -715,15 +698,13 @@ def init_autoreg(sender, **kwargs):
                rule=ScriptStep.WAIT_MOVEON,
                start_offset=0,
                giveup_offset=0,
-               ))
+        ))
 
         for poll in [role_poll, name_poll, district_poll, hf_poll, village_poll]:
             poll.sites.add(Site.objects.get_current())
 
 def monthly_reports():
-    for contact in Contact.objects.filter(Q(groups__name__iexact='Village Health Team')\
-                                  | Q(groups__name__iexact='OTC')\
-                                  | Q(groups__name__iexact='ITC')):
+    for contact in Contact.objects.filter(groups__name__in=['VHT', 'PVHT', 'HC']):
         if len(set(contact.groups.all().values_list('name', flat=True)) & set(['OTC', 'ITC'])) > 0:
             reports = XFormSubmission.objects.filter(\
                         connection__contact=contact, \

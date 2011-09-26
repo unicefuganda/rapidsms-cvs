@@ -8,7 +8,7 @@ from django.contrib.auth.models import User, Group
 from django.test import TestCase
 from healthmodels.models import *
 from healthmodels.models.HealthFacility import HealthFacility
-from poll.utils import create_attributes
+from poll.management import create_attributes
 from rapidsms.contrib.locations.models import Location, LocationType
 from rapidsms.messages.incoming import IncomingMessage, IncomingMessage
 from rapidsms.models import Connection, Backend, Contact
@@ -23,7 +23,7 @@ import datetime
 import traceback
 from rapidsms_httprouter.router import get_router, HttpRouterThread
 
-class ModelTest(TestCase): #pragma: no cover
+class AutoRegTest(TestCase): #pragma: no cover
 
     def fake_incoming(self, message, connection=None):
         if connection is None:

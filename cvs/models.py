@@ -351,6 +351,7 @@ def xform_received_handler(sender, **kwargs):
     if xform.keyword == 'pvht':
         health_provider.groups.add(Group.objects.get(name='Peer Village Health Team'))
         health_provider.facility = submission.eav.pvht_facility
+        health_provider.active = True
         health_provider.save()
         submission.response = "You have joined the system as Peer Village Health Team reporting to %s. " \
                    "Please resend if there is a mistake." % health_provider.facility.name
@@ -359,6 +360,7 @@ def xform_received_handler(sender, **kwargs):
     if xform.keyword == 'vht':
         health_provider.groups.add(Group.objects.get(name='Village Health Team'))
         health_provider.facility = submission.eav.vht_facility
+        health_provider.active = True
         health_provider.save()
         submission.response = "You have joined the system as Village Health Team reporting to %s." \
                    "Please resend if there is a mistake." % health_provider.facility.name
@@ -443,31 +445,44 @@ def cvs_autoreg(**kwargs):
         return
     session = ScriptSession.objects.filter(script=progress.script, connection=connection).order_by('-end_time')[0]
     script = progress.script
-    rolepoll = script.steps.get(order=0).poll
-    namepoll = script.steps.get(order=1).poll
-    districtpoll = script.steps.get(order=2).poll
-    healthfacilitypoll = script.steps.get(order=3).poll
-    villagepoll = script.steps.get(order=4).poll
 
-    role = find_best_response(session, rolepoll)
+    rolepoll = script.steps.get(poll__name='cvs_role').poll
+    namepoll = script.steps.get(poll__name='cvs_name').poll
+    districtpoll = script.steps.get(poll__name='cvs_district').poll
+    healthfacilitypoll = script.steps.get(poll__name='cvs_healthfacility').poll
+    villagepoll = script.steps.get(poll__name='cvs_village').poll
+
+    role = None
+    resps = session.responses.filter(response__poll=rolepoll, response__has_errors=False).order_by('-response__date')
+    if resps.count():
+        role = resps[0].response
+
     name = find_best_response(session, namepoll)
     district = find_best_response(session, districtpoll)
     village = find_best_response(session, villagepoll)
+    if village:
+        if district:
+            village = find_closest_match(village, district.get_descendants(include_self=True))
+        else:
+            village = find_closest_match(village, Location.objects)
+
     healthfacility = find_best_response(session, healthfacilitypoll)
+
     if name:
         name = ' '.join([n.capitalize() for n in name.lower().split()])
+        name = name[:100]
 
     try:
-        existing_contact = Contact.objects.get(name=name[:100], \
+
+        existing_contact = HealthProvider.objects.get(name=name, \
                                   reporting_location=district, \
-                                  village=find_closest_match(village, Location.objects))
+                                  village=village)
         if connection.contact:
             if healthfacility:
                 facility = find_closest_match(healthfacility, HealthFacility.objects)
                 if facility:
-                    provider = HealthProvider.objects.get(pk=existing_contact.pk)
-                    provider.facility = facility
-                    provider.save()
+                    existing_contact.facility = facility
+                    existing_contact.save()
         else:
             connection.contact = existing_contact
             connection.save()
@@ -477,12 +492,12 @@ def cvs_autoreg(**kwargs):
 
     except Contact.DoesNotExist:
 
-        connection.contact = Contact.objects.create()
+        connection.contact = HealthProvider.objects.create()
         connection.save()
         contact = connection.contact
 
         if name:
-            contact.name = name[:100]
+            contact.name = name
 
         if district:
             contact.reporting_location = district
@@ -490,28 +505,24 @@ def cvs_autoreg(**kwargs):
             contact.reporting_location = Location.tree.root_nodes()[0]
 
         if village:
-            contact.village = find_closest_match(village, Location.objects)
+            contact.village = village
 
-        if role:
-            group = find_closest_match(role, Group.objects)
-            if not group:
-                group = Group.objects.get(name='Other CVS Reporters')
+        group = Group.objects.get(name='Other CVS Reporters')
+        if role and role.categories.count():
+            category = role.categories.all()[0].category
+            try:
+                group = Group.objects.get(name=category.name)
+            except Group.DoesNotExist:
+                pass
         contact.groups.add(group)
-        contact.save()
+
 
         if healthfacility:
             facility = find_closest_match(healthfacility, HealthFacility.objects)
             if facility:
-                h, created = HealthProvider.objects.get_or_create(\
-                            pk=contact.pk, \
-                            facility=facility, \
-                            location=contact.reporting_location, \
-                            name=contact.name, \
-                            reporting_location=contact.reporting_location, \
-                            village=contact.village
-                            )
-                if created:
-                    h.save()
+                contact.facility = facility
+
+        contact.save()
 
 post_syncdb.connect(init_cvsautoreg, weak=False)
 script_progress_was_completed.connect(cvs_autoreg, weak=False)

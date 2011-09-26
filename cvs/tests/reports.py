@@ -19,7 +19,7 @@ from healthmodels.models import *
 from django.db import connection
 
 
-class ModelTest(TestCase): #pragma: no cover
+class ReportsTest(TestCase): #pragma: no cover
 
     def fake_incoming(self, message, connection=None):
         if connection is None:
