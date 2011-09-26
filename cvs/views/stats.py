@@ -8,8 +8,7 @@ from rapidsms.contrib.locations.models import Location
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect, HttpResponse
 from cvs.utils import total_submissions, total_attribute_value, active_reporters, registered_reporters, reorganize_location, reorganize_timespan, GROUP_BY_WEEK, GROUP_BY_MONTH, GROUP_BY_DAY, GROUP_BY_QUARTER, get_group_by, ExcelResponse
-from cvs.views.dates import get_expected_epi
-from uganda_common.utils import get_xform_dates as get_dates
+from cvs.views.dates import get_dates, get_expected_epi
 from cvs.forms import DateRangeForm
 import datetime
 import time
