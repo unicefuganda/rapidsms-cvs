@@ -91,12 +91,12 @@ class AutoRegTest(TestCase): #pragma: no cover
         village = LocationType.objects.create(name='village', slug='village')
         self.root_node = Location.objects.create(type=country, name='Uganda')
         self.kampala_district = Location.objects.create(type=district, name='Kampala')
-        self.makindye_village = Location.objects.create(type=village, name='Makindye')
+        self.makindye_village = Location.objects.create(type=village, name='Makindye', tree_parent=self.kampala_district)
         self.ntinda_village = Location.objects.create(type=village, name='Ntinda')
         self.mulago_healthfacility = HealthFacility.objects.create(name="Mulago")
         self.mengo_healthfacility = HealthFacility.objects.create(name="Mengo")
         def test_run(self):
-             return
+            return
         HttpRouterThread.run = test_run
 
 
@@ -156,7 +156,7 @@ class AutoRegTest(TestCase): #pragma: no cover
         self.assertEquals(contact.reporting_location, self.root_node)
         self.assertEquals(contact.village, None)
         self.assertEquals(contact.name, 'Bad Tester')
-        self.assertEquals(HealthProvider.objects.count(), 0)
+
 
     def testMultipleRegistrations(self):
 

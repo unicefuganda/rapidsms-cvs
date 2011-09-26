@@ -589,11 +589,12 @@ def init_autoreg(sender, **kwargs):
                           ['pvht', 'peer'], \
                           ['hc', 'hf', 'health center', 'facility', 'center', 'itc', 'otc', 'itp', 'otp'], \
                           ['dht', 'dho', 'district']]:
-            category = Category.objects.create(poll=role_poll, name=role_list[0].upper)
+            category = Category.objects.create(poll=role_poll, name=role_list[0].upper())
             rule = Rule.objects.create(category=category, \
                                        rule_string="|".join(role_list), \
                                        rule_type=Rule.TYPE_STARTSWITH)
             rule.update_regex()
+            rule.save()
 
         unclear_category = role_poll.categories.create(
             poll=role_poll,
