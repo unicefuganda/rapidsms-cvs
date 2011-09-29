@@ -1,6 +1,6 @@
 from django.conf.urls.defaults import *
 from cvs.views.stats import *
-from cvs.views.chart import *
+from cvs.views.chart import chart, chart_api, active_reporters_chart
 from cvs.views import basic, reporters, map
 from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard, generic_map
@@ -14,7 +14,7 @@ from cvs.views.basic import ussd_test
 from healthmodels.models.HealthProvider import HealthProviderBase
 from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
-from .utils import get_messages, get_mass_messages
+from .utils import get_messages, get_mass_messages, get_training_messages, get_training_vhts
 from rapidsms_httprouter.models import Message
 from ureport.models import MassText
 from contact.forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
@@ -41,7 +41,8 @@ urlpatterns = patterns('',
    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/', chart),
    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)', chart),
-    url(r'^cvs/chart/(?P<location_id>\d+)/active_reporters/$', active_reporters_chart),
+   url(r'^cvs/chart/(?P<location_id>\d+)/active_reporters/$', active_reporters_chart),
+   url(r'^cvs/api/charts/(?P<start_date>\d+)/(?P<end_date>\d+)/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/((?P<attribute_keyword>[a-zA-Z_]+)/)?', chart_api),
 
    #reporters
     url(r'^cvs/reporter/$', login_required(generic), {
@@ -143,6 +144,44 @@ urlpatterns = patterns('',
         'dates': get_dates, \
         'display_autoload': False, \
     }, name="cvs-map"),
+
+   #reporters
+    url(r'^cvs/train/reporter/$', login_required(generic), {
+      'model':HealthProviderBase,
+      'queryset':get_training_vhts,
+      'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm],
+      'action_forms':[MassTextForm],
+      'objects_per_page':25,
+      'partial_row':'cvs/partials/reporter_row.html',
+      'base_template':'cvs/contacts_base.html',
+      'results_title':'Reporters',
+      'columns':[('Name', True, 'name', SimpleSorter()),
+                 ('Number', True, 'connection__identity', SimpleSorter(),),
+                 ('Role(s)', True, 'groups__name', SimpleSorter(),),
+                 ('District', False, 'district', None,),
+                 ('Last Reporting Date', True, 'latest_submission_date', LatestSubmissionSorter(),),
+                 ('Total Reports', True, 'connection__submissions__count', SimpleSorter(),),
+                 ('Facility', True, 'facility__name', SimpleSorter(),),
+                 ('Location', True, 'location__name', SimpleSorter(),),
+                 ('', False, '', None,)],
+    }, name="cvs-training-contact"),
+   url(r'^cvs/train/messagelog/$', login_required(generic), {
+      'model':Message,
+      'queryset':get_training_messages,
+      'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
+      'action_forms':[ReplyTextForm],
+      'objects_per_page':25,
+      'partial_row':'contact/partials/message_row.html',
+      'base_template':'cvs/messages_base.html',
+      'columns':[('Text', True, 'text', SimpleSorter()),
+                 ('Contact Information', True, 'connection__contact__name', SimpleSorter(),),
+                 ('Date', True, 'date', SimpleSorter(),),
+                 ('Type', True, 'application', SimpleSorter(),),
+                 ('Response', False, 'response', None,),
+                 ],
+      'sort_column':'date',
+      'sort_ascending':False,
+    }, name="cvs-training-messagelog"),
 
 #    url(r'^ussd/', ussd_test)
 )

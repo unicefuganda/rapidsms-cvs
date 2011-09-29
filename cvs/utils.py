@@ -6,6 +6,7 @@ from django.contrib.auth.models import Group
 from healthmodels.models.HealthProvider import HealthProvider, HealthProviderBase
 from rapidsms_xforms.models import *
 import datetime
+import time
 from django.http import HttpResponse
 from django.db.models import Count
 from uganda_common.utils import TIME_RANGES
@@ -411,6 +412,31 @@ def reorganize_timespan(timespan, report, report_dict, location_list, request=No
         if not location in location_list:
             location_list.append(location)
 
+def reorganize_for_chart_api(timespan, report):
+    to_ret = []
+    if len(report):
+        series = []
+        cur_loc = report[0]['location_name']
+        current_series_obj = {'name':cur_loc, 'data':series}
+        to_ret.append(current_series_obj)
+        for d in report:
+            if d['location_name'] != cur_loc:
+                series = []
+                current_series_obj = {'name':d['location_name'], 'data':series}
+                to_ret.append(current_series_obj)
+            dt = d[timespan]
+            if timespan == 'month':
+                dt = datetime.datetime(int(d['year']), int(dt), 1)
+            elif timespan == 'week':
+                dt = datetime.datetime(int(d['year']), 1, 1) + datetime.timedelta(days=(int(dt) * 7))
+            elif timespan == 'quarter':
+                dt = datetime.datetime(int(d['year']), int(dt) * 3, 1)
+            ts = int(time.mktime(dt.timetuple()))
+            series.append(ts)
+            series.append(d['value'])
+
+    return to_ret
+
 def get_group_by(start_date, end_date):
     interval = end_date - start_date
     if interval <= datetime.timedelta(days=21):
@@ -736,3 +762,11 @@ def monthly_reports():
                                      text=msg,
                                      direction='O',
                                      status='Q')
+
+def get_training_messages(request):
+    return Message.objects.filter(connection__contact__active=False)
+
+def get_training_vhts(request):
+    return HealthProvider.objects.filter(active=False)
+
+

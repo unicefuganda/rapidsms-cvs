@@ -8,12 +8,25 @@ from rapidsms.contrib.locations.models import Location
 from django.views.decorators.cache import cache_control
 from django.http import HttpResponseRedirect, HttpResponse
 from django.db import connection
-from cvs.utils import total_submissions, active_reporters, total_attribute_value, reorganize_timespan, get_group_by, GROUP_BY_WEEK, GROUP_BY_DAY
+from cvs.utils import total_submissions, active_reporters, total_attribute_value, reorganize_timespan, get_group_by, GROUP_BY_WEEK, GROUP_BY_DAY, reorganize_for_chart_api
 from cvs.forms import DateRangeForm
 import datetime
 from django.utils.datastructures import SortedDict
 from cvs.views.dates import get_dates, get_expected_epi
 from rapidsms_xforms.models import XForm, XFormField
+from django.utils import simplejson
+from uganda_common.utils import total_submissions as total_submissions_api, total_attribute_value as total_attribute_value_api
+
+class JsonResponse(HttpResponse):
+    """ return json content type   """
+
+    def __init__(self, obj):
+        self.original_obj = obj
+        HttpResponse.__init__(self, self.serialize())
+        self['Content-Type'] = 'text/javascript'
+
+    def serialize(self):
+        return simplejson.dumps(self.original_obj)
 
 def active_reporters_chart(request, location_id=None, start_date=None, end_date=None):
 
@@ -170,6 +183,7 @@ def chart(request, xform_keyword=None, attribute_keyword=None, attribute_value=N
 # yaxis range
     chart_data = list(chart_data)
     reorganize_timespan(group_by['group_by_name'], chart_data, report_dict, location_list, request)
+
     return render_to_response(template,
                               {'data':report_dict,
                                'series':location_list,
@@ -274,3 +288,25 @@ def get_divider(lid, date, totals):
     for total in totals:
         if total.get('location_id') == lid and total.get(date[0]) == date[1] and total.get('year') == date[2]:
             return float(total.get('value'))
+
+def chart_api(req, start_date, end_date, location_id, xform_keyword, attribute_keyword=None):
+    start_date = datetime.datetime.fromtimestamp(int(start_date))
+    end_date = datetime.datetime.fromtimestamp(int(end_date))
+    location = get_object_or_404(Location, pk=location_id)
+    if attribute_keyword:
+        data_function = total_attribute_value_api
+        keyword = "%s_%s" % (xform_keyword, attribute_keyword)
+    else:
+        data_function = total_submissions_api
+        keyword = xform_keyword
+
+    group_by = get_group_by(start_date, end_date)
+
+    data = data_function(keyword, start_date, end_date, location, group_by_timespan=group_by['group_by'])
+
+    chart_data = list(data)
+    chart_data = reorganize_for_chart_api(group_by['group_by_name'], chart_data)
+    json_response_data = {'series':list(chart_data)}
+    return JsonResponse(json_response_data)
+
+
