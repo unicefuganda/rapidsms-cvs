@@ -411,7 +411,7 @@ def xform_received_handler(sender, **kwargs):
         submission.response = "We have recorded the death of %s." % patient_label(patient)
         submission.save()
 
-    elif xform.keyword in ['com', 'mal', 'rutf', 'home', 'epi']:
+    elif xform.keyword in ['act', 'com', 'mal', 'rutf', 'home', 'epi']:
         check_basic_validity(xform.keyword, submission, health_provider, 1)
         value_list = []
         for v in submission.eav.get_values():
@@ -427,7 +427,7 @@ def xform_received_handler(sender, **kwargs):
                 elif v.attribute.slug == 'epi_dy':
                     submission.eav.epi_bd = (submission.eav.epi_bd or 0) + v.value_int
         submission.save()
-    print "IN HERE %s %s" % (xform.keyword, [i[1] for i in XFORMS])
+
     if xform.keyword in [i[1] for i in XFORMS] and \
         not (submission.connection.contact and submission.connection.contact.active):
         submission.has_errors = True
