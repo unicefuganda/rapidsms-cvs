@@ -710,7 +710,7 @@ def init_autoreg(sender, **kwargs):
                script=script,
                poll=village_poll,
                order=4,
-               rule=ScriptStep.RESEND_GIVEUP,
+               rule=ScriptStep.RESEND_MOVEON,
                start_offset=0,
                retry_offset=60 * 15,
                giveup_offset=60 * 30,

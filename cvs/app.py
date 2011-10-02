@@ -35,7 +35,7 @@ class App (AppBase):
                 ScriptProgress.objects.create(script=Script.objects.get(slug="cvs_autoreg"), \
                                           connection=message.connection)
             else:
-                message.repond("You are already in the system and do not need to 'Join' again.Only if you want to reregister,or change location,please send the word JOIN to 6767.")
+                message.respond("You are already in the system and do not need to 'Join' again.Only if you want to reregister,or change location,please send the word JOIN to 6767.")
             return True
         elif Blacklist.objects.filter(connection=message.connection).count():
             return True
