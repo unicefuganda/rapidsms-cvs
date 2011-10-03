@@ -29,9 +29,9 @@ class App (AppBase):
             message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'You have just quit.'))
             return True
         elif message.text.strip().lower() in opt_in_words:
-            if Blacklist.objects.filter(connection=message.connection).count() or not message.connection.contact:
-                for b in Blacklist.objects.filter(connection=message.connection):
-                    b.delete()
+            blacklists = Blacklist.objects.filter(connection=message.connection)
+            if blacklists.count() or not message.connection.contact:
+                blacklists.delete()
                 ScriptProgress.objects.create(script=Script.objects.get(slug="cvs_autoreg"), \
                                           connection=message.connection)
             else:

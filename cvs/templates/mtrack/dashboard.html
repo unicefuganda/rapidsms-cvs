@@ -1,0 +1,75 @@
+{% extends "layout-split-2.html" %}
+{% block stylesheets %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}generic/stylesheets/map.css"/>
+{% endblock %}
+{% block javascripts %}
+    {{ block.super }}
+    <script type="text/javascript" src="{{ MEDIA_URL }}rapidsms/javascripts/jquery-1.3.2.min.js"></script>
+    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}generic/javascripts/map.js"></script>
+    <script src="{{MEDIA_URL}}generic/javascripts/generic.js" type="text/javascript"></script>
+    <script type='text/javascript' src='https://www.google.com/jsapi'></script>
+    <script type='text/javascript' src="https://www.google.com/uds/?file=visualization&v=1&packages=geochart"></script>
+{% endblock %}
+
+
+{% block left %}
+<!--  FIXME loose the BRs! -->
+<div class="module">
+	<h2>Approve</h2>
+	<div id="approve"></div>
+	<br/>
+	<h2>Admin</h2>
+	<div id="admin"></div>
+	<br/>
+	<h2>Messages</h2>
+	<div id="message"></div>
+	<br/>
+	<h2>Contacts</h2>
+	<div id="contacts"></div>
+	<br/>
+</div>
+{% endblock %}
+
+{% block right %}
+<div class="module">
+	<h2>Disease/Nutrition</h2>
+	<div id="epi-map" class="map init"></div>
+    <br clear="both"/>
+    <br/>
+	<h2>Stock Report</h2>
+	<div id='map_canvas' class="init"></div>
+</div>
+<script language=JavaScript" type="text/javascript">
+$(document).ready(function() {
+    $('#approve').load('{% url dashboard-approve %}');
+    $('#admin').load('{% url dashboard-admin %}');
+    $('#message').load('{% url dashboard-messagelog %}');
+    $('#contacts').load('{% url dashboard-contacts %}');
+    init_map('epi-map', {{ min_lat }}, {{ max_lat }}, {{ min_lon }}, {{ max_lon }}, {% autoescape off %}{{ colors }}{% endautoescape %});
+    // FIXME: need some dummy data for this to look nice
+    // plot_layer('epi-map', 'Malnutrition', '/cvs/stats/<start_ts>/<end_ts>/muac/', '/cvs/stats/<start_ts>/<end_ts>/muac/');
+
+
+    var data = new google.visualization.DataTable();
+    data.addRows(4);
+    data.addColumn('string', 'Country');
+    data.addColumn('number', 'ACT Stock');
+    // http://en.wikipedia.org/wiki/ISO_3166-2:UG
+    data.setValue(0, 0, 'UG-C');
+    data.setValue(0, 1, 500);
+    data.setValue(1, 0, 'UG-E');
+    data.setValue(1, 1, 200);
+    data.setValue(2, 0, 'UG-W');
+    data.setValue(2, 1, 300);
+    data.setValue(3, 0, 'UG-N');
+    data.setValue(3, 1, 400);
+
+    var options = {region:'UG',  resolution:'provinces', colors:['#99ff77', '#ffff77','#ff9977']};
+    var container = document.getElementById('map_canvas');
+    var geochart = new google.visualization.GeoChart(container);
+    geochart.draw(data, options);
+});
+</script>
+{% endblock %}
