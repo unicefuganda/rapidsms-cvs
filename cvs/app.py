@@ -42,6 +42,6 @@ class App (AppBase):
         return False
 
     def outgoing(self, msg):
-        if Blacklist.objects.filter(connection=msg.connection).count():
+        if Blacklist.objects.filter(connection=msg.connection).count() and msg.text != getattr(settings, 'OPT_OUT_CONFIRMATION', 'You have just quit.'):
             return False
         return True
