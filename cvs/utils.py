@@ -453,21 +453,28 @@ def get_group_by(start_date, end_date):
         prefix = 'quarter'
     return {'group_by':group_by, 'group_by_name':prefix}
 
-def get_reporters(**kwargs):
-    request = kwargs.pop('request')
+def get_area(request):
     if request.user.is_authenticated() and Location.objects.filter(type__name='district', name=request.user.username).count():
         area = Location.objects.filter(type__name='district', name=request.user.username)[0]
-        return HealthProvider.objects.filter(reporting_location__in=area.get_descendants(include_self=True).all()).select_related('facility', 'location').annotate(Count('connection__submissions')).all()
+    elif request.user.is_authenticated() and Contact.objects.filter(user=request.user).count():
+        area = Contact.objects.filter(user=request.user)[0].reporting_location
+    else:
+        area = None
+    return area
 
-    return HealthProvider.objects.select_related('facility', 'location').annotate(Count('connection__submissions')).all()
+def get_reporters(**kwargs):
+    request = kwargs.pop('request')
+    area = get_area(request)
+    if area:
+        return HealthProvider.objects.filter(reporting_location__in=area.get_descendants(include_self=True).all()).select_related('facility', 'location').annotate(Count('connection__submissions')).all()
+    else:
+        return HealthProvider.objects.select_related('facility', 'location').annotate(Count('connection__submissions')).all()
 
 def get_messages(**kwargs):
     request = kwargs.pop('request')
-    if request.user.is_authenticated() and Location.objects.filter(type__name='district', name=request.user.username).count():
-        q = Location.objects.filter(type__name='district', name=request.user.username)
-        if q.count():
-            area = q[0]
-            return Message.objects.filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())
+    area = get_area(request)
+    if area:
+        return Message.objects.filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())
 
     return Message.objects.filter(direction='I')
 
@@ -636,7 +643,7 @@ def init_autoreg(sender, **kwargs):
             order=0,
             rule=ScriptStep.STRICT_MOVEON,
             num_tries=3,
-            retry_offset=900,
+            retry_offset=300,
             start_offset=0,
             giveup_offset=60,
         ))
@@ -655,8 +662,8 @@ def init_autoreg(sender, **kwargs):
                order=1,
                rule=ScriptStep.RESEND_MOVEON,
                start_offset=0,
-               retry_offset=900,
-               giveup_offset=1800,
+               retry_offset=300,
+               giveup_offset=600,
                num_tries=3,
         ))
 
@@ -674,8 +681,8 @@ def init_autoreg(sender, **kwargs):
                order=2,
                rule=ScriptStep.STRICT_MOVEON,
                start_offset=0,
-               retry_offset=900,
-               giveup_offset=1800,
+               retry_offset=300,
+               giveup_offset=600,
                num_tries=3,
         ))
 
@@ -693,8 +700,8 @@ def init_autoreg(sender, **kwargs):
                order=3,
                rule=ScriptStep.RESEND_MOVEON,
                start_offset=0,
-               retry_offset=900,
-               giveup_offset=1800,
+               retry_offset=300,
+               giveup_offset=600,
                num_tries=3,
         ))
 
@@ -712,8 +719,8 @@ def init_autoreg(sender, **kwargs):
                order=4,
                rule=ScriptStep.RESEND_MOVEON,
                start_offset=0,
-               retry_offset=60 * 15,
-               giveup_offset=60 * 30,
+               retry_offset=300,
+               giveup_offset=600,
                num_tries=3,
                ))
 
