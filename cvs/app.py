@@ -26,7 +26,7 @@ class App (AppBase):
             if (message.connection.contact):
                 message.connection.contact.active = False
                 message.connection.contact.save()
-            message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', ''))
+            message.respond(getattr(settings, 'OPT_OUT_CONFIRMATION', 'You have just quit.'))
             return True
         elif message.text.strip().lower() in opt_in_words:
             if Blacklist.objects.filter(connection=message.connection).count() or not message.connection.contact:
