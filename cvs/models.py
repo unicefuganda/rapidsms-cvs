@@ -10,7 +10,7 @@ from django.db.models.signals import pre_delete, post_syncdb
 from rapidsms.models import Contact
 from poll.models import Poll
 from eav.models import Attribute
-from cvs.utils import XFORMS, init_cvsautoreg
+from cvs.utils import XFORMS
 from script.signals import *
 from script.models import *
 from uganda_common.utils import parse_district_value
@@ -344,10 +344,12 @@ def xform_received_handler(sender, **kwargs):
     try:
         health_provider = submission.connection.contact.healthproviderbase.healthprovider
     except:
-        submission.response = "Must be a reporter. Please register first with your name."
-        submission.has_errors = True
-        submission.save()
+        if xform.keyword in XFORMS:
+            submission.response = "Must be a reporter. Please register first with your name."
+            submission.has_errors = True
+            submission.save()
         return
+
     if xform.keyword == 'pvht':
         health_provider.groups.add(Group.objects.get(name='Peer Village Health Team'))
         health_provider.facility = submission.eav.pvht_facility
@@ -357,6 +359,7 @@ def xform_received_handler(sender, **kwargs):
                    "Please resend if there is a mistake." % health_provider.facility.name
         submission.save()
         return
+
     if xform.keyword == 'vht':
         health_provider.groups.add(Group.objects.get(name='Village Health Team'))
         health_provider.facility = submission.eav.vht_facility
@@ -366,6 +369,7 @@ def xform_received_handler(sender, **kwargs):
                    "Please resend if there is a mistake." % health_provider.facility.name
         submission.save()
         return
+
     if xform.keyword == 'muac':
         days = submission.eav.muac_age
         if not (submission.eav.muac_ignored == 'T'):
@@ -428,7 +432,7 @@ def xform_received_handler(sender, **kwargs):
                     submission.eav.epi_bd = (submission.eav.epi_bd or 0) + v.value_int
         submission.save()
 
-    if xform.keyword in [i[1] for i in XFORMS] and \
+    if xform.keyword in XFORMS and \
         not (submission.connection.contact and submission.connection.contact.active):
         submission.has_errors = True
         submission.save()
@@ -524,7 +528,6 @@ def cvs_autoreg(**kwargs):
 
         contact.save()
 
-post_syncdb.connect(init_cvsautoreg, weak=False)
 script_progress_was_completed.connect(cvs_autoreg, weak=False)
 xform_received.connect(xform_received_handler, weak=True)
 pre_delete.connect(fix_location, weak=True)
