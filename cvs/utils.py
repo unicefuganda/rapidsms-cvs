@@ -318,7 +318,7 @@ def get_area(request):
     elif request.user.is_authenticated() and Contact.objects.filter(user=request.user).count():
         area = Contact.objects.filter(user=request.user)[0].reporting_location
     else:
-        area = None
+        area = Location.tree.root_nodes()[0]
     return area
 
 def get_reporters(**kwargs):
