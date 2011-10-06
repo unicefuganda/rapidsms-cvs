@@ -32,7 +32,7 @@ class App (AppBase):
             blacklists = Blacklist.objects.filter(connection=message.connection)
             if blacklists.count() or not message.connection.contact:
                 blacklists.delete()
-                ScriptProgress.objects.create(script=Script.objects.get(slug="cvs_autoreg"), \
+                ScriptProgress.objects.get_or_create(script=Script.objects.get(slug="cvs_autoreg"), \
                                           connection=message.connection)
             else:
                 message.respond("You are already in the system and do not need to 'Join' again.Only if you want to reregister,or change location,please send the word JOIN to 6767.")

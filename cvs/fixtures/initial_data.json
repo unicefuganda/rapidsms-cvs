@@ -2501,6 +2501,46 @@
         }
     },
     {
+        "pk": 132, 
+        "model": "poll.rule", 
+        "fields": {
+            "regex": "^\\s*(vht|village health team|village)(\\s|[^a-zA-Z]|$)", 
+            "category": 188, 
+            "rule_string": "vht|village health team|village", 
+            "rule_type": "sw"
+        }
+    }, 
+    {
+        "pk": 133, 
+        "model": "poll.rule", 
+        "fields": {
+            "regex": "^\\s*(pvht|peer)(\\s|[^a-zA-Z]|$)", 
+            "category": 189, 
+            "rule_string": "pvht|peer", 
+            "rule_type": "sw"
+        }
+    }, 
+    {
+        "pk": 134, 
+        "model": "poll.rule", 
+        "fields": {
+            "regex": "^\\s*(hc|hf|hcw|health center|facility|center|itc|otc|itp|otp)(\\s|[^a-zA-Z]|$)", 
+            "category": 190, 
+            "rule_string": "hc|hf|hcw|health center|facility|center|itc|otc|itp|otp", 
+            "rule_type": "sw"
+        }
+    }, 
+    {
+        "pk": 135, 
+        "model": "poll.rule", 
+        "fields": {
+            "regex": "^\\s*(dht|dho|district)(\\s|[^a-zA-Z]|$)", 
+            "category": 191, 
+            "rule_string": "dht|dho|district", 
+            "rule_type": "sw"
+        }
+    }, 
+    {
         "pk": 89,
         "model": "script.scriptstep",
         "fields": {
