@@ -32,7 +32,7 @@ class EditReporterForm(forms.ModelForm):
 
     class Meta:
         model = HealthProvider
-        fields = ('name', 'facility', 'location')
+        fields = ('name', 'facility', 'location', 'reporting_location', 'groups')
 
 class FacilityFilterForm(FilterForm):
     """ filter form for cvs facilities """

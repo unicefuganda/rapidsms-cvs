@@ -7,6 +7,25 @@
     {% endif %}
 </td>
 <td>{{ reporter.default_connection.identity }}</td>
+<td>
+<!--  Role(s)  -->
+    {{ reporter_form.groups }}
+    {% if reporter_form.groups.errors %}
+        <br clear="left"/>
+        {{ report_form.groups.errors }}
+    {% endif %}
+</td>
+<td>
+    <!-- District -->
+    {{ object.reporting_location|get_district }}
+    {% comment %}
+	    {{ reporter_form.reporting_location }}
+	    {% if reporter_form.reporting_location.errors %}
+	        <br clear="left"/>
+	        {{ report_form.reporting_location.errors }}
+	    {% endif %}
+    {% endcomment %}
+</td>
 <td>{{ reporter|latest|date:"d-m-Y" }}</td>
 <td>{{ reporter.default_connection.submissions.count }}</td>
 <td>{{ reporter_form.facility }}

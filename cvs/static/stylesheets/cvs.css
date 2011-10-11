@@ -117,6 +117,15 @@ div.module {
     width: 7em;
 }
 
+#id_groups {
+    width: 7em;
+    height: 7em;
+}
+
+#id_facility {
+    width: 7em;
+}
+
 #div_action_0 {
     position:absolute;
     top:3em;
