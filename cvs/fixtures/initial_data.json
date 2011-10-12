@@ -961,22 +961,6 @@
         }
     },
     {
-        "pk": 91,
-        "model": "auth.group",
-        "fields": {
-            "name": "Village Health Team",
-            "permissions": []
-        }
-    },
-    {
-        "pk": 92,
-        "model": "auth.group",
-        "fields": {
-            "name": "Peer Village Health Team",
-            "permissions": []
-        }
-    },
-    {
         "pk": 93,
         "model": "auth.group",
         "fields": {
@@ -1025,26 +1009,10 @@
         }
     },
     {
-        "pk": 127,
-        "model": "auth.group",
-        "fields": {
-            "name": "HF",
-            "permissions": []
-        }
-    },
-    {
         "pk": 128,
         "model": "auth.group",
         "fields": {
             "name": "DHT",
-            "permissions": []
-        }
-    },
-    {
-        "pk": 129,
-        "model": "auth.group",
-        "fields": {
-            "name": "DHO",
             "permissions": []
         }
     },

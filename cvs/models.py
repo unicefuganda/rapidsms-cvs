@@ -351,7 +351,7 @@ def xform_received_handler(sender, **kwargs):
         return
 
     if xform.keyword == 'pvht':
-        health_provider.groups.add(Group.objects.get(name='Peer Village Health Team'))
+        health_provider.groups.add(Group.objects.get(name='PVHT'))
         health_provider.facility = submission.eav.pvht_facility
         health_provider.active = True
         health_provider.save()
@@ -361,7 +361,7 @@ def xform_received_handler(sender, **kwargs):
         return
 
     if xform.keyword == 'vht':
-        health_provider.groups.add(Group.objects.get(name='Village Health Team'))
+        health_provider.groups.add(Group.objects.get(name='VHT'))
         health_provider.facility = submission.eav.vht_facility
         health_provider.active = True
         health_provider.save()
