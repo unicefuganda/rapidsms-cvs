@@ -208,6 +208,54 @@
         }
     },
     {
+        "pk": 81,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Neonatal Tetanus",
+            "created": "2011-02-16 06:50:44",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-03-02 14:31:51",
+            "type": "int",
+            "slug": "epi_nt",
+            "name": "Neonatal Tetanus"
+        }
+    },
+    {
+        "pk": 74,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Tuberculosis",
+            "created": "2011-02-16 06:50:44",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-03-02 14:31:51",
+            "type": "int",
+            "slug": "epi_tb",
+            "name": "Tuberculosis"
+        }
+    },
+    {
+        "pk": 87,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Total Homesteads Visited",
+            "created": "2011-02-16 06:50:44",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-03-02 14:31:51",
+            "type": "int",
+            "slug": "home_to",
+            "name": "Total Homesteads Visited"
+        }
+    },
+    {
         "pk": 88,
         "model": "eav.attribute",
         "fields": {
@@ -304,6 +352,22 @@
         }
     },
     {
+        "pk": 65,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Occurence of oedema (T/F)",
+            "created": "2011-02-16 06:50:43",
+            "datatype": "text",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-02-16 06:50:43",
+            "type": "cvsodema",
+            "slug": "muac_ignored",
+            "name": "ignored"
+        }
+    },
+    {
         "pk": 62,
         "model": "eav.attribute",
         "fields": {
@@ -335,6 +399,55 @@
             "name": "name"
         }
     },
+    {
+        "pk": 70,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "The gender of the child born",
+            "created": "2011-02-16 06:50:44",
+            "datatype": "text",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-02-16 06:50:44",
+            "type": "cvssex",
+            "slug": "birth_gender",
+            "name": "gender"
+        }
+    },
+    {
+        "pk": 69,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "The name of the child born",
+            "created": "2011-02-16 06:50:44",
+            "datatype": "text",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-02-16 06:50:44",
+            "type": "text",
+            "slug": "birth_name",
+            "name": "name"
+        }
+    },
+    {
+        "pk": 71,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "At home or at a health facility",
+            "created": "2011-02-16 06:50:44",
+            "datatype": "text",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-02-16 06:50:44",
+            "type": "cvsloc",
+            "slug": "birth_place",
+            "name": "place"
+        }
+    },
+
     {
         "pk": 66,
         "model": "eav.attribute",
@@ -400,6 +513,38 @@
         }
     },
     {
+        "pk": 180,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Green dispensed",
+            "created": "2011-10-02 11:52:39",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:39",
+            "type": "int",
+            "slug": "act_green_disp",
+            "name": "Green dispensed"
+        }
+    },
+    {
+        "pk": 181,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Green stock",
+            "created": "2011-10-02 11:52:39",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:39",
+            "type": "int",
+            "slug": "act_green_balance",
+            "name": "Green stock"
+        }
+    },
+    {
         "pk": 177,
         "model": "eav.attribute",
         "fields": {
@@ -448,6 +593,70 @@
         }
     },
     {
+        "pk": 182,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Other ACT dispensed",
+            "created": "2011-10-02 11:52:39",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:39",
+            "type": "int",
+            "slug": "act_other_disp",
+            "name": "Other ACT dispensed"
+        }
+    },
+    {
+        "pk": 174,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Yellow dispensed",
+            "created": "2011-10-02 11:52:39",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:39",
+            "type": "int",
+            "slug": "act_yellow_disp",
+            "name": "Yellow dispensed"
+        }
+    },
+    {
+        "pk": 175,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Yellow stock",
+            "created": "2011-10-02 11:52:39",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:39",
+            "type": "int",
+            "slug": "act_yellow_balance",
+            "name": "Yellow stock"
+        }
+    },
+    {
+        "pk": 183,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Other ACT stock",
+            "created": "2011-10-02 11:52:39",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:39",
+            "type": "int",
+            "slug": "act_other_balance",
+            "name": "Other ACT stock"
+        }
+    },
+    {
         "pk": 192,
         "model": "eav.attribute",
         "fields": {
@@ -460,22 +669,6 @@
             "modified": "2011-10-02 11:52:40",
             "type": "int",
             "slug": "mal_total_death",
-            "name": "deaths"
-        }
-    },
-    {
-        "pk": 186,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "deaths",
-            "created": "2011-10-02 11:52:40",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:40",
-            "type": "int",
-            "slug": "com_death",
             "name": "deaths"
         }
     },
@@ -496,6 +689,54 @@
         }
     },
     {
+        "pk": 194,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "total admissions",
+            "created": "2011-10-02 11:52:40",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:40",
+            "type": "int",
+            "slug": "mal_total_admissions",
+            "name": "total admissions"
+        }
+    },
+    {
+        "pk": 191,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "new admissions",
+            "created": "2011-10-02 11:52:40",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:40",
+            "type": "int",
+            "slug": "mal_total_new",
+            "name": "new admissions"
+        }
+    },    
+    {
+        "pk": 184,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "fever",
+            "created": "2011-10-02 11:52:40",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:40",
+            "type": "int",
+            "slug": "com_fever",
+            "name": "fever"
+        }
+    },
+    {
         "pk": 185,
         "model": "eav.attribute",
         "fields": {
@@ -509,6 +750,102 @@
             "type": "int",
             "slug": "com_diarrhea",
             "name": "diarrhea"
+        }
+    },
+    {
+        "pk": 199,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "fast breathing",
+            "created": "2011-10-02 11:52:40",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-12 12:59:00",
+            "type": "int",
+            "slug": "com_pneumonia",
+            "name": "fast breathing"
+        }
+    },
+    {
+        "pk": 186,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "deaths",
+            "created": "2011-10-02 11:52:40",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:40",
+            "type": "int",
+            "slug": "com_death",
+            "name": "deaths"
+        }
+    },
+    {
+        "pk": 187,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "OE",
+            "created": "2011-10-02 11:52:40",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:40",
+            "type": "int",
+            "slug": "com_bi_od",
+            "name": "OE"
+        }
+    },
+    {
+        "pk": 188,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Red",
+            "created": "2011-10-02 11:52:40",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:40",
+            "type": "int",
+            "slug": "com_muac_red",
+            "name": "Red"
+        }
+    },
+    {
+        "pk": 189,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Yel",
+            "created": "2011-10-02 11:52:40",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:40",
+            "type": "int",
+            "slug": "com_muac_yellow",
+            "name": "Yel"
+        }
+    },
+    {
+        "pk": 190,
+        "model": "eav.attribute",
+        "fields": {
+            "description": "Green",
+            "created": "2011-10-02 11:52:40",
+            "datatype": "int",
+            "enum_group": null,
+            "required": false,
+            "site": 1,
+            "modified": "2011-10-02 11:52:40",
+            "type": "int",
+            "slug": "com_muac_green",
+            "name": "Green"
         }
     },
     {
@@ -544,278 +881,6 @@
         }
     },
     {
-        "pk": 93,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Your facility code",
-            "created": "2011-02-16 06:50:44",
-            "datatype": "object",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-02-16 06:50:44",
-            "type": "facility",
-            "slug": "pvht_facility",
-            "name": "facility"
-        }
-    },
-    {
-        "pk": 94,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Your facility code",
-            "created": "2011-02-16 06:50:44",
-            "datatype": "object",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-02-16 06:50:44",
-            "type": "facility",
-            "slug": "vht_facility",
-            "name": "facility"
-        }
-    },
-    {
-        "pk": 184,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "fever",
-            "created": "2011-10-02 11:52:40",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:40",
-            "type": "int",
-            "slug": "com_fever",
-            "name": "fever"
-        }
-    },
-    {
-        "pk": 70,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "The gender of the child born",
-            "created": "2011-02-16 06:50:44",
-            "datatype": "text",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-02-16 06:50:44",
-            "type": "cvssex",
-            "slug": "birth_gender",
-            "name": "gender"
-        }
-    },
-    {
-        "pk": 190,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Green",
-            "created": "2011-10-02 11:52:40",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:40",
-            "type": "int",
-            "slug": "com_muac_green",
-            "name": "Green"
-        }
-    },
-    {
-        "pk": 180,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Green dispensed",
-            "created": "2011-10-02 11:52:39",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:39",
-            "type": "int",
-            "slug": "act_green_disp",
-            "name": "Green dispensed"
-        }
-    },
-    {
-        "pk": 181,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Green stock",
-            "created": "2011-10-02 11:52:39",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:39",
-            "type": "int",
-            "slug": "act_green_balance",
-            "name": "Green stock"
-        }
-    },
-    {
-        "pk": 65,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Occurence of oedema (T/F)",
-            "created": "2011-02-16 06:50:43",
-            "datatype": "text",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-02-16 06:50:43",
-            "type": "cvsodema",
-            "slug": "muac_ignored",
-            "name": "ignored"
-        }
-    },
-    {
-        "pk": 92,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Your name",
-            "created": "2011-02-16 06:50:44",
-            "datatype": "text",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-02-16 06:50:44",
-            "type": "text",
-            "slug": "reg_name",
-            "name": "name"
-        }
-    },
-    {
-        "pk": 69,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "The name of the child born",
-            "created": "2011-02-16 06:50:44",
-            "datatype": "text",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-02-16 06:50:44",
-            "type": "text",
-            "slug": "birth_name",
-            "name": "name"
-        }
-    },
-    {
-        "pk": 81,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Neonatal Tetanus",
-            "created": "2011-02-16 06:50:44",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-03-02 14:31:51",
-            "type": "int",
-            "slug": "epi_nt",
-            "name": "Neonatal Tetanus"
-        }
-    },
-    {
-        "pk": 191,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "new admissions",
-            "created": "2011-10-02 11:52:40",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:40",
-            "type": "int",
-            "slug": "mal_total_new",
-            "name": "new admissions"
-        }
-    },
-    {
-        "pk": 187,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "OE",
-            "created": "2011-10-02 11:52:40",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:40",
-            "type": "int",
-            "slug": "com_bi_od",
-            "name": "OE"
-        }
-    },
-    {
-        "pk": 182,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Other ACT dispensed",
-            "created": "2011-10-02 11:52:39",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:39",
-            "type": "int",
-            "slug": "act_other_disp",
-            "name": "Other ACT dispensed"
-        }
-    },
-    {
-        "pk": 183,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Other ACT stock",
-            "created": "2011-10-02 11:52:39",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:39",
-            "type": "int",
-            "slug": "act_other_balance",
-            "name": "Other ACT stock"
-        }
-    },
-    {
-        "pk": 71,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "At home or at a health facility",
-            "created": "2011-02-16 06:50:44",
-            "datatype": "text",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-02-16 06:50:44",
-            "type": "cvsloc",
-            "slug": "birth_place",
-            "name": "place"
-        }
-    },
-    {
-        "pk": 188,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Red",
-            "created": "2011-10-02 11:52:40",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:40",
-            "type": "int",
-            "slug": "com_muac_red",
-            "name": "Red"
-        }
-    },
-    {
         "pk": 198,
         "model": "eav.attribute",
         "fields": {
@@ -848,99 +913,51 @@
         }
     },
     {
-        "pk": 194,
+        "pk": 93,
         "model": "eav.attribute",
         "fields": {
-            "description": "total admissions",
-            "created": "2011-10-02 11:52:40",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:40",
-            "type": "int",
-            "slug": "mal_total_admissions",
-            "name": "total admissions"
-        }
-    },
-    {
-        "pk": 87,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Total Homesteads Visited",
+            "description": "Your facility code",
             "created": "2011-02-16 06:50:44",
-            "datatype": "int",
+            "datatype": "object",
             "enum_group": null,
             "required": false,
             "site": 1,
-            "modified": "2011-03-02 14:31:51",
-            "type": "int",
-            "slug": "home_to",
-            "name": "Total Homesteads Visited"
+            "modified": "2011-02-16 06:50:44",
+            "type": "facility",
+            "slug": "pvht_facility",
+            "name": "facility"
         }
     },
     {
-        "pk": 74,
+        "pk": 94,
         "model": "eav.attribute",
         "fields": {
-            "description": "Tuberculosis",
+            "description": "Your facility code",
             "created": "2011-02-16 06:50:44",
-            "datatype": "int",
+            "datatype": "object",
             "enum_group": null,
             "required": false,
             "site": 1,
-            "modified": "2011-03-02 14:31:51",
-            "type": "int",
-            "slug": "epi_tb",
-            "name": "Tuberculosis"
+            "modified": "2011-02-16 06:50:44",
+            "type": "facility",
+            "slug": "vht_facility",
+            "name": "facility"
         }
     },
     {
-        "pk": 189,
+        "pk": 92,
         "model": "eav.attribute",
         "fields": {
-            "description": "Yel",
-            "created": "2011-10-02 11:52:40",
-            "datatype": "int",
+            "description": "Your name",
+            "created": "2011-02-16 06:50:44",
+            "datatype": "text",
             "enum_group": null,
             "required": false,
             "site": 1,
-            "modified": "2011-10-02 11:52:40",
-            "type": "int",
-            "slug": "com_muac_yellow",
-            "name": "Yel"
-        }
-    },
-    {
-        "pk": 174,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Yellow dispensed",
-            "created": "2011-10-02 11:52:39",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:39",
-            "type": "int",
-            "slug": "act_yellow_disp",
-            "name": "Yellow dispensed"
-        }
-    },
-    {
-        "pk": 175,
-        "model": "eav.attribute",
-        "fields": {
-            "description": "Yellow stock",
-            "created": "2011-10-02 11:52:39",
-            "datatype": "int",
-            "enum_group": null,
-            "required": false,
-            "site": 1,
-            "modified": "2011-10-02 11:52:39",
-            "type": "int",
-            "slug": "act_yellow_balance",
-            "name": "Yellow stock"
+            "modified": "2011-02-16 06:50:44",
+            "type": "text",
+            "slug": "reg_name",
+            "name": "name"
         }
     },
     {
@@ -1340,6 +1357,94 @@
         }
     },
     {
+        "pk": 184,
+        "model": "rapidsms_xforms.xformfield",
+        "fields": {
+            "field_type": "int",
+            "question": null,
+            "command": "fever",
+            "order": 0,
+            "xform": 29
+        }
+    },
+    {
+        "pk": 185,
+        "model": "rapidsms_xforms.xformfield",
+        "fields": {
+            "field_type": "int",
+            "question": null,
+            "command": "diarrhea",
+            "order": 1,
+            "xform": 29
+        }
+    },
+    {
+        "pk": 199,
+        "model": "rapidsms_xforms.xformfield",
+        "fields": {
+            "field_type": "int",
+            "question": null,
+            "command": "fastbreath",
+            "order": 2,
+            "xform": 29
+        }
+    },
+    {
+        "pk": 186,
+        "model": "rapidsms_xforms.xformfield",
+        "fields": {
+            "field_type": "int",
+            "question": null,
+            "command": "death",
+            "order": 3,
+            "xform": 29
+        }
+    },
+    {
+        "pk": 187,
+        "model": "rapidsms_xforms.xformfield",
+        "fields": {
+            "field_type": "int",
+            "question": null,
+            "command": "bi_od",
+            "order": 4,
+            "xform": 29
+        }
+    },
+    {
+        "pk": 188,
+        "model": "rapidsms_xforms.xformfield",
+        "fields": {
+            "field_type": "int",
+            "question": null,
+            "command": "muac_red",
+            "order": 5,
+            "xform": 29
+        }
+    },
+    {
+        "pk": 189,
+        "model": "rapidsms_xforms.xformfield",
+        "fields": {
+            "field_type": "int",
+            "question": null,
+            "command": "muac_yellow",
+            "order": 6,
+            "xform": 29
+        }
+    },
+    {
+        "pk": 190,
+        "model": "rapidsms_xforms.xformfield",
+        "fields": {
+            "field_type": "int",
+            "question": null,
+            "command": "muac_green",
+            "order": 7,
+            "xform": 29
+        }
+    },
+    {
         "pk": 61,
         "model": "rapidsms_xforms.xformfield",
         "fields": {
@@ -1439,17 +1544,6 @@
         }
     },
     {
-        "pk": 184,
-        "model": "rapidsms_xforms.xformfield",
-        "fields": {
-            "field_type": "int",
-            "question": null,
-            "command": "fever",
-            "order": 0,
-            "xform": 29
-        }
-    },
-    {
         "pk": 191,
         "model": "rapidsms_xforms.xformfield",
         "fields": {
@@ -1535,17 +1629,6 @@
             "command": "yellow_balance",
             "order": 1,
             "xform": 32
-        }
-    },
-    {
-        "pk": 185,
-        "model": "rapidsms_xforms.xformfield",
-        "fields": {
-            "field_type": "int",
-            "question": null,
-            "command": "diarrhea",
-            "order": 1,
-            "xform": 29
         }
     },
     {
@@ -1637,17 +1720,6 @@
         }
     },
     {
-        "pk": 186,
-        "model": "rapidsms_xforms.xformfield",
-        "fields": {
-            "field_type": "int",
-            "question": null,
-            "command": "death",
-            "order": 2,
-            "xform": 29
-        }
-    },
-    {
         "pk": 193,
         "model": "rapidsms_xforms.xformfield",
         "fields": {
@@ -1711,17 +1783,6 @@
             "command": "blue_balance",
             "order": 3,
             "xform": 32
-        }
-    },
-    {
-        "pk": 187,
-        "model": "rapidsms_xforms.xformfield",
-        "fields": {
-            "field_type": "int",
-            "question": null,
-            "command": "bi_od",
-            "order": 3,
-            "xform": 29
         }
     },
     {
@@ -1791,17 +1852,6 @@
         }
     },
     {
-        "pk": 188,
-        "model": "rapidsms_xforms.xformfield",
-        "fields": {
-            "field_type": "int",
-            "question": null,
-            "command": "muac_red",
-            "order": 4,
-            "xform": 29
-        }
-    },
-    {
         "pk": 77,
         "model": "rapidsms_xforms.xformfield",
         "fields": {
@@ -1824,17 +1874,6 @@
         }
     },
     {
-        "pk": 189,
-        "model": "rapidsms_xforms.xformfield",
-        "fields": {
-            "field_type": "int",
-            "question": null,
-            "command": "muac_yellow",
-            "order": 5,
-            "xform": 29
-        }
-    },
-    {
         "pk": 78,
         "model": "rapidsms_xforms.xformfield",
         "fields": {
@@ -1854,17 +1893,6 @@
             "command": "green_disp",
             "order": 6,
             "xform": 32
-        }
-    },
-    {
-        "pk": 190,
-        "model": "rapidsms_xforms.xformfield",
-        "fields": {
-            "field_type": "int",
-            "question": null,
-            "command": "muac_green",
-            "order": 6,
-            "xform": 29
         }
     },
     {
@@ -2259,6 +2287,17 @@
             "test": null,
             "field": 185,
             "message": "Expected diarrhea, none provided.",
+            "type": "req_val",
+            "order": 1000
+        }
+    },
+    {
+        "pk": 111,
+        "model": "rapidsms_xforms.xformfieldconstraint",
+        "fields": {
+            "test": null,
+            "field": 199,
+            "message": "Expected fast breathing, none provided.",
             "type": "req_val",
             "order": 1000
         }
