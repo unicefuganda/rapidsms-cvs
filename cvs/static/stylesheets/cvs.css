@@ -110,16 +110,21 @@ div.module {
 }
 
 #actions {
-    height:7em;
+    height:10em;
+}
+
+#id_name {
+    width:10em;	
 }
 
 #id_location {
     width: 7em;
 }
 
-#id_groups {
-    width: 7em;
+#id_roles {
+    width: 9em;
     height: 7em;
+    font-size: 8pt;
 }
 
 #id_facility {
@@ -130,6 +135,13 @@ div.module {
     position:absolute;
     top:3em;
     left:0;
+    width:50%;
+}
+
+#div_action_0 a {
+    position:absolute;
+    top: 1em;
+    left: 25em;
 }
 
 .filter_form_help {

@@ -14,7 +14,7 @@ from rapidsms.models import Connection, Backend, Contact
 from rapidsms_httprouter.models import Message
 from rapidsms_httprouter.router import get_router
 from django.contrib.auth.models import Group
-from cvs.utils import init_xforms, monthly_reports
+from cvs.utils import monthly_reports
 from healthmodels.models import *
 from django.db import connection
 
@@ -45,10 +45,7 @@ class ReportsTest(TestCase): #pragma: no cover
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             site_id = getattr(settings, 'SITE_ID', 1)
             Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidcvs.org'})
-        for g in ['Village Health Team', 'OTC', 'ITC']:
-            Group.objects.create(name=g)
         User.objects.get_or_create(username='admin')
-        init_xforms()
         contact = Contact.objects.create(name='vht reporter')
         self.group = Group.objects.all()[0]
         contact.groups.add(self.group)

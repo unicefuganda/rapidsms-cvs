@@ -5,6 +5,7 @@ from generic.forms import ActionForm, FilterForm, ModuleForm
 from healthmodels.models.HealthFacility import HealthFacility
 from mptt.forms import TreeNodeChoiceField
 from rapidsms.contrib.locations.models import Location
+from django.contrib.auth.models import Group
 
 date_range_choices = (('w', 'Previous Calendar Week'), ('m', 'Previous Calendar Month'), ('q', 'Previous calendar quarter'),)
 class DateRangeForm(forms.Form): # pragma: no cover
@@ -22,6 +23,62 @@ class DateRangeForm(forms.Form): # pragma: no cover
         return cleaned_data
 
 AREAS = Location.tree.all().select_related('type')
+
+
+class ReporterForm(forms.Form):
+    name = forms.CharField(max_length=100, required=True)
+    facility = forms.ModelChoiceField(queryset=HealthFacility.objects.all(), required=False)
+    roles = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.reporter = kwargs.pop('instance')
+        if not 'data' in kwargs:
+            data = { \
+                'name':self.reporter.name, \
+                'roles':self.reporter.groups.all(), \
+                'facility':self.reporter.facility, \
+            }
+            kwargs.update({'data':data})
+        forms.Form.__init__(self, *args, **kwargs)
+        if self.reporter.reporting_location or self.reporter.location:
+            if self.reporter.reporting_location.type.name == 'district':
+                district = self.reporter.reporting_location
+            else:
+                if self.reporter.reporting_location.get_ancestors().filter(type__name='district').count():
+                    district = self.reporter.reporting_location.get_ancestors().filter(type__name='district')[0]
+                else:
+                    district = Location.tree.root_nodes()[0]
+            locs = Location.tree.filter(pk__in=district.get_descendants(include_self=True).all())
+            self.fields['location'] = TreeNodeChoiceField(\
+               queryset=locs, \
+               level_indicator=u'.', \
+               required=False, \
+               empty_label='----', \
+               initial=self.reporter.reporting_location or self.reporter.location)
+        else:
+            self.fields['location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type__name='district').order_by('name'), empty_label='----', required=False)
+
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        if cleaned_data['location'] and cleaned_data['facility']:
+            loc = cleaned_data['location']
+            all_locs = loc.get_descendants(include_self=True)
+            facility = cleaned_data['facility']
+            if not all_locs.filter(pk__in=facility.catchment_areas.values_list('pk', flat=True)).count():
+                cleaned_data.pop('facility')
+        return cleaned_data
+
+    def save(self):
+        cleaned_data = self.cleaned_data
+        self.reporter.location = self.reporter.reporting_location = cleaned_data.get('location')
+        self.reporter.name = cleaned_data.get('name')
+        self.reporter.groups.clear()
+        for g in cleaned_data.get('roles'):
+            self.reporter.groups.add(g)
+        self.reporter.facility = cleaned_data.get('facility')
+        self.reporter.save()
+        return
 
 class EditReporterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):

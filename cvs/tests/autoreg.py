@@ -80,8 +80,6 @@ class AutoRegTest(TestCase): #pragma: no cover
         if 'django.contrib.sites' in settings.INSTALLED_APPS:
             site_id = getattr(settings, 'SITE_ID', 1)
             Site.objects.get_or_create(pk=site_id, defaults={'domain':'rapidcvs.org'})
-        init_groups()
-        init_autoreg(None)
         create_attributes()
         User.objects.get_or_create(username='admin')
         self.backend = Backend.objects.create(name='test')
@@ -93,8 +91,9 @@ class AutoRegTest(TestCase): #pragma: no cover
         self.kampala_district = Location.objects.create(type=district, name='Kampala')
         self.makindye_village = Location.objects.create(type=village, name='Makindye', tree_parent=self.kampala_district)
         self.ntinda_village = Location.objects.create(type=village, name='Ntinda')
-        self.mulago_healthfacility = HealthFacility.objects.create(name="Mulago")
-        self.mengo_healthfacility = HealthFacility.objects.create(name="Mengo")
+        self.hcii = HealthFacilityType.objects.create(name='hcii', slug='hcii')
+        self.mulago_healthfacility = HealthFacility.objects.create(name="Mulago", type=self.hcii)
+        self.mengo_healthfacility = HealthFacility.objects.create(name="Mengo", type=self.hcii)
         def test_run(self):
             return
         HttpRouterThread.run = test_run

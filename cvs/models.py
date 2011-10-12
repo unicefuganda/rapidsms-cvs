@@ -464,6 +464,7 @@ def cvs_autoreg(**kwargs):
     name = find_best_response(session, namepoll)
     district = find_best_response(session, districtpoll)
     village = find_best_response(session, villagepoll)
+    village_name = village
     if village:
         if district:
             village = find_closest_match(village, district.get_descendants(include_self=True))
@@ -477,56 +478,48 @@ def cvs_autoreg(**kwargs):
         name = name[:100]
 
     try:
+        contact = connection.contact or HealthProvider.objects.get(name=name, \
+                                      reporting_location=district, \
+                                      village=village, \
+                                      village_name=village_name)
+    except Contact.DoesNotExist, Contact.MultipleObectsReturned:
+        contact = HealthProvider.objects.create()
 
-        existing_contact = HealthProvider.objects.get(name=name, \
-                                  reporting_location=district, \
-                                  village=village)
-        if connection.contact:
-            if healthfacility:
-                facility = find_closest_match(healthfacility, HealthFacility.objects)
-                if facility:
-                    existing_contact.facility = facility
-                    existing_contact.save()
-        else:
-            connection.contact = existing_contact
-            connection.save()
+    connection.contact = contact
+    connection.save()
+    if name:
+        contact.name = name
 
-    except Contact.MultipleObjectsReturned:
-        pass
+    if district:
+        contact.reporting_location = district
+    else:
+        contact.reporting_location = Location.tree.root_nodes()[0]
 
-    except Contact.DoesNotExist:
+    if village:
+        contact.village = village
+        contact.village_name = None
+    else:
+        contact.village_name = village_name
+        contact.village = None
 
-        connection.contact = HealthProvider.objects.create()
-        connection.save()
-        contact = connection.contact
-
-        if name:
-            contact.name = name
-
-        if district:
-            contact.reporting_location = district
-        else:
-            contact.reporting_location = Location.tree.root_nodes()[0]
-
-        if village:
-            contact.village = village
-
-        group = Group.objects.get(name='Other CVS Reporters')
-        if role and role.categories.count():
-            category = role.categories.all()[0].category
-            try:
-                group = Group.objects.get(name=category.name)
-            except Group.DoesNotExist:
-                pass
-        contact.groups.add(group)
+    contact.groups.clear()
+    group = Group.objects.get(name='Other CVS Reporters')
+    if role and role.categories.count():
+        category = role.categories.all()[0].category
+        try:
+            group = Group.objects.get(name=category.name)
+        except Group.DoesNotExist:
+            pass
+    contact.groups.add(group)
 
 
-        if healthfacility:
-            facility = find_closest_match(healthfacility, HealthFacility.objects)
-            if facility:
-                contact.facility = facility
+    if healthfacility:
+        facility = find_closest_match(healthfacility, HealthFacility.objects)
+        if facility:
+            contact.facility = facility
 
-        contact.save()
+    contact.save()
+
 
 script_progress_was_completed.connect(cvs_autoreg, weak=False)
 xform_received.connect(xform_received_handler, weak=True)

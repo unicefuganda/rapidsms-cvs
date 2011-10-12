@@ -5,7 +5,7 @@ from django.shortcuts import (render_to_response, get_object_or_404)
 from django.http import HttpResponseRedirect
 from healthmodels.models.HealthProvider import HealthProvider, \
     HealthProviderBase
-from cvs.forms import EditReporterForm
+from cvs.forms import EditReporterForm, ReporterForm
 from django.contrib.auth.decorators import login_required
 from generic.views import generic_row
 
@@ -19,9 +19,9 @@ def deleteReporter(request, reporter_pk):
 @login_required
 def editReporter(request, reporter_pk):
     reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
-    reporter_form = EditReporterForm(instance=reporter)
+    reporter_form = ReporterForm(instance=reporter)
     if request.method == 'POST':
-        reporter_form = EditReporterForm(instance=reporter,
+        reporter_form = ReporterForm(instance=reporter,
                 data=request.POST)
         if reporter_form.is_valid():
             reporter_form.save()

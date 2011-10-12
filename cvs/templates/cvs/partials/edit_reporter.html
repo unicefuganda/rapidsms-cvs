@@ -9,22 +9,27 @@
 <td>{{ reporter.default_connection.identity }}</td>
 <td>
 <!--  Role(s)  -->
-    {{ reporter_form.groups }}
-    {% if reporter_form.groups.errors %}
+    {{ reporter_form.roles }}
+    {% if reporter_form.roles.errors %}
         <br clear="left"/>
-        {{ report_form.groups.errors }}
+        {{ report_form.roles.errors }}
     {% endif %}
 </td>
 <td>
     <!-- District -->
-    {{ object.reporting_location|get_district }}
-    {% comment %}
-	    {{ reporter_form.reporting_location }}
-	    {% if reporter_form.reporting_location.errors %}
-	        <br clear="left"/>
-	        {{ report_form.reporting_location.errors }}
+    {% if reporter.reporting_location %}
+        {{ reporter.reporting_location|get_district }} 
+    {% else %}
+        {% if reporter.location %}
+            {{ reporter.location|get_district }}
+        {% else %}
+	        {{ reporter_form.location }}
+	        {% if reporter_form.location.errors %}
+	            <br clear="left"/>
+	            {{ report_form.location.errors }}
+	        {% endif %}
 	    {% endif %}
-    {% endcomment %}
+    {% endif %}
 </td>
 <td>{{ reporter|latest|date:"d-m-Y" }}</td>
 <td>{{ reporter.default_connection.submissions.count }}</td>
@@ -34,12 +39,18 @@
         {{ reporter_form.facility.errors }}
     {% endif %}
 </td>
-<td>{{ reporter_form.location }}
-    {% if reporter_form.location.errors %}
-        <br clear="left"/>
-        {{ reporter_form.location.errors }}
+<td>
+    {% if reporter.reporting_location %}
+        {{ reporter_form.location }}
+    {% else %}
+        {% if reporter.location %}
+            {{ reporter_form.location }}
+		    {% if reporter_form.location.errors %}
+		        <br clear="left"/>
+		        {{ reporter_form.location.errors }}
+		    {% endif %}
+		{% endif %}
     {% endif %}
-
 </td>
 
 <td class="button_col">

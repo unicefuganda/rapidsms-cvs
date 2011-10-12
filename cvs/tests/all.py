@@ -11,7 +11,6 @@ from django.contrib.sites.models import Site
 from rapidsms.messages.incoming import IncomingMessage
 from rapidsms.models import Contact
 from rapidsms_xforms.models import *
-from cvs.utils import init_xforms
 from healthmodels.models import *
 from rapidsms.models import Contact, Connection, Backend
 from rapidsms_xforms.app import App
@@ -27,14 +26,11 @@ class ModelTest(TestCase): #pragma: no cover
             User.objects.get(username='admin')
         except User.DoesNotExist:
             User.objects.create_user('admin', 'test@doesntmatter.com', 'password')
-        init_xforms()
         hp = HealthProvider.objects.create(name='David McCann')
         b = Backend.objects.create(name='test')
         c = Connection.objects.create(identity='8675309', backend=b)
         c.contact = hp
         c.save()
-        Group.objects.create(name='Peer Village Health Team')
-        Group.objects.create(name='Village Health Team')
 #        self.user = User.objects.create_user('fred', 'fred@wilma.com', 'secret')
 #        self.user.save()    
 
