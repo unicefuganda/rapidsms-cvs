@@ -1,0 +1,17 @@
+<input id="id_village_name" name="village_name" value="{{ reporter.reporting_location.name }}"/>
+<input type="hidden" name="reporting_location" id="id_reporting_location" value="{{ reporter.reporting_location.pk }}"/>
+<script>
+$('#id_village_name').autocomplete({
+    source: [
+        {% for l in locations %}
+            {label:'{{ l.name }}', value:{{ l.pk }}},
+        {% endfor %}
+    ],
+    select: function(event, ui) {
+        sel = ui.item;
+        $('#id_village_name').val(sel.label);
+        $('#reporting_location').val(sel.value);
+        return false;
+    }
+});
+</script>

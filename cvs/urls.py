@@ -65,11 +65,11 @@ urlpatterns = patterns('',
                  ('Location', True, 'location__name', SimpleSorter(),),
                  ('', False, '', None,)],
     }, name="cvs-contact"),
-    url(r'^cvs/test/$', generic, {
-        'model':Location,
-    }),
     url(r'^cvs/reporter/(?P<reporter_pk>\d+)/edit', reporters.editReporter),
+    url(r'^cvs/reporter/(?P<reporter_pk>\d+)/locations/edit/((?P<district_pk>\d+)/)?', reporters.editReporterLocations),
+    url(r'^cvs/reporter/(?P<reporter_pk>\d+)/facilities/edit/((?P<district_pk>\d+)/)?', reporters.editReporterFacilities),
     url(r'^cvs/reporter/(?P<reporter_pk>\d+)/delete', reporters.deleteReporter),
+
     url(r'^cvs/reporter/(?P<pk>\d+)/show', generic_row, {'model':HealthProviderBase, 'partial_row':'cvs/partials/reporter_row.html'}),
     url(r'^cvs/forms/$', login_required(generic), {
         'model':XForm,

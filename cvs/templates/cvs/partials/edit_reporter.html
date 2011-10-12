@@ -1,6 +1,6 @@
 {% load stats_extras %}
 <td>&nbsp;</td>
-<td id="row_{{ reporter.pk }}">{{ reporter_form.name }}
+<td id="row_{{ reporter.pk }}" class="reporter">{{ reporter_form.name }}
     {% if reporter_form.name.errors %}
         <br clear="left"/>
         {{ reporter_form.name.errors }}
@@ -16,44 +16,26 @@
     {% endif %}
 </td>
 <td>
-    <!-- District -->
-    {% if reporter.reporting_location %}
-        {{ reporter.reporting_location|get_district }} 
-    {% else %}
-        {% if reporter.location %}
-            {{ reporter.location|get_district }}
-        {% else %}
-	        {{ reporter_form.location }}
-	        {% if reporter_form.location.errors %}
-	            <br clear="left"/>
-	            {{ report_form.location.errors }}
-	        {% endif %}
-	    {% endif %}
-    {% endif %}
+    {{ reporter_form.reporter_district }}
 </td>
 <td>{{ reporter|latest|date:"d-m-Y" }}</td>
 <td>{{ reporter.default_connection.submissions.count }}</td>
-<td>{{ reporter_form.facility }}
-    {% if reporter_form.facility.errors %}
-        <br clear="left"/>
-        {{ reporter_form.facility.errors }}
-    {% endif %}
+<td id="reporter_facility">
 </td>
-<td>
-    {% if reporter.reporting_location %}
-        {{ reporter_form.location }}
-    {% else %}
-        {% if reporter.location %}
-            {{ reporter_form.location }}
-		    {% if reporter_form.location.errors %}
-		        <br clear="left"/>
-		        {{ reporter_form.location.errors }}
-		    {% endif %}
-		{% endif %}
-    {% endif %}
+<td id="reporter_village">
 </td>
-
 <td class="button_col">
+    <script>
+    {% if reporter.reporting_location %}
+        $('#reporter_village').load('../reporter/{{ reporter.pk }}/locations/edit/');
+	{% else %}
+	    {% if reporter.location %}
+	        $('#reporter_village').load('../reporter/{{ reporter.pk }}/locations/edit/');
+	    {% endif %}
+	{% endif %}
+	$('#reporter_facility').load('../reporter/{{ reporter.pk }}/facilities/edit/');
+    </script>
+
     <div class="buttons">
         <a href="javascript:void(0)"
            onclick="$(this).parents('tr').load('../reporter/{{ reporter.pk }}/show/')">

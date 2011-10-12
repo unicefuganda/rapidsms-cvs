@@ -17,3 +17,12 @@ function submitForm(link, action, resultDiv) {
     form_data = form.serializeArray();
     resultDiv.load(action, form_data);
 }
+
+function update_district(elem) {
+	reporter_pk = $(elem).parents("tr").children(".reporter").attr('id').substring(4);
+    $('#reporter_facility').empty();
+    $('#reporter_village').empty();
+    district_pk = $('#id_reporter_district').val(); 
+    $('#reporter_facility').load('../reporter/' + reporter_pk + '/facilities/edit/' + district_pk + '/');
+    $('#reporter_village').load('../reporter/' + reporter_pk + '/locations/edit/' + district_pk + '/');            
+}

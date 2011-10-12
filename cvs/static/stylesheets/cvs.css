@@ -131,6 +131,10 @@ div.module {
     width: 7em;
 }
 
+#id_village_name {
+    width: 7em;	
+}
+
 #div_action_0 {
     position:absolute;
     top:3em;

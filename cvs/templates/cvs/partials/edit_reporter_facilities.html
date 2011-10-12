@@ -1,0 +1,10 @@
+<select name="facility" id="id_facility">
+<option value='-1'>----</option>
+{% for f in facilities %}
+    <option value="{{ f.pk }}"
+    {% ifequal reporter.facility f %}
+        selected="true"
+    {% endifequal %}    
+    >{{ f }}</option>
+{% endfor %}
+</select>

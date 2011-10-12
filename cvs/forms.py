@@ -29,6 +29,20 @@ class ReporterForm(forms.Form):
     name = forms.CharField(max_length=100, required=True)
     facility = forms.ModelChoiceField(queryset=HealthFacility.objects.all(), required=False)
     roles = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), required=False)
+    village_name = forms.CharField(max_length=100, required=False)
+    reporter_district = forms.ModelChoiceField(queryset=Location.objects.filter(type__name='district').order_by('name'), empty_label='----', required=False, \
+                                      widget=forms.Select({'onchange':'update_district(this)'}))
+    reporting_location = forms.ModelChoiceField(queryset=Location.objects.all(), required=False)
+
+    def get_district(self):
+        district = None
+        if self.reporter.reporting_location or self.reporter.location:
+            if self.reporter.reporting_location.type.name == 'district':
+                district = self.reporter.reporting_location
+            else:
+                if self.reporter.reporting_location.get_ancestors().filter(type__name='district').count():
+                    district = self.reporter.reporting_location.get_ancestors().filter(type__name='district')[0]
+        return district
 
     def __init__(self, *args, **kwargs):
         self.reporter = kwargs.pop('instance')
@@ -38,27 +52,11 @@ class ReporterForm(forms.Form):
                 'roles':self.reporter.groups.all(), \
                 'facility':self.reporter.facility, \
             }
+            district = self.get_district()
+            if district:
+                initial.update({'reporter_district':district})
             kwargs.update({'initial':initial})
         forms.Form.__init__(self, *args, **kwargs)
-        if self.reporter.reporting_location or self.reporter.location:
-            if self.reporter.reporting_location.type.name == 'district':
-                district = self.reporter.reporting_location
-            else:
-                if self.reporter.reporting_location.get_ancestors().filter(type__name='district').count():
-                    district = self.reporter.reporting_location.get_ancestors().filter(type__name='district')[0]
-                else:
-                    district = Location.tree.root_nodes()[0]
-            locs = Location.tree.filter(pk__in=district.get_descendants(include_self=True).all())
-            initial = self.reporter.reporting_location or self.reporter.location
-            self.fields['location'] = TreeNodeChoiceField(\
-               queryset=locs, \
-               level_indicator=u'.', \
-               required=False, \
-               empty_label='----', \
-               initial=initial)
-        else:
-            self.fields['location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type__name='district').order_by('name'), empty_label='----', required=False)
-
 
     def clean(self):
         cleaned_data = self.cleaned_data
