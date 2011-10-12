@@ -33,12 +33,12 @@ class ReporterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.reporter = kwargs.pop('instance')
         if not 'data' in kwargs:
-            data = { \
+            initial = { \
                 'name':self.reporter.name, \
                 'roles':self.reporter.groups.all(), \
                 'facility':self.reporter.facility, \
             }
-            kwargs.update({'data':data})
+            kwargs.update({'initial':initial})
         forms.Form.__init__(self, *args, **kwargs)
         if self.reporter.reporting_location or self.reporter.location:
             if self.reporter.reporting_location.type.name == 'district':
@@ -49,12 +49,13 @@ class ReporterForm(forms.Form):
                 else:
                     district = Location.tree.root_nodes()[0]
             locs = Location.tree.filter(pk__in=district.get_descendants(include_self=True).all())
+            initial = self.reporter.reporting_location or self.reporter.location
             self.fields['location'] = TreeNodeChoiceField(\
                queryset=locs, \
                level_indicator=u'.', \
                required=False, \
                empty_label='----', \
-               initial=self.reporter.reporting_location or self.reporter.location)
+               initial=initial)
         else:
             self.fields['location'] = forms.ModelChoiceField(queryset=Location.objects.filter(type__name='district').order_by('name'), empty_label='----', required=False)
 
