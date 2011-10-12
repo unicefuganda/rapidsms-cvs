@@ -8,7 +8,7 @@ from math import floor
 def get_expected_epi(location, request):
     dates = get_dates(request)
     health_providers = HealthProvider.objects.filter(location__in=location.get_descendants(),
-                                                     groups=Group.objects.get(name='Village Health Team')).count()
+                                                     groups=Group.objects.get(name='VHT')).count()
 
     datediff = dates['end'] - dates['start']
     weeks = floor((datediff.days / 7))
