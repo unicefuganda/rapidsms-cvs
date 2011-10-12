@@ -166,7 +166,7 @@ def registered_reporters(location):
                        'pk', flat=True)))))
     else:
         location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
-    return  HealthProviderBase.objects.filter(groups=Group.objects.get(name='Village Health Team')).values('location__name').extra(
+    return  HealthProviderBase.objects.filter(groups=Group.objects.get(name='VHT')).values('location__name').extra(
             tables=['locations_location'], where=[\
                    'T%d.lft <= locations_location.lft' % tnum, \
                    'T%d.rght >= locations_location.rght' % tnum, \
