@@ -465,7 +465,7 @@ def monthly_reports():
         Message.objects.create(connection=contact.default_connection,
                                      text=msg,
                                      direction='O',
-                                     status='Q')
+                                     status='P')
 
 def get_training_messages(request):
     return Message.objects.filter(connection__contact__active=False)
