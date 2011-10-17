@@ -148,6 +148,17 @@ div.module {
     left: 25em;
 }
 
+.ui-corner-all {
+    -webkit-border-radius: 5px;	
+}
+
+.ui-autocomplete {
+	list-style-type: none;
+	background-color:#CCF;
+	color: black;
+	z-index: 1;
+}
+
 .filter_form_help {
     display:none;
 }
