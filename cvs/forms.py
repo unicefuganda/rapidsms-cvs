@@ -58,37 +58,26 @@ class ReporterForm(forms.Form):
             kwargs.update({'initial':initial})
         forms.Form.__init__(self, *args, **kwargs)
 
-    def clean(self):
-        cleaned_data = self.cleaned_data
-        if cleaned_data['location'] and cleaned_data['facility']:
-            loc = cleaned_data['location']
-            all_locs = loc.get_descendants(include_self=True)
-            facility = cleaned_data['facility']
-            if not all_locs.filter(pk__in=facility.catchment_areas.values_list('pk', flat=True)).count():
-                cleaned_data.pop('facility')
-        return cleaned_data
-
     def save(self):
         cleaned_data = self.cleaned_data
-        self.reporter.location = self.reporter.reporting_location = cleaned_data.get('location')
+        district = cleaned_data.get('reporter_district')
+        location = cleaned_data.get('reporting_location')
+        if district and location and \
+            not district.get_descendants(include_self=True).filter(pk=location.pk).count():
+            location = None
+
+        self.reporter.location = self.reporter.reporting_location = location or district
+
         self.reporter.name = cleaned_data.get('name')
         self.reporter.groups.clear()
         for g in cleaned_data.get('roles'):
             self.reporter.groups.add(g)
         self.reporter.facility = cleaned_data.get('facility')
+        if not location:
+            self.reporter.village_name = cleaned_data.get('village_name')
         self.reporter.save()
         return
 
-class EditReporterForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        global AREAS
-        super(EditReporterForm, self).__init__(*args, **kwargs)
-        len(AREAS)
-        self.fields['location'] = TreeNodeChoiceField(queryset=AREAS, level_indicator=u'.', required=False, empty_label='----')
-
-    class Meta:
-        model = HealthProvider
-        fields = ('name', 'facility', 'location', 'reporting_location', 'groups')
 
 class FacilityFilterForm(FilterForm):
     """ filter form for cvs facilities """

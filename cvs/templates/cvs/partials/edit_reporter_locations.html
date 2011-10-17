@@ -1,4 +1,4 @@
-<input id="id_village_name" name="village_name" value="{{ reporter.reporting_location.name }}"/>
+<input id="id_village_name" name="village_name" value="{{ village_val }}"/>
 <input type="hidden" name="reporting_location" id="id_reporting_location" value="{{ reporter.reporting_location.pk }}"/>
 <script>
 $('#id_village_name').autocomplete({

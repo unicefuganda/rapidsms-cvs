@@ -32,7 +32,17 @@
     <td>{{ object|latest|date:"d-m-Y" }}</td>
     <td>{{ object.connection__submissions__count }}</td>
     <td>{{ object.facility }}</td>
-    <td id="row_{{ object.pk }}">{{ object.location.name }}</td>
+    <td id="row_{{ object.pk }}">
+        {% if object.reporting_location %}
+            {% ifequal object.reporting_location object.reporting_location|get_district %}
+                {{ object.village_name }}
+            {% else %}
+                {{ object.reporting_location.name }}
+            {% endifequal %}
+        {% else %}
+            {{ object.village_name }}
+        {% endif %}
+    </td>
     <td class="button_col">
         <div class="buttons">
             <a href="javascript:void(0)" onclick="deleteReporter(this, {{ object.pk }},'{{ object.name }}')">
