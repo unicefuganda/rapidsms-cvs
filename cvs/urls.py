@@ -16,7 +16,7 @@ from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
 from .utils import get_messages, get_mass_messages, get_training_messages, get_training_vhts, get_dashboard_messages
 from rapidsms_httprouter.models import Message
-from ureport.models import MassText
+from contact.models import MassText
 from contact.forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
 from django.views.generic.simple import direct_to_template
 

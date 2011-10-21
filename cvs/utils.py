@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from django.db.models import Count
 from uganda_common.utils import TIME_RANGES
 from rapidsms_httprouter.models import Message
-from ureport.models import MassText
+from contact.models import MassText
 from poll.models import Poll, Category, Rule
 from rapidsms.contrib.locations.models import Location
 from django.conf import settings

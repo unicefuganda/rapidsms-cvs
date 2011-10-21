@@ -5,13 +5,12 @@ setup(
     version='0.1',
     license="BSD",
 
-    install_requires = [
+    install_requires=[
         "rapidsms",
         'rapidsms-xforms',
         'rapidsms-auth',
         'rapidsms-polls',
         'rapidsms-httprouter',
-        'rapidsms-ureport',
         'django-extensions',
         'django-uni-form',
         'django-eav',
@@ -20,14 +19,13 @@ setup(
         'rapidsms-generic',
         'uganda-common',
     ],
-    
-    dependency_links = [
+
+    dependency_links=[
         "http://github.com/daveycrockett/healthmodels/tarball/master#egg=health-models",
         "http://github.com/daveycrockett/rapidsms-xforms/tarball/master#egg=rapidsms-xforms",
         "http://github.com/daveycrockett/auth/tarball/master#egg=rapidsms-auth",
         "http://github.com/daveycrockett/rapidsms-polls/tarball/master#egg=rapidsms-polls",
         "http://github.com/daveycrockett/rapidsms-httprouter/tarball/master#egg=rapidsms-httprouter",
-        "http://github.com/daveycrockett/rapidsms-ureport/tarball/master#egg=rapidsms-ureport",
         "http://github.com/mvpdev/django-eav/tarball/master#egg=django-eav",
         "http://github.com/mossplix/rapidsms-contact/tarball/master#egg=rapidsms-contact",
         "http://github.com/daveycrockett/rapidsms-generic/tarball/master#egg=rapidsms-generic",
@@ -45,7 +43,7 @@ setup(
     include_package_data=True,
 
     packages=find_packages(),
-    package_data={'cvs':['templates/*/*.html','templates/*/*/*.html','static/*/*']},
+    package_data={'cvs':['templates/*/*.html', 'templates/*/*/*.html', 'static/*/*']},
     zip_safe=False,
     classifiers=[
         'Development Status :: 4 - Beta',

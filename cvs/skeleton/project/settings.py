@@ -5,8 +5,8 @@
 # -------------------------------------------------------------------- #
 #                          MAIN CONFIGURATION                          #
 # -------------------------------------------------------------------- #
-TIME_ZONE="Africa/Kampala"
-BASE_CSS="/static/rapidsms/stylesheets/layout.css"
+TIME_ZONE = "Africa/Kampala"
+BASE_CSS = "/static/rapidsms/stylesheets/layout.css"
 
 # you should configure your database here before doing any real work.
 # see: http://docs.djangoproject.com/en/dev/ref/settings/#databases
@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     "auth",
     "rapidsms_httprouter",
     "poll",
-    "ureport",
     "cvs",
     "generic",
     "contact",
@@ -72,10 +71,10 @@ SMS_APPS = [
 # tabbed navigation. when adding an app to INSTALLED_APPS, you may wish
 # to add it here, also, to expose it in the rapidsms ui.
 RAPIDSMS_TABS = [
-    ("cvs.views.stats.index",                        "Stats"),
-    ("cvs.views.map.map_index",                      "Map"),
-    ("cvs-contact",                                  "VHTs"),
-    ("contact-messagelog",                           "Message Log"),
+    ("cvs.views.stats.index", "Stats"),
+    ("cvs.views.map.map_index", "Map"),
+    ("cvs-contact", "VHTs"),
+    ("contact-messagelog", "Message Log"),
 ]
 
 
@@ -87,7 +86,7 @@ RAPIDSMS_TABS = [
 # debug mode is turned on as default, since rapidsms is under heavy
 # development at the moment, and full stack traces are very useful
 # when reporting bugs. don't forget to turn this off in production.
-DEBUG = TEMPLATE_DEBUG = True 
+DEBUG = TEMPLATE_DEBUG = True
 
 
 # after login (which is handled by django.contrib.auth), redirect to the
@@ -104,11 +103,11 @@ TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
 # for some reason this setting is blank in django's global_settings.py,
 # but it is needed for static assets to be linkable.
 MEDIA_URL = "/static/"
-ADMIN_MEDIA_PREFIX="/static/media/"
+ADMIN_MEDIA_PREFIX = "/static/media/"
 # this is required for the django.contrib.sites tests to run, but also
 # not included in global_settings.py, and is almost always ``1``.
 # see: http://docs.djangoproject.com/en/dev/ref/contrib/sites/
-SITE_ID = 4 
+SITE_ID = 4
 
 
 # the default log settings are very noisy.
@@ -127,8 +126,7 @@ TEMPLATE_CONTEXT_PROCESSORS = [
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
     "django.core.context_processors.request",
-    "ureport.context_processors.map_params",
-    "uganda_common.context_processors.layout",    
+    "uganda_common.context_processors.layout",
 ]
 
 MIDDLEWARE_CLASSES = (
@@ -166,7 +164,7 @@ TEMPLATE_LOADERS = (
 # the project-level url patterns
 ROOT_URLCONF = "urls"
 
-MAP_KEY="ABQIAAAAmd7V71yw9ZddA0s8Z3wSKBS0unaJrFIrP1vn6ZXHpuhFyvYAGhQprSjp88j18w-K_X23JU31jBikVg"
+MAP_KEY = "ABQIAAAAmd7V71yw9ZddA0s8Z3wSKBS0unaJrFIrP1vn6ZXHpuhFyvYAGhQprSjp88j18w-K_X23JU31jBikVg"
 # since we might hit the database from any thread during testing, the
 # in-memory sqlite database isn't sufficient. it spawns a separate
 # virtual database for each thread, and syncdb is only called for the
