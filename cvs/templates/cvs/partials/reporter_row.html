@@ -29,7 +29,9 @@
         </ul>
     </td>
     <td>{{ object.reporting_location|get_district }}</td>
+{% block extra_info %}
     <td>{{ object|latest|date:"d-m-Y" }}</td>
+{% endblock %}
     <td>{{ object.connection__submissions__count }}</td>
     <td>{{ object.facility }}</td>
     <td id="row_{{ object.pk }}">

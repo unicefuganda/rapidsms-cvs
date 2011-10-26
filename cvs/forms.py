@@ -25,6 +25,15 @@ class DateRangeForm(forms.Form): # pragma: no cover
 AREAS = Location.tree.all().select_related('type')
 
 
+class ActivateForm(ActionForm):
+
+    action_label = 'Activate selected trainees'
+
+    def perform(self, request, results):
+        results.update(active=True)
+        return ('%d Contacts are now on the live system.' % len(results), 'success',)
+
+
 class ReporterForm(forms.Form):
     name = forms.CharField(max_length=100, required=True)
     facility = forms.ModelChoiceField(queryset=HealthFacility.objects.all(), required=False)

@@ -1,12 +1,13 @@
 from generic.sorters import Sorter
 from rapidsms.models import Connection
 from rapidsms_xforms.models import XFormSubmission, XFormSubmissionValue
+from script.models import ScriptSession
 from eav.models import Attribute
 
 class LatestSubmissionSorter(Sorter):
     def sort(self, column, object_list, ascending=True):
         connections = list(Connection.objects.filter(contact__in=object_list))
-        submissions = list(XFormSubmission.objects.filter(connection__in=connections).order_by('-created').select_related('connection__contact__healthproviderbase__facility','connection__contact__healthproviderbase__location'))
+        submissions = list(XFormSubmission.objects.filter(connection__in=connections).order_by('-created').select_related('connection__contact__healthproviderbase__facility', 'connection__contact__healthproviderbase__location'))
         full_contact_list = list(object_list)
         toret = []
         for sub in submissions:
@@ -21,6 +22,27 @@ class LatestSubmissionSorter(Sorter):
         if not ascending:
             toret.reverse()
         return toret
+
+
+class LatestJoinedSorter(Sorter):
+    def sort(self, column, object_list, ascending=True):
+        connections = list(Connection.objects.filter(contact__in=object_list))
+        sessions = list(ScriptSession.objects.filter(script__slug='cvs_autoreg', connection__in=connections).order_by('-end_time').select_related('connection__contact__healthproviderbase__facility', 'connection__contact__healthproviderbase__location'))
+        full_contact_list = list(object_list)
+        toret = []
+        for s in sessions:
+            if not (s.connection.contact.healthproviderbase in toret):
+                toret.append(s.connection.contact.healthproviderbase)
+        nosessions = []
+        for c in full_contact_list:
+            if not (c in toret):
+                nosessions.append(c)
+
+        toret = toret + nosessions
+        if not ascending:
+            toret.reverse()
+        return toret
+
 
 class SubmissionValueSorter(Sorter):
     def sort(self, column, object_list, ascending=True):
