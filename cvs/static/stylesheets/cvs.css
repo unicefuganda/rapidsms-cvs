@@ -142,10 +142,22 @@ div.module {
     width:50%;
 }
 
+#div_action_1 {
+    position:absolute;
+    left: 50%;	
+    top:3em;
+}
+
 #div_action_0 a {
     position:absolute;
     top: 1em;
     left: 25em;
+}
+
+#div_action_1 a {
+    position:absolute;  
+    top:1em;
+    width: 15em;
 }
 
 .ui-corner-all {

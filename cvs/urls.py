@@ -6,9 +6,9 @@ from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
-from cvs.forms import FacilityFilterForm, ChartModuleForm, StatsModuleForm, MapModuleForm
+from cvs.forms import ActivateForm, FacilityFilterForm, ChartModuleForm, StatsModuleForm, MapModuleForm
 from cvs.utils import get_reporters
-from cvs.sorters import LatestSubmissionSorter
+from cvs.sorters import LatestSubmissionSorter, LatestJoinedSorter
 from cvs.views.dates import get_dates
 from cvs.views.basic import ussd_test
 from healthmodels.models.HealthProvider import HealthProviderBase
@@ -151,16 +151,18 @@ urlpatterns = patterns('',
       'model':HealthProviderBase,
       'queryset':get_training_vhts,
       'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm],
-      'action_forms':[MassTextForm],
+      'action_forms':[MassTextForm, ActivateForm],
       'objects_per_page':25,
-      'partial_row':'cvs/partials/reporter_row.html',
+      'partial_row':'cvs/partials/trainee_row.html',
       'base_template':'cvs/contacts_base.html',
       'results_title':'Reporters',
+      'sort_column':'join_date',
+      'sort_ascending':False,
       'columns':[('Name', True, 'name', SimpleSorter()),
                  ('Number', True, 'connection__identity', SimpleSorter(),),
                  ('Role(s)', True, 'groups__name', SimpleSorter(),),
                  ('District', False, 'district', None,),
-                 ('Last Reporting Date', True, 'latest_submission_date', LatestSubmissionSorter(),),
+                 ('Join Date', True, 'join_date', LatestJoinedSorter(),),
                  ('Total Reports', True, 'connection__submissions__count', SimpleSorter(),),
                  ('Facility', True, 'facility__name', SimpleSorter(),),
                  ('Location', True, 'location__name', SimpleSorter(),),

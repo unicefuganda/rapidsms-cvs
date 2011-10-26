@@ -2,6 +2,7 @@ from django import template
 from django.shortcuts import get_object_or_404
 from rapidsms.contrib.locations.models import Location
 from rapidsms_xforms.models import XFormSubmission
+from script.models import ScriptSession
 import datetime
 from django.utils.safestring import mark_safe
 import calendar
@@ -38,6 +39,13 @@ def get_district(location):
         return location if location.type.name == 'district' else location.get_ancestors().get(type__name='district').name
     except:
         return None
+
+def join_date(connection):
+    try:
+        ScriptSession.objects.filter(connection=connection, script__slug='cvs_autoreg').latest('end_time').end_date
+    except:
+        return None
+
 
 def name(location):
     return location.name
@@ -164,6 +172,7 @@ register.filter('parent', get_parent)
 register.filter('parentId', get_parentId)
 register.filter('ancestors', get_ancestors)
 register.filter('name', name)
+register.filter('join_date', join_date)
 register.filter('latest', latest)
 register.filter('hash', hash)
 register.filter('get_district', get_district)
