@@ -27,7 +27,7 @@ class LatestSubmissionSorter(Sorter):
 class LatestJoinedSorter(Sorter):
     def sort(self, column, object_list, ascending=True):
         connections = list(Connection.objects.filter(contact__in=object_list))
-        sessions = list(ScriptSession.objects.filter(script__slug='cvs_autoreg', connection__in=connections).order_by('-end_time').select_related('connection__contact__healthproviderbase__facility', 'connection__contact__healthproviderbase__location'))
+        sessions = list(ScriptSession.objects.filter(script__slug='cvs_autoreg', connection__in=connections).order_by('-start_time').select_related('connection__contact__healthproviderbase__facility', 'connection__contact__healthproviderbase__location'))
         full_contact_list = list(object_list)
         toret = []
         for s in sessions:
