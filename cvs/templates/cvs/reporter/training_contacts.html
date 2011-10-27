@@ -1,6 +1,6 @@
 {% extends "cvs/reporter/contacts_base.html" %}
 {% block content %}
-    <a href="{% url cvs-contact %}">Registered Users</a> | 
-    <a href="{% url cvs-orphan-contact %}">No Location</a>
+    <a style="font-size:12pt" href="{% url cvs-contact %}">&lt;&lt; Registered Users</a> | 
+    <a style="font-size:12pt" href="{% url cvs-orphan-contact %}">No Location &gt;&gt;</a>
     {{ block.super }}
 {% endblock %}
