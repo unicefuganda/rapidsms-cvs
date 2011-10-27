@@ -473,6 +473,9 @@ def get_training_messages(request):
 def get_training_vhts(request):
     return HealthProvider.objects.filter(active=False)
 
+def get_nolocation_vhts(request):
+    return HealthProvider.objects.filter(location=None, reporting_location=None)
+
 def get_dashboard_messages(request=None):
     # FIXME: implement full functionality
     return Message.objects.filter(direction='I')

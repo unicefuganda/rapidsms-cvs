@@ -1,0 +1,6 @@
+{% extends "cvs/reporter/contacts_base.html" %}
+{% block content %}
+    <a href="{% url cvs-contact %}">Registered Users</a> | 
+    <a href="{% url cvs-training-contact %}">Trainees</a>
+    {{ block.super }}
+{% endblock %}

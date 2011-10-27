@@ -30,12 +30,12 @@ def editReporter(request, reporter_pk):
             reporter_form.save()
             return generic_row(request, model=HealthProviderBase, pk=reporter_pk, partial_row='/cvs/partials/reporter_row.html')
         else:
-            return render_to_response('cvs/partials/edit_reporter.html'
+            return render_to_response('cvs/reporter/partials/edit_reporter.html'
                     , {'reporter_form': reporter_form, 'reporter'
                     : reporter},
                     context_instance=RequestContext(request))
     else:
-        return render_to_response('cvs/partials/edit_reporter.html',
+        return render_to_response('cvs/reporter/partials/edit_reporter.html',
                                   {'reporter_form': reporter_form,
                                   'reporter': reporter},
                                   context_instance=RequestContext(request))
@@ -54,7 +54,7 @@ def editReporterLocations(request, reporter_pk, district_pk=None):
         village_val = reporter.reporting_location.name
     else:
         village_val = reporter.village_name
-    return render_to_response('cvs/partials/edit_reporter_locations.html',
+    return render_to_response('cvs/reporter/partials/edit_reporter_locations.html',
                               {'locations': locations,
                                'village_val': village_val,
                                'reporter': reporter},
@@ -72,7 +72,7 @@ def editReporterFacilities(request, reporter_pk, district_pk=None):
         district = get_object_or_404(Location, pk=district_pk)
         locations = district.get_descendants(include_self=True)
         facilities = HealthFacility.objects.filter(catchment_areas__in=locations).distinct()
-    return render_to_response('cvs/partials/edit_reporter_facilities.html',
+    return render_to_response('cvs/reporter/partials/edit_reporter_facilities.html',
                               {'facilities': facilities,
                                'reporter': reporter},
                               context_instance=RequestContext(request))
