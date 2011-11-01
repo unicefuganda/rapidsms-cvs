@@ -1,6 +1,4 @@
 from django.conf.urls.defaults import *
-from cvs.views.stats import *
-from cvs.views.chart import chart, chart_api, active_reporters_chart
 from cvs.views import basic, reporters, map
 from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard, generic_map
@@ -10,11 +8,12 @@ from cvs.forms import ActivateForm, FacilityFilterForm, ChartModuleForm, StatsMo
 from cvs.utils import get_reporters
 from cvs.sorters import LatestSubmissionSorter, LatestJoinedSorter
 from cvs.views.dates import get_dates
-from cvs.views.basic import ussd_test
+from cvs.views.stats import export_as_excel
 from healthmodels.models.HealthProvider import HealthProviderBase
 from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
-from .utils import get_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
+from cvs.utils import get_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
+from cvs.reports import *
 from rapidsms_httprouter.models import Message
 from contact.models import MassText
 from contact.forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
@@ -155,30 +154,14 @@ urlpatterns = patterns('',
     #############################################
     #              STATS VIEWS                  #
     #############################################
-    url(r'^cvs/stats/$', index, name='stats'),
-    url(r'^cvs/stats/(?P<location_id>\d+)/$', index),
-    url(r'^cvs/muac/$', muac_detail),
-    url(r'^cvs/muac/(?P<location_id>\d+)/$', muac_detail),
-    url(r'^cvs/epi/$', epi_detail),
-    url(r'^cvs/epi/(?P<location_id>\d+)/$', epi_detail),
-    url(r'^cvs/birth/$', birth_detail),
-    url(r'^cvs/birth/(?P<location_id>\d+)/$', birth_detail),
-    url(r'^cvs/death/$', death_detail),
-    url(r'^cvs/death/(?P<location_id>\d+)/$', death_detail),
-    url(r'^cvs/home/$', home_detail),
-    url(r'^cvs/home/(?P<location_id>\d+)/$', home_detail),
-    url(r'^cvs/data/excelexport/$', export_as_excel),
-    #chart urls
-    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-zA-Z_]+)/(?P<attribute_value>[0-9a-zA-Z_]+)/(?P<extra_param>[0-9a-zA-Z_]+)/', chart),
-    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-zA-Z_]+)/(?P<attribute_value>[0-9a-zA-Z_]+)/', chart),
-    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
-    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
-    url(r'^cvs/charts/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/', chart),
-    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)/(?P<attribute_keyword>[a-z]+)/', chart),
-    url(r'^cvs/charts/(?P<xform_keyword>[a-z]+)', chart),
-    url(r'^cvs/chart/(?P<location_id>\d+)/active_reporters/$', active_reporters_chart),
-    url(r'^cvs/api/charts/(?P<start_date>\d+)/(?P<end_date>\d+)/(?P<location_id>\d+)/(?P<xform_keyword>[a-z]+)/((?P<attribute_keyword>[a-zA-Z_]+)/)?', chart_api),
+    (r'^cvs/stats/', include(MainReport().as_urlpatterns(name='stats'))), #, name='stats'),
+    (r'^cvs/muac/', include(MuacReport().as_urlpatterns())),
+    (r'^cvs/epi/', include(EpiReport().as_urlpatterns())),
+    (r'^cvs/birth/', include(BirthReport().as_urlpatterns())),
+    (r'^cvs/death/', include(DeathReport().as_urlpatterns())),
+    (r'^cvs/home/', include(HomeReport().as_urlpatterns())),
 
+    url(r'^cvs/data/excelexport/$', export_as_excel),
 
     # map API calls
     url(r'^cvs/stats/(?P<start_date>\d+)/(?P<end_date>\d+)/(?P<xform_keyword>[a-z]+)/((?P<attribute_keyword>[a-zA-Z_]+)/)?', map.map_api),
@@ -213,6 +196,3 @@ urlpatterns = patterns('',
     }, name="cvs-forms"),
     url(r"^cvs/forms/(\d+)/submissions/$", login_required(basic.view_submissions)),
 )
-
-
-

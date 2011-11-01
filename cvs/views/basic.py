@@ -33,6 +33,3 @@ def view_submissions(req, form_id):
         form=xform,
         partial_row='cvs/partials/submission_row.html',
     )
-
-def ussd_test(req):
-    return HttpResponse(content='responseString=Hello%2C+World%21&action=end', status=200)

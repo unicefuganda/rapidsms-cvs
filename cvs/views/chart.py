@@ -16,6 +16,27 @@ from cvs.views.dates import get_dates, get_expected_epi
 from rapidsms_xforms.models import XForm, XFormField
 from django.utils import simplejson
 from uganda_common.utils import total_submissions as total_submissions_api, total_attribute_value as total_attribute_value_api
+from uganda_common.views import XFormChartView
+
+class ActiveReportersChartView(XFormChartView):
+    chart_title = 'Variation of Active Reporters'
+
+    def get_data(self):
+        location = get_object_or_404(Location, pk=self.location_id)
+        group_by = self.get_group_by(self.start_date, self.end_date)
+
+        data = active_reporters(self.start_date, self.end_date, location, group_by_timespan=group_by['group_by'])
+        chart_data = list(data)
+        chart_data = self.reorganize_for_chart_api(group_by['group_by_name'], chart_data)
+
+        json_response_data = {'series':list(chart_data), \
+                              'timespan':group_by['group_by_name'], \
+                              'title':self.get_chart_title(), \
+                              'subtitle':self.get_chart_subtitle(), \
+                              'yaxis':self.get_y_axis(), \
+                              }
+        return json_response_data
+
 
 class JsonResponse(HttpResponse):
     """ return json content type   """
