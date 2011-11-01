@@ -4,10 +4,10 @@ from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
-from cvs.forms import ActivateForm, FacilityFilterForm, ChartModuleForm, StatsModuleForm, MapModuleForm
+from cvs.forms import ActivateForm, FacilityFilterForm
 from cvs.utils import get_reporters
 from cvs.sorters import LatestSubmissionSorter, LatestJoinedSorter
-from cvs.views.dates import get_dates
+from uganda_common.reports import XFormDateGetter
 from cvs.views.stats import export_as_excel
 from healthmodels.models.HealthProvider import HealthProviderBase
 from django.contrib.auth.decorators import login_required
@@ -179,7 +179,7 @@ urlpatterns = patterns('',
                         {'name':'Tuberculosis', 'url':'/cvs/stats/<start_ts>/<end_ts>/epi/tb/', 'color':'#92A8CD', 'needs_date':True},
                         {'name':'Other Diseases', 'url':'/cvs/stats/<start_ts>/<end_ts>/2/epi/other/', 'color':'#A47D7C', 'needs_date':True},
                        ],
-        'dates': get_dates, \
+        'dates': XFormDateGetter().get_dates, \
         'display_autoload': False, \
     }, name="cvs-map"),
 
