@@ -48,6 +48,8 @@ urlpatterns = patterns('',
                  ('Facility', True, 'facility__name', SimpleSorter(),),
                  ('Location', True, 'location__name', SimpleSorter(),),
                  ('', False, '', None,)],
+      'sort_column':'latest_submission_date',
+      'sort_ascending':False,
     }, name="cvs-contact"),
     # Trainees
     url(r'^cvs/train/reporter/$', login_required(generic), {
@@ -192,12 +194,18 @@ urlpatterns = patterns('',
     #############################################
     #              STATS VIEWS                  #
     #############################################
-    (r'^cvs/stats/', include(MainReport().as_urlpatterns(name='stats'))), #, name='stats'),
+    (r'^cvs/stats/', include(MainReport().as_urlpatterns(name='stats'))),
     (r'^cvs/muac/', include(MuacReport().as_urlpatterns())),
     (r'^cvs/epi/', include(EpiReport().as_urlpatterns())),
     (r'^cvs/birth/', include(BirthReport().as_urlpatterns())),
     (r'^cvs/death/', include(DeathReport().as_urlpatterns())),
     (r'^cvs/home/', include(HomeReport().as_urlpatterns())),
+
+    (r'^mtrack/stats/', include(MTrackReport().as_urlpatterns(name='mtrack-stats'))),
+    (r'^mtrack/epi/', include(MTrackEpiReport().as_urlpatterns())),
+    (r'^mtrack/birth/', include(MTrackBirthReport().as_urlpatterns())),
+    (r'^mtrack/muac/', include(MTrackNutritionReport().as_urlpatterns())),
+    (r'^mtrack/malaria/', include(MTrackMalariaReport().as_urlpatterns())),
 
     url(r'^cvs/data/excelexport/$', export_as_excel),
 

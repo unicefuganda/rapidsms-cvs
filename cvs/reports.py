@@ -223,4 +223,111 @@ class HomeReport(XFormReport):
         chart_title='Variation of % Access to ITTNs/LLINs',
     )
 
+class MTrackReport(XFormReport):
+    def get_top_columns(self):
+        return [
+            ('Diseases', '/mtrack/epi/', 4),
+            ('OPD/IPD', '/mtrack/birth/', 3),
+            ('Nutrition', '/mtrack/muac/', 2),
+            ('Active Reporters', '/cvs/reporter/', 1),
+        ]
 
+    ma_hc = CVSAttributeColumn('cases_ma', order=1, title='Malaria (HC)')
+    ma_vht = CVSAttributeColumn('epi_ma', order=2, title='Malaria (VHT)')
+    bd_hc = CVSAttributeColumn('cases_bd', order=3, title='Dysentery (HC)')
+    bd_vht = CVSAttributeColumn('epi_bd', order=4, title='Dysentery (VHT)')
+    opd_att = CVSAttributeColumn('opd_att', order=5, title='New Attendance')
+    opd_md = CVSAttributeColumn('opd_md', order=6, title='Maternal Death')
+    opd_pd = CVSAttributeColumn('opd_pd', order=7, title='Perinatal Death')
+    com_muac_red = CVSAttributeColumn('com_muac_red', order=8, title='Total Red (VHT)')
+    opd_nat = CVSAttributeColumn('opd_nat', order=9, title='New Attendees')
+    active_reporters = ActiveReportersColumn(order=10, title="Active", chart_title='Active Reporters')
+
+class MTrackEpiReport(XFormReport):
+    def get_top_columns(self):
+        return [
+            ('VHTs', '#', 4),
+            ('Malaria', '/mtrack/malaria/', 1), # FIXME
+            ('Health Center', '#', 3),
+        ]
+
+#    ma_vht = CVSAttributeColumn(['epi_ma', 'com_fever'], order=1, title='Malaria')
+#FIXME charts should take multi values
+    ma_vht = CVSAttributeColumn('com_fever', order=1, title='Malaria')
+    tb_vht = CVSAttributeColumn('epi_tb', order=2, title='Tb')
+    pneumonia = CVSAttributeColumn('com_pneumonia', order=3, title='Pneumonia')
+#    bd_vht = CVSAttributeColumn(['com_diarrhea', 'epi_bd'], order=4, title='Diarrhea')
+    bd_vht = CVSAttributeColumn('com_diarrhea', order=4, title='Diarrhea')
+
+    ma_hc = CVSAttributeColumn('cases_ma', order=5, title='Malaria (HC)')
+    dy_hc = CVSAttributeColumn('cases_dy', order=6, title='Dysentery (HC)')
+    sa_hc = CVSAttributeColumn('cases_sa', order=7, title='SARI (fast breathing)')
+    ab_hc = CVSAttributeColumn('cases_ab', order=8, title='Animal Bites')
+
+class MTrackBirthReport(XFormReport):
+    at_home_filter = {'eav__birth_place':'HOME', }
+    at_facility_filter = {'eav__birth_place':'FACILITY', }
+
+    def get_top_columns(self):
+        return [
+            ('VHTs', '#', 3),
+            ('Health Center', '#', 4),
+        ]
+
+    total = CVSSubmissionColumn('birth', order=0, title='Total Births')
+    percent_home = QuotientColumn(\
+        CVSSubmissionColumn('birth', extra_filters=at_home_filter), \
+        CVSSubmissionColumn('birth'), \
+        order=1, title='% Delivered at Home'
+    )
+    deaths_total = CVSSubmissionColumn('death', order=2, title='Total Child Deaths')
+    opd_att = CVSAttributeColumn('opd_att', order=3, title='New Attendance')
+    opd_nat = CVSAttributeColumn('opd_nat', order=4, title='Total Attendance')
+    opd_md = CVSAttributeColumn('opd_md', order=5, title='Maternal Death')
+    opd_pd = CVSAttributeColumn('opd_pd', order=6, title='Perinatal Death')
+
+class MTrackNutritionReport(XFormReport):
+#|HC STATS (MAL)
+#|new total total total (see spec)
+    def get_top_columns(self):
+        return [
+            ('VHTs', '#', 4),
+#            ('Health Center', '#', 4),
+        ]
+
+    red = CVSSubmissionColumn('muac', extra_filters={
+                'eav__muac_category':'R',
+            }, order=1, title='Red')
+    yellow = CVSSubmissionColumn('muac', extra_filters={
+                'eav__muac_category':'Y',
+            }, order=2, title='Yellow')
+    green = CVSSubmissionColumn('muac', extra_filters={
+                'eav__muac_category':'G',
+            }, order=3, title='Green')
+    oe = CVSSubmissionColumn('muac', extra_filters={
+                'eav__muac_ignored':'T',
+            }, order=4, title='Oedema')
+
+class MTrackMalariaReport(XFormReport):
+
+    def get_top_columns(self):
+        return [
+            ('Test', '#', 7),
+            ('Treat', '#', 8)
+        ]
+
+    test_sm = CVSAttributeColumn('test_sm', order=0, title='Suspected Malaria Cases'),
+    test_rdt = CVSAttributeColumn('test_rdt', order=1, title='RDT tested cases'),
+    test_rdp = CVSAttributeColumn('test_rdp', order=2, title='RDT positive cases'),
+    test_mtc = CVSAttributeColumn('test_mtc', order=3, title='Microscopy tested cases'),
+    test_mtp = CVSAttributeColumn('test_mtp', order=4, title='Microscopy positive cases'),
+    test_pcc = CVSAttributeColumn('test_pcc', order=5, title='Positive cases under 5 years'),
+    test_pcy = CVSAttributeColumn('test_pcy', order=6, title='Positive cases 5+ years'),
+    treat_rdn = CVSAttributeColumn('treat_rdn', order=7, title='RDT negative cases treated'),
+    treat_rdp = CVSAttributeColumn('treat_rdp', order=8, title='RDT positive cases treated'),
+    treat_mtn = CVSAttributeColumn('treat_mtn', order=9, title='Microscopy negative cases treated'),
+    treat_mtp = CVSAttributeColumn('treat_mtp', order=10, title='Microscopy positive cases treated'),
+    treat_tin = CVSAttributeColumn('treat_tin', order=11, title='4+ months to 2 years'),
+    treat_tic = CVSAttributeColumn('treat_tic', order=12, title='3+ to 6 years'),
+    treat_tiy = CVSAttributeColumn('treat_tiy', order=13, title='7+ to 11 years'),
+    treat_tia = CVSAttributeColumn('treat_tia', order=14, title='12+ years'),
