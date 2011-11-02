@@ -1,0 +1,39 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% load stats_extras %}
+{% block remaining_row_content %}
+    <td>
+        {{ object.name }}
+    </td>
+    <td>
+        {{ object.type.name }}
+    </td>
+    <td>
+        {{ object.code }}
+    </td>
+    <td>
+        {{ object|get_facility_district }}
+    </td>
+    <td>
+        {{ object|facility_latest|date:"d-m-Y" }}
+    </td>
+    <td>
+        {{ object|facility_reports }}
+    </td>
+    <td id="row_{{ object.pk }}">
+        <ul>
+        {% for l in object.catchment_areas.all %}
+            <li>{{ l.name }}</li>
+        {% endfor %}
+        </ul>
+    </td>
+    <td class="button_col">
+        <div class="buttons">
+            <a href="javascript:void(0)" onclick="deleteFacility(this, {{ object.pk }},'{{ object.name }}')">
+                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
+            </a>
+             <a href="javascript:void(0)" onclick="editFacility(this, {{ object.pk }})">
+                <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" />
+            </a>
+        </div>
+    </td>
+{% endblock %}

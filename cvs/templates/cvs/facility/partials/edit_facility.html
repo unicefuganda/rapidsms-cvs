@@ -1,0 +1,49 @@
+{% load stats_extras %}
+<td>&nbsp;</td>
+<td id="row_{{ facility.pk }}" class="facility">{{ facility_form.name }}
+    {% if facility_form.name.errors %}
+        <br clear="left"/>
+        {{ facility_form.name.errors }}
+    {% endif %}
+</td>
+<td>
+    {{ facility_form.type }}
+    {% if facility_form.type.errors %}
+        <br clear="left"/>
+        {{ report_form.type.errors }}
+    {% endif %}
+</td>
+<td>
+    {{ facility_form.code }}
+    {% if facility_form.code.errors %}
+        <br clear="left"/>
+        {{ report_form.code.errors }}
+    {% endif %}
+</td>
+<td>
+    {{ facility_form.facility_district }}
+</td>
+<td>{{ facility|facility_latest|date:"d-m-Y" }}</td>
+<td>{{ facility|facility_reports }}</td>
+<td id="facility_locations">
+</td>
+<td class="button_col">
+    <script>
+	$('#facility_locations').load('../facility/{{ facility.pk }}/locations/edit/');
+    </script>
+
+    <div class="buttons">
+        <a href="javascript:void(0)"
+           onclick="$(this).parents('tr').load('../facility/{{ facility.pk }}/show/')">
+            <img src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png"/>
+        </a>
+        <a href="javascript:void(0)"
+           onclick="submitForm(this, '../facility/{{ facility.pk }}/edit/', $(this).parents('tr'))">
+            <img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept.png"/>
+        </a>
+    </div>
+</td>
+
+
+
+

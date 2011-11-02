@@ -1,18 +1,24 @@
 from django.conf.urls.defaults import *
-from cvs.views import basic, reporters, map
+from cvs.views import basic, reporters, map, facilities
 from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
 from cvs.forms import ActivateForm, FacilityFilterForm
 from cvs.utils import get_reporters
-from cvs.sorters import LatestSubmissionSorter, LatestJoinedSorter
+from cvs.sorters import \
+    LatestSubmissionSorter, \
+    LatestJoinedSorter, \
+    LatestFacilitySubmissionSorter, \
+    TotalFacilitySubmissionSorter
 from uganda_common.reports import XFormDateGetter
 from cvs.views.stats import export_as_excel
 from healthmodels.models.HealthProvider import HealthProviderBase
+from healthmodels.models.HealthFacility import HealthFacilityBase
 from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
 from cvs.utils import get_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
+from mtrack.utils import get_facilites_for_view
 from cvs.reports import *
 from rapidsms_httprouter.models import Message
 from contact.models import MassText
@@ -94,6 +100,38 @@ urlpatterns = patterns('',
     url(r'^cvs/((train|orphaned)/)?reporter/(?P<reporter_pk>\d+)/delete', reporters.deleteReporter),
     url(r'^cvs/(orphaned/)?reporter/(?P<pk>\d+)/show', generic_row, {'model':HealthProviderBase, 'partial_row':'cvs/reporter/partials/reporter_row.html'}),
     url(r'^cvs/train/reporter/(?P<pk>\d+)/show', generic_row, {'model':HealthProviderBase, 'partial_row':'cvs/reporter/partials/trainee_row.html'}),
+
+
+
+    #############################################
+    #              FACILITY VIEWS               #
+    #############################################
+    url(r'^cvs/facility/$', login_required(generic), {
+      'model':HealthFacilityBase,
+      'queryset':get_facilites_for_view,
+      'filter_forms':[],
+      'action_forms':[],
+      'objects_per_page':25,
+      'partial_row':'cvs/facility/partials/facility_row.html',
+      'base_template':'cvs/facility/facility_base.html',
+      'results_title':'Health Facilities',
+      'columns':[('Name', True, 'name', SimpleSorter()),
+                 ('Type', True, 'type', SimpleSorter()),
+                 ('Code', True, 'code', SimpleSorter(),),
+                 ('District', False, 'district', None,),
+                 ('Last Reporting Date', True, 'latest_submission', LatestFacilitySubmissionSorter(),),
+                 ('Total Reports', True, 'submissions', TotalFacilitySubmissionSorter(),),
+                 ('Catchment Areas', True, 'catchment_area__name', SimpleSorter(),),
+                 ('', False, '', None,)],
+      'sort_column':'latest_submission',
+      'sort_ascending':False,
+    }, name="cvs-facility"),
+
+    url(r'^cvs/facility/(?P<facility_pk>\d+)/edit', facilities.editFacility),
+    url(r'^cvs/facility/(?P<facility_pk>\d+)/locations/edit/((?P<district_pk>\d+)/)?', facilities.editFacilityLocations),
+    url(r'^cvs/facility/(?P<facility_pk>\d+)/delete', facilities.deleteFacility),
+    url(r'^cvs/facility/(?P<pk>\d+)/show', generic_row, {'model':HealthFacilityBase, 'partial_row':'cvs/facility/partials/facility_row.html'}),
+
 
 
     #############################################

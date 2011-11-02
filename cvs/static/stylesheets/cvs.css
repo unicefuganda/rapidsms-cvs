@@ -109,6 +109,11 @@ div.module {
     top: 3em;
 }
 
+#id_catchment_areas {
+    height:100px;
+    font-size:10px;	
+}
+
 #actions {
     height:10em;
 }

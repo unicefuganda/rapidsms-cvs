@@ -5,6 +5,10 @@ from rapidsms_xforms.models import XFormSubmission
 from script.models import ScriptSession
 import datetime
 from django.utils.safestring import mark_safe
+from mtrack.utils import \
+    get_district_for_facility, \
+    get_last_reporting_date, \
+    get_facility_reports
 import calendar
 import time
 import re
@@ -40,6 +44,9 @@ def get_district(location):
     except:
         return None
 
+def get_facility_district(hc):
+    return get_district_for_facility(hc)
+
 def join_date(connection):
     try:
         ScriptSession.objects.filter(connection=connection, script__slug='cvs_autoreg').latest('end_time').end_date
@@ -55,6 +62,12 @@ def latest(obj):
         return XFormSubmission.objects.filter(connection__in=obj.connection_set.all()).latest('created').created
     except:
         return None
+
+def facility_latest(obj):
+    return get_last_reporting_date(obj)
+
+def facility_reports(obj):
+    return get_facility_reports(obj)
 
 def hash(h, key):
     try:
@@ -174,6 +187,9 @@ register.filter('ancestors', get_ancestors)
 register.filter('name', name)
 register.filter('join_date', join_date)
 register.filter('latest', latest)
+register.filter('facility_latest', facility_latest)
+register.filter('facility_reports', facility_reports)
 register.filter('hash', hash)
 register.filter('get_district', get_district)
+register.filter('get_facility_district', get_facility_district)
 register.tag('date_range', do_date_range)

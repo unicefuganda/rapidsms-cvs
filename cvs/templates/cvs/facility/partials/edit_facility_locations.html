@@ -1,0 +1,9 @@
+<select id="id_catchment_areas" name="catchment_areas" multiple="true">
+    {% for l in locations %}
+        <option value="{{ l.pk }}"
+        {% if l in catchment_areas %}
+            selected="true"
+        {% endif %}
+        >{{ l.name }}</option>
+    {% endfor %}
+</select>

@@ -1,4 +1,6 @@
+from mtrack.utils import get_staff_for_facility, reporting_facilities
 from generic.sorters import Sorter
+from healthmodels.models import HealthProvider, HealthFacility
 from rapidsms.models import Connection
 from rapidsms_xforms.models import XFormSubmission, XFormSubmissionValue
 from script.models import ScriptSession
@@ -23,6 +25,47 @@ class LatestSubmissionSorter(Sorter):
             toret.reverse()
         return toret
 
+
+class LatestFacilitySubmissionSorter(Sorter):
+    def sort(self, column, object_list, ascending=True):
+        staff = get_staff_for_facility(object_list)
+        connections = list(Connection.objects.filter(contact__in=staff))
+        submissions = list(XFormSubmission.objects.filter(connection__in=connections).order_by('-created').select_related('connection__contact__healthproviderbase__facility', 'connection__contact__healthproviderbase__facility'))
+        full_facility_list = list(object_list)
+        toret = []
+        for sub in submissions:
+            if not (sub.connection.contact.healthproviderbase.healthprovider.facility in toret):
+                toret.append(sub.connection.contact.healthproviderbase.healthprovider.facility)
+        nosubmissions = []
+        for c in full_facility_list:
+            if not (c in toret):
+                nosubmissions.append(c)
+
+        toret = toret + nosubmissions
+        if not ascending:
+            toret.reverse()
+        return toret
+
+class TotalFacilitySubmissionSorter(Sorter):
+    def sort(self, column, object_list, ascending=True):
+        facilities = reporting_facilities(None, facilities=object_list, count=False).order_by('-pk__count')
+        full_facility_list = list(object_list)
+        toret = []
+        toret_pk = []
+        for sub in facilities:
+            pk = sub['message__connection__contact__healthproviderbase__facility']
+            if not (pk in toret_pk):
+                toret_pk.append(pk)
+                toret.append(HealthFacility.objects.get(pk=pk))
+        nosubmissions = []
+        for c in full_facility_list:
+            if not (c in toret):
+                nosubmissions.append(c)
+
+        toret = toret + nosubmissions
+        if not ascending:
+            toret.reverse()
+        return toret
 
 class LatestJoinedSorter(Sorter):
     def sort(self, column, object_list, ascending=True):
