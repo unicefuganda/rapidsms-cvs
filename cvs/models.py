@@ -110,6 +110,23 @@ def parse_oedema(command, value):
     else:
         return 'F'
 
+def parse_fuzzy_number(command, value):
+    fuzzy_number = re.compile('[0-9oOI]+')
+    m = fuzzy_number.match(value)
+    if m:
+        num = value[m.start():m.end()]
+        num = num.replace('o', '0')
+        num = num.replace('O', '0')
+        num = num.replace('I', '1')
+
+        remaining = value[m.end():].strip()
+        if remaining:
+            if len(remaining) > 50:
+                remaining = "%s..." % remaining[:47]
+            raise ValidationError('You need to send a number for %s, you sent %s.Please resend' % (command, remaining))
+        else:
+            return int(num)
+
 def parse_facility_value(value):
     try:
         return HealthFacility.objects.get(code=value)
@@ -136,6 +153,9 @@ XFormField.register_field_type('cvsodema', 'Oedema Occurrence', parse_oedema,
 
 XFormField.register_field_type('facility', 'Facility Code', parse_facility,
                                db_type=XFormField.TYPE_OBJECT, xforms_type='string')
+
+XFormField.register_field_type('fuzzynum', 'Fuzzy Numbers (o/0)', parse_fuzzy_number,
+                               db_type=XFormField.TYPE_INT, xforms_type='integer')
 
 Poll.register_poll_type('facility', 'Facility Code Response', parse_facility_value, db_type=Attribute.TYPE_OBJECT, view_template='cvs/partials/response_facility_view.html', edit_template='cvs/partials/response_facility_edit.html', report_columns=(('Original Text', 'text'), ('Health Facility', 'custom',),), edit_form='cvs.forms.FacilityResponseForm')
 
@@ -415,21 +435,30 @@ def xform_received_handler(sender, **kwargs):
         submission.response = "We have recorded the death of %s." % patient_label(patient)
         submission.save()
 
-    elif xform.keyword in ['act', 'com', 'mal', 'rutf', 'home', 'epi']:
+    elif xform.keyword in ['act', 'com', 'mal', 'rutf', 'home', 'epi', 'report', 'opd', 'test', 'treat', 'rdt', 'qun']:
         check_basic_validity(xform.keyword, submission, health_provider, 1)
-        value_list = []
-        for v in submission.eav.get_values().order_by('attribute__xformfield__order'):
-            value_list.append("%s %d" % (v.attribute.name, v.value_int))
-        value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
-        submission.response = "You reported %s.If there is an error,please resend." % ','.join(value_list)
 
         # aliasing for different epi commands
         if xform.keyword == 'epi':
             for v in submission.eav.get_values():
                 if v.attribute.slug == 'epi_rb':
-                    submission.eav.epi_ra = (submission.eav.epi_ra or 0) + v.value_int
+                    val = submission.values.create(\
+                              entity=submission, \
+                              attribute=XFormField.objects.get(slug='epi_ra'), \
+                              value_int=v.value_int)
+                    submission.values.get(attribute__slug='epi_rb').delete()
                 elif v.attribute.slug == 'epi_dy':
-                    submission.eav.epi_bd = (submission.eav.epi_bd or 0) + v.value_int
+                    val = submission.values.create(
+                              entity=submission, \
+                              attribute=XFormField.objects.get(slug='epi_bd'), \
+                              value_int=v.value_int)
+                    submission.values.get(attribute__slug='epi_dy').delete()
+
+        value_list = []
+        for v in submission.eav.get_values().order_by('attribute__xformfield__order'):
+            value_list.append("%s %d" % (v.attribute.name, v.value_int))
+        value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
+        submission.response = "You reported %s.If there is an error,please resend." % ','.join(value_list)
         submission.save()
 
     if xform.keyword in XFORMS and \
