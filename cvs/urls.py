@@ -17,7 +17,7 @@ from healthmodels.models.HealthProvider import HealthProviderBase
 from healthmodels.models.HealthFacility import HealthFacilityBase
 from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
-from cvs.utils import get_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
+from cvs.utils import get_all_messages, get_unsolicited_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
 from mtrack.utils import get_facilites_for_view
 from cvs.reports import *
 from rapidsms_httprouter.models import Message
@@ -141,7 +141,7 @@ urlpatterns = patterns('',
     #############################################
     url(r'^cvs/messagelog/$', login_required(generic), {
        'model':Message,
-       'queryset':get_messages,
+       'queryset':get_unsolicited_messages,
        'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
        'action_forms':[ReplyTextForm],
        'objects_per_page':25,
@@ -156,6 +156,23 @@ urlpatterns = patterns('',
        'sort_column':'date',
        'sort_ascending':False,
     }, name="cvs-messagelog"),
+    url(r'^cvs/allmessagelog/$', login_required(generic), {
+       'model':Message,
+       'queryset':get_all_messages,
+       'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
+       'action_forms':[ReplyTextForm],
+       'objects_per_page':25,
+       'partial_row':'contact/partials/message_row.html',
+       'base_template':'cvs/all_messages_base.html',
+       'columns':[('Text', True, 'text', SimpleSorter()),
+                  ('Contact Information', True, 'connection__contact__name', SimpleSorter(),),
+                  ('Date', True, 'date', SimpleSorter(),),
+                  ('Type', True, 'application', SimpleSorter(),),
+                  ('Response', False, 'response', None,),
+                 ],
+       'sort_column':'date',
+       'sort_ascending':False,
+    }, name="cvs-allmessages"),
     url(r'^cvs/massmessages/$', login_required(generic), {
        'model':MassText,
        'queryset':get_mass_messages,

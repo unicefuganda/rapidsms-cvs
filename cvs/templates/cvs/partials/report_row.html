@@ -1,0 +1,28 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% block remaining_row_content %}
+    <td>
+        {{ object.message.connection.contact.healthproviderbase.healthprovider.facility.name }}
+        {% if object.message.connection.contact.healthproviderbase.healthprovider.facility %}
+            ({{ object.message.connection.contact.healthproviderbase.healthprovider.facility.type.name }})
+        {% endif %}
+    </td>
+    <td>
+        {{ object.message.connection.contact.name }}
+    </td>
+    <td>
+        {{ object.raw }}
+    </td>
+    <td>
+        {{ object.created|date:"d-m-Y" }}
+    </td>
+    <td class="button_col">
+        <div class="buttons">
+            <a href="javascript:void(0)">
+                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
+            </a>
+             <a href="/xforms/submissions/{{ object.pk }}/edit/" title="Edit">
+                <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" />
+            </a>
+        </div>
+    </td>
+{% endblock %}

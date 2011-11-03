@@ -40,26 +40,39 @@ class CVSAttributeColumn(XFormAttributeColumn):
 
 
 class ActiveReportersColumn(Column):
+    def __init__(self, roles=['VHT', 'PVHT'], period=1, **kwargs):
+        Column.__init__(self, **kwargs)
+        self.roles = roles
+        self.period = period
+
     def add_to_report(self, report, key, dictionary):
-        val = active_reporters(report.start_date, report.end_date, report.location)
+        val = active_reporters(report.start_date, report.end_date, report.location, roles=self.roles, period=self.period)
         reorganize_location(key, val, dictionary)
 
     def get_chart(self):
         from .views.chart import ActiveReportersChartView
         return ActiveReportersChartView(location_id=self.report.location.pk, \
                          start_date=self.report.start_date, \
-                         end_date=self.report.end_date)
+                         end_date=self.report.end_date, \
+                         roles=self.roles, \
+                         period=self.period)
 
     def get_view_function(self):
         from .views.chart import ActiveReportersChartView
         return ActiveReportersChartView.as_view(location_id=self.report.location.pk, \
                          start_date=self.report.start_date, \
-                         end_date=self.report.end_date)
+                         end_date=self.report.end_date, \
+                         roles=self.roles, \
+                         period=self.period)
 
 
 class RegisteredReportersColumn(Column):
+    def __init__(self, roles=['VHT', 'PVHT'], **kwargs):
+        Column.__init__(self, **kwargs)
+        self.roles = roles
+
     def add_to_report(self, report, key, dictionary):
-        val = registered_reporters(report.location)
+        val = registered_reporters(report.location, roles=self.roles)
         reorganize_location(key, val, dictionary)
 
     def get_chart(self):
@@ -247,7 +260,7 @@ class MTrackEpiReport(XFormReport):
     def get_top_columns(self):
         return [
             ('VHTs', '#', 4),
-            ('Malaria', '/mtrack/malaria/', 1), # FIXME
+            ('Malaria', '/mtrack/malaria/', 1),
             ('Health Center', '#', 3),
         ]
 

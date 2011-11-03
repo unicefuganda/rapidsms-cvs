@@ -17,6 +17,8 @@ from rapidsms.contrib.locations.models import Location
 from django.conf import settings
 from script.models import Script, ScriptStep
 from rapidsms.models import Contact
+from uganda_common.utils import get_location_for_user, get_messages
+from mtrack.utils import last_reporting_period
 
 try:
     from django.contrib.sites import Site
@@ -54,10 +56,18 @@ GROUP_BY_SELECTS = {
 }
 
 
-def active_reporters(start_date, end_date, location, group_by_timespan=None):
+def active_reporters(start_date, end_date, location, roles=['VHT', 'PVHT'], group_by_timespan=None, period=0):
     """ get all active reporters  """
+    if period:
+        start_date, end_date = last_reporting_period(period)
 
-    tnum = 5
+    if 'HC' in roles:
+        tnum = 12
+        count_val = 'connection__contact__healthproviderbase__healthprovider__facility__pk'
+    else:
+        tnum = 7
+        count_val = 'connection__id'
+
     select = {
         'location_name':'T%d.name' % tnum,
         'location_id':'T%d.id' % tnum,
@@ -67,11 +77,11 @@ def active_reporters(start_date, end_date, location, group_by_timespan=None):
 
     values = ['location_name', 'location_id', 'lft', 'rght']
     if group_by_timespan:
-         select_value = GROUP_BY_SELECTS[group_by_timespan][0]
-         select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
-         select.update({select_value:select_clause,
+        select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+        select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+        select.update({select_value:select_clause,
                         'year':'extract (year from rapidsms_xforms_xformsubmission.created)', })
-         values.extend([select_value, 'year'])
+        values.extend([select_value, 'year'])
     if location.get_children().count() > 1:
         location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list(\
                        'pk', flat=True)))))
@@ -80,34 +90,42 @@ def active_reporters(start_date, end_date, location, group_by_timespan=None):
     return XFormSubmission.objects.filter(
                has_errors=False,
                created__lte=end_date,
-               created__gte=start_date).values(
+               created__gte=start_date,
+               connection__contact__groups__name__in=roles).values(
                'connection__contact__reporting_location__name').extra(
                tables=['locations_location'],
                where=[\
                    'T%d.lft <= locations_location.lft' % tnum, \
                    'T%d.rght >= locations_location.rght' % tnum, \
                    location_children_where]).extra(\
-               select=select).values(*values).annotate(value=Count('connection__id')).extra(order_by=['location_name'])
+               select=select).values(*values).annotate(value=Count(count_val)).extra(order_by=['location_name'])
 
-def registered_reporters(location):
+def registered_reporters(location, roles=['VHT', 'PVHT']):
     tnum = 6
+    count_val = 'id'
+
+    if 'HC' in roles:
+        count_val = 'facility'
+        tnum = 7
+
     select = {
         'location_name':'T%d.name' % tnum,
         'location_id':'T%d.id' % tnum,
         'rght':'T%d.rght' % tnum,
         'lft':'T%d.lft' % tnum,
     }
+
     values = ['location_name', 'location_id', 'rght', 'lft']
     if location.get_children().count() > 1:
         location_children_where = 'T%d.id in %s' % (tnum, (str(tuple(location.get_children().values_list(\
                        'pk', flat=True)))))
     else:
         location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
-    return  HealthProviderBase.objects.filter(groups=Group.objects.get(name='VHT')).values('location__name').extra(
+    return  HealthProviderBase.objects.filter(groups__name__in=roles).values('location__name').extra(
             tables=['locations_location'], where=[\
                    'T%d.lft <= locations_location.lft' % tnum, \
                    'T%d.rght >= locations_location.rght' % tnum, \
-                   location_children_where]).extra(select=select).values(*values).annotate(value=Count('id'))
+                   location_children_where]).extra(select=select).values(*values).annotate(value=Count(count_val))
 
 def total_submissions_by_facility(keyword, start_date, end_date, map_window):
     minlat, minlon, maxlat, maxlon = map_window
@@ -169,10 +187,20 @@ def get_reporters(**kwargs):
     else:
         return HealthProvider.objects.select_related('facility', 'location').annotate(Count('connection__submissions')).all()
 
-def get_messages(**kwargs):
+def get_unsolicited_messages(**kwargs):
     request = kwargs.pop('request')
-    area = get_area(request)
-    if area:
+
+    # get all unsolicited messages
+    messages = get_messages(request)
+
+    # now filter by user's location
+    location = get_location_for_user(request.user)
+    return messages.filter(connection__contact__reporting_location__in=location.get_descendants(include_self=True).all())
+
+def get_all_messages(**kwargs):
+    request = kwargs.pop('request')
+    area = get_location_for_user(request)
+    if not area == Location.tree.root_nodes()[0]:
         return Message.objects.filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())
 
     return Message.objects.filter(direction='I')
