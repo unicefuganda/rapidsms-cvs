@@ -174,24 +174,24 @@ class BirthReport(XFormReport):
 
 
 class DeathReport(XFormReport):
-    total = CVSSubmissionColumn('death', order=0, title='Total Child Deaths')
-    boys = CVSSubmissionColumn('death', order=1, extra_filters={
-                'eav__death_gender':'M',
+    total = CVSSubmissionColumn('olddeath', order=0, title='Total Child Deaths')
+    boys = CVSSubmissionColumn('olddeath', order=1, extra_filters={
+                'eav__olddeath_gender':'M',
             }, title='Male Deaths')
-    girls = CVSSubmissionColumn('death', order=2, extra_filters={
-                'eav__death_gender':'F',
+    girls = CVSSubmissionColumn('olddeath', order=2, extra_filters={
+                'eav__olddeath_gender':'F',
             }, title='Female Deaths')
-    under_28days = CVSSubmissionColumn('death', order=3, extra_filters={
-                'eav__death_age__lt':28,
+    under_28days = CVSSubmissionColumn('olddeath', order=3, extra_filters={
+                'eav__olddeath_age__lt':28,
             }, title='Deaths Under 1 month')
-    upto_3months = CVSSubmissionColumn('death', order=4, extra_filters={
-                'eav__death_age__range':(28, 90)
+    upto_3months = CVSSubmissionColumn('olddeath', order=4, extra_filters={
+                'eav__olddeath_age__range':(28, 90)
             }, title='Deaths 1 to 3 months')
-    upto_12months = CVSSubmissionColumn('death', order=5, extra_filters={
-                'eav__death_age__range':(90, 365)
+    upto_12months = CVSSubmissionColumn('olddeath', order=5, extra_filters={
+                'eav__olddeath_age__range':(90, 365)
             }, title='Deaths 3 months to 1 year')
-    upto_5years = CVSSubmissionColumn('death', order=6, extra_filters={
-                'eav__death_age__range':(365, 1825)
+    upto_5years = CVSSubmissionColumn('olddeath', order=6, extra_filters={
+                'eav__olddeath_age__range':(365, 1825)
             }, title='Deaths 1 to 5 years')
 
 
