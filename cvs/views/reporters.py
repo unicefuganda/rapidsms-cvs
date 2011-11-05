@@ -28,7 +28,7 @@ def editReporter(request, reporter_pk):
                 data=request.POST)
         if reporter_form.is_valid():
             reporter_form.save()
-            return generic_row(request, model=HealthProviderBase, pk=reporter_pk, partial_row='/cvs/partials/reporter_row.html')
+            return generic_row(request, model=HealthProviderBase, pk=reporter_pk, partial_row='/cvs/reporter/partials/reporter_row.html')
         else:
             return render_to_response('cvs/reporter/partials/edit_reporter.html'
                     , {'reporter_form': reporter_form, 'reporter'
