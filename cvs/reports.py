@@ -329,18 +329,18 @@ class MTrackMalariaReport(XFormReport):
             ('Treat', '#', 8)
         ]
 
-    test_sm = CVSAttributeColumn('test_sm', order=0, title='Suspected Malaria Cases'),
-    test_rdt = CVSAttributeColumn('test_rdt', order=1, title='RDT tested cases'),
-    test_rdp = CVSAttributeColumn('test_rdp', order=2, title='RDT positive cases'),
-    test_mtc = CVSAttributeColumn('test_mtc', order=3, title='Microscopy tested cases'),
-    test_mtp = CVSAttributeColumn('test_mtp', order=4, title='Microscopy positive cases'),
-    test_pcc = CVSAttributeColumn('test_pcc', order=5, title='Positive cases under 5 years'),
-    test_pcy = CVSAttributeColumn('test_pcy', order=6, title='Positive cases 5+ years'),
-    treat_rdn = CVSAttributeColumn('treat_rdn', order=7, title='RDT negative cases treated'),
-    treat_rdp = CVSAttributeColumn('treat_rdp', order=8, title='RDT positive cases treated'),
-    treat_mtn = CVSAttributeColumn('treat_mtn', order=9, title='Microscopy negative cases treated'),
-    treat_mtp = CVSAttributeColumn('treat_mtp', order=10, title='Microscopy positive cases treated'),
-    treat_tin = CVSAttributeColumn('treat_tin', order=11, title='4+ months to 2 years'),
-    treat_tic = CVSAttributeColumn('treat_tic', order=12, title='3+ to 6 years'),
-    treat_tiy = CVSAttributeColumn('treat_tiy', order=13, title='7+ to 11 years'),
-    treat_tia = CVSAttributeColumn('treat_tia', order=14, title='12+ years'),
+    test_sm = CVSAttributeColumn('test_sm', order=0, title='Suspected Malaria Cases')
+    test_rdt = CVSAttributeColumn('test_rdt', order=1, title='RDT tested cases')
+    test_rdp = CVSAttributeColumn('test_rdp', order=2, title='RDT positive cases')
+    test_mtc = CVSAttributeColumn('test_mtc', order=3, title='Microscopy tested cases')
+    test_mtp = CVSAttributeColumn('test_mtp', order=4, title='Microscopy positive cases')
+    test_pcc = CVSAttributeColumn('test_pcc', order=5, title='Positive cases under 5 years')
+    test_pcy = CVSAttributeColumn('test_pcy', order=6, title='Positive cases 5+ years')
+    treat_rdn = CVSAttributeColumn('treat_rdn', order=7, title='RDT negative cases treated')
+    treat_rdp = CVSAttributeColumn('treat_rdp', order=8, title='RDT positive cases treated')
+    treat_mtn = CVSAttributeColumn('treat_mtn', order=9, title='Microscopy negative cases treated')
+    treat_mtp = CVSAttributeColumn('treat_mtp', order=10, title='Microscopy positive cases treated')
+    treat_tin = CVSAttributeColumn('treat_tin', order=11, title='4+ months to 2 years')
+    treat_tic = CVSAttributeColumn('treat_tic', order=12, title='3+ to 6 years')
+    treat_tiy = CVSAttributeColumn('treat_tiy', order=13, title='7+ to 11 years')
+    treat_tia = CVSAttributeColumn('treat_tia', order=14, title='12+ years')
