@@ -1,6 +1,11 @@
 {% extends "cvs/messages_base.html" %}
+{% block title %}
+    All Messages - {{ block.super }}
+{% endblock %}
 {% block extra_links %}
+<div style="margin-bottom:2em">
 <a href="{% url cvs-messagelog %}" style="font-size:12pt">&lt;&lt; Message Log</a> |
 <a href="{% url cvs-massmessages %}" style="font-size:12pt">&lt; &lt; Mass Messages</a> |
 <a href="{% url cvs-training-messagelog %}" style="font-size:12pt">&lt;&lt; Training Messages</a> |
+</div>
 {% endblock %}

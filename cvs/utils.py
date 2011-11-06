@@ -195,7 +195,10 @@ def get_unsolicited_messages(**kwargs):
 
     # now filter by user's location
     location = get_location_for_user(request.user)
-    return messages.filter(connection__contact__reporting_location__in=location.get_descendants(include_self=True).all())
+    messages = messages.filter(connection__contact__reporting_location__in=location.get_descendants(include_self=True).all())
+    # get rid of unregistered, anonymous, and trainee connections
+    messages = messages.exclude(connection__contact=None).exclude(connection__contact__active=False)
+    return messages
 
 def get_all_messages(**kwargs):
     request = kwargs.pop('request')
