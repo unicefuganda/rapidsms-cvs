@@ -8,7 +8,8 @@ from django.utils.safestring import mark_safe
 from mtrack.utils import \
     get_district_for_facility, \
     get_last_reporting_date, \
-    get_facility_reports
+    get_facility_reports, \
+    reporting_facilities
 import calendar
 import time
 import re
@@ -67,7 +68,7 @@ def facility_latest(obj):
     return get_last_reporting_date(obj)
 
 def facility_reports(obj):
-    return get_facility_reports(obj)
+    return reporting_facilities(None, facilities=[obj], count=True, date_range=None)
 
 def hash(h, key):
     try:
