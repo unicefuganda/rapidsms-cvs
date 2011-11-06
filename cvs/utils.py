@@ -65,8 +65,8 @@ def active_reporters(start_date, end_date, location, roles=['VHT', 'PVHT'], grou
         tnum = 12
         count_val = 'connection__contact__healthproviderbase__healthprovider__facility__pk'
     else:
-        tnum = 7
-        count_val = 'connection__id'
+        tnum = 8
+        count_val = 'connection__contact__id'
 
     select = {
         'location_name':'T%d.name' % tnum,
@@ -91,7 +91,10 @@ def active_reporters(start_date, end_date, location, roles=['VHT', 'PVHT'], grou
                has_errors=False,
                created__lte=end_date,
                created__gte=start_date,
-               connection__contact__groups__name__in=roles).values(
+               connection__contact__groups__name__in=roles,
+               connection__contact__active=True).\
+               exclude(connection__contact__healthproviderbase=None).\
+               values(
                'connection__contact__reporting_location__name').extra(
                tables=['locations_location'],
                where=[\
@@ -101,12 +104,12 @@ def active_reporters(start_date, end_date, location, roles=['VHT', 'PVHT'], grou
                select=select).values(*values).annotate(value=Count(count_val)).extra(order_by=['location_name'])
 
 def registered_reporters(location, roles=['VHT', 'PVHT']):
-    tnum = 6
+    tnum = 7
     count_val = 'id'
 
     if 'HC' in roles:
         count_val = 'facility'
-        tnum = 7
+        tnum = 8
 
     select = {
         'location_name':'T%d.name' % tnum,
@@ -121,7 +124,7 @@ def registered_reporters(location, roles=['VHT', 'PVHT']):
                        'pk', flat=True)))))
     else:
         location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
-    return  HealthProviderBase.objects.filter(groups__name__in=roles).values('location__name').extra(
+    return  HealthProvider.objects.filter(groups__name__in=roles, active=True).exclude(reporting_location=None).values('reporting_location__name').extra(
             tables=['locations_location'], where=[\
                    'T%d.lft <= locations_location.lft' % tnum, \
                    'T%d.rght >= locations_location.rght' % tnum, \
