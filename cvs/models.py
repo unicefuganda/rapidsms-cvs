@@ -15,6 +15,7 @@ from script.signals import *
 from script.models import *
 from uganda_common.utils import parse_district_value
 from script.utils.handling import find_closest_match, find_best_response
+from ussd.models import ussd_pre_transition, TransitionException
 from rapidsms.contrib.locations.models import Location
 import itertools
 
@@ -549,7 +550,18 @@ def cvs_autoreg(**kwargs):
 
     contact.save()
 
+def ussd_jump_diseases(sender, **kwargs):
+    screen = kwargs['screen']
+    input = kwargs['input']
 
+    if screen.slug == 'additional':
+        try:
+            raise TransitionException(screen=Field.objects.get(slug='cases_%s' % input.lower()[:2]))
+        except Field.DoesNotExist:
+            raise TransitionException(screen=Question.objects.get(slug='additional'))
+
+
+ussd_pre_transition.connect(ussd_jump_diseases, weak=False)
 script_progress_was_completed.connect(cvs_autoreg, weak=False)
 xform_received.connect(xform_received_handler, weak=True)
 pre_delete.connect(fix_location, weak=True)

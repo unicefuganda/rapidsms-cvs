@@ -1212,7 +1212,7 @@
             "modified": "2011-11-02 10:25:27", 
             "type": null, 
             "slug": "opd_nat", 
-            "name": "OPD New Attendence"
+            "name": "OPD Total Attendance"
         }
     }, 
     {
@@ -4192,7 +4192,7 @@
         "model": "script.scriptstep",
         "fields": {
             "script": "cvs_autoreg",
-            "retry_offset": 300,
+            "retry_offset": 600,
             "rule": "M",
             "email": null,
             "num_tries": 3,
@@ -4226,7 +4226,7 @@
         "model": "script.scriptstep",
         "fields": {
             "script": "cvs_autoreg",
-            "retry_offset": 300,
+            "retry_offset": 600,
             "rule": "R",
             "email": null,
             "num_tries": 3,
@@ -4260,7 +4260,7 @@
         "model": "script.scriptstep",
         "fields": {
             "script": "cvs_autoreg",
-            "retry_offset": 300,
+            "retry_offset": 600,
             "rule": "M",
             "email": null,
             "num_tries": 3,
@@ -4294,7 +4294,7 @@
         "model": "script.scriptstep",
         "fields": {
             "script": "cvs_autoreg",
-            "retry_offset": 300,
+            "retry_offset": 600,
             "rule": "R",
             "email": null,
             "num_tries": 3,
@@ -4328,7 +4328,7 @@
         "model": "script.scriptstep",
         "fields": {
             "script": "cvs_autoreg",
-            "retry_offset": 300,
+            "retry_offset": 600,
             "rule": "R",
             "email": null,
             "num_tries": 3,
