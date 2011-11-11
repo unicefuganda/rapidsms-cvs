@@ -15,7 +15,7 @@ from script.signals import *
 from script.models import *
 from uganda_common.utils import parse_district_value
 from script.utils.handling import find_closest_match, find_best_response
-from ussd.models import ussd_pre_transition, TransitionException
+from ussd.models import ussd_pre_transition, TransitionException, Field, Question
 from rapidsms.contrib.locations.models import Location
 import itertools
 
