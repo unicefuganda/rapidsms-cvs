@@ -15,7 +15,7 @@ from script.signals import *
 from script.models import *
 from uganda_common.utils import parse_district_value
 from script.utils.handling import find_closest_match, find_best_response
-from ussd.models import ussd_pre_transition, TransitionException, Field, Question
+from ussd.models import ussd_pre_transition, ussd_complete, Navigation, TransitionException, Field, Question
 from rapidsms.contrib.locations.models import Location
 import itertools
 
@@ -561,7 +561,25 @@ def ussd_jump_diseases(sender, **kwargs):
             raise TransitionException(screen=Question.objects.get(slug='additional'))
 
 
+def ussd_reg(sender, **kwargs):
+    try:
+        name = sender.navigations.filter(screen__slug='reg_name').latest('date').response
+        facility = sender.navigations.filter(screen__slug='reg_hc').latest('date').response
+        district = sender.navigations.filter(screen__slug='reg_dist').latest('date').response
+        district = find_closest_match(district, Location.objects.filter(type__name='district'))
+        if district:
+            sublocs = district.get_descendants(include_self=True).all()
+            facility = find_closest_match(facility, HealthFacility.objects.filter(catchment_areas__in=sublocs))
+        else:
+            facility = find_closest_match(facility, HealthFacility.objects)
+        provider = HealthProvider.objects.create(name=name, facility=facility, district=district, active=False)
+        sender.connection.contact = provider
+        sender.connection.save()
+    except Navigation.DoesNotExist:
+        pass
+
 ussd_pre_transition.connect(ussd_jump_diseases, weak=False)
+ussd_complete.connect(ussd_reg, weak=False)
 script_progress_was_completed.connect(cvs_autoreg, weak=False)
 xform_received.connect(xform_received_handler, weak=True)
 pre_delete.connect(fix_location, weak=True)
