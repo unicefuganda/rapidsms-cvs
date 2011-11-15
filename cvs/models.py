@@ -436,7 +436,7 @@ def xform_received_handler(sender, **kwargs):
         submission.response = "We have recorded the death of %s." % patient_label(patient)
         submission.save()
 
-    elif xform.keyword in ['act', 'com', 'mal', 'rutf', 'home', 'epi', 'report', 'opd', 'test', 'treat', 'rdt', 'qun']:
+    elif xform.keyword in ['act', 'com', 'mal', 'rutf', 'home', 'epi', 'cases', 'death', 'opd', 'test', 'treat', 'rdt', 'qun']:
         check_basic_validity(xform.keyword, submission, health_provider, 1)
 
         # aliasing for different epi commands
