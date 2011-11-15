@@ -16,7 +16,10 @@ class ActivateForm(ActionForm):
     action_label = 'Activate selected trainees'
 
     def perform(self, request, results):
-        results.update(active=True)
+        pks = []
+        for r in results:
+            pks.append(r.pk)
+        Contact.objects.filter(pk__in=pks).update(active=True)
         return ('%d Contacts are now on the live system.' % len(results), 'success',)
 
 

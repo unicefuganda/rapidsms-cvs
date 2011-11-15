@@ -36,7 +36,10 @@ class CVSSubmissionColumn(XFormSubmissionColumn):
 
 class CVSAttributeColumn(XFormAttributeColumn):
     def get_title(self):
-        return self.title or (COLUMN_TITLE_DICT[self.keyword] if self.keyword in COLUMN_TITLE_DICT else '')
+        tolookup = self.keyword
+        if type(self.keyword) == list:
+            tolookup = self.keyword[0]
+        return self.title or (COLUMN_TITLE_DICT[tolookup] if tolookup in COLUMN_TITLE_DICT else '')
 
 
 class ActiveReportersColumn(Column):
@@ -95,9 +98,9 @@ class MainReport(XFormReport):
         ]
 
     muac = CVSSubmissionColumn('muac', title='Total New Cases', order=0, chart_title='Variation of Malnutrition Cases')
-    ma = CVSAttributeColumn('epi_ma', order=1)
+    ma = CVSAttributeColumn(['epi_ma', 'com_fever'], order=1)
     tb = CVSAttributeColumn('epi_tb', order=2)
-    bd = CVSAttributeColumn('epi_bd', order=3)
+    bd = CVSAttributeColumn(['epi_bd', 'com_diarrhea'], order=3)
     birth = CVSSubmissionColumn('birth', order=4)
     death = CVSSubmissionColumn('death', order=5)
     home = CVSSubmissionColumn('home', order=6)
@@ -237,6 +240,8 @@ class HomeReport(XFormReport):
     )
 
 class MTrackReport(XFormReport):
+    template_name = "cvs/partials/stats_base.html"
+
     def get_top_columns(self):
         return [
             ('Diseases', '/mtrack/epi/', 4),
@@ -246,15 +251,18 @@ class MTrackReport(XFormReport):
         ]
 
     ma_hc = CVSAttributeColumn('cases_ma', order=1, title='Malaria (HC)')
-    ma_vht = CVSAttributeColumn('epi_ma', order=2, title='Malaria (VHT)')
+    ma_vht = CVSAttributeColumn(['epi_ma', 'com_fever'], order=2, title='Malaria (VHT)')
     bd_hc = CVSAttributeColumn('cases_bd', order=3, title='Dysentery (HC)')
-    bd_vht = CVSAttributeColumn('epi_bd', order=4, title='Dysentery (VHT)')
+    bd_vht = CVSAttributeColumn(['epi_bd', 'com_diarrhea'], order=4, title='Dysentery (VHT)')
     opd_att = CVSAttributeColumn('opd_att', order=5, title='New Attendance')
     opd_md = CVSAttributeColumn('opd_md', order=6, title='Maternal Death')
     opd_pd = CVSAttributeColumn('opd_pd', order=7, title='Perinatal Death')
     com_muac_red = CVSAttributeColumn('com_muac_red', order=8, title='Total Red (VHT)')
     opd_nat = CVSAttributeColumn('opd_nat', order=9, title='New Attendees')
-    active_reporters = ActiveReportersColumn(order=10, title="Active", chart_title='Active Reporters')
+    active_reporters = ActiveReportersColumn(order=10, title="Submitted Report For Last Period", chart_title='Active Reporters')
+
+    def get_default_column(self):
+        return ('ma_vht', self.ma_vht)
 
 class MTrackEpiReport(XFormReport):
     def get_top_columns(self):
@@ -270,7 +278,7 @@ class MTrackEpiReport(XFormReport):
     tb_vht = CVSAttributeColumn('epi_tb', order=2, title='Tb')
     pneumonia = CVSAttributeColumn('com_pneumonia', order=3, title='Pneumonia')
 #    bd_vht = CVSAttributeColumn(['com_diarrhea', 'epi_bd'], order=4, title='Diarrhea')
-    bd_vht = CVSAttributeColumn('com_diarrhea', order=4, title='Diarrhea')
+    bd_vht = CVSAttributeColumn(['epi_bd', 'com_diarrhea'], order=4, title='Diarrhea')
 
     ma_hc = CVSAttributeColumn('cases_ma', order=5, title='Malaria (HC)')
     dy_hc = CVSAttributeColumn('cases_dy', order=6, title='Dysentery (HC)')
