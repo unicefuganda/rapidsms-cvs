@@ -1568,6 +1568,22 @@
         }
     }, 
     {
+        "pk": 386, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Treated, no Test", 
+            "created": "2011-11-16 10:35:23", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-16 10:35:23", 
+            "type": null, 
+            "slug": "treat_tnt", 
+            "name": "Tested, no Test"
+        }
+    }, 
+    {
         "pk": 325, 
         "model": "eav.attribute", 
         "fields": {
@@ -2567,7 +2583,18 @@
             "order": 0, 
             "xform": 52
         }
-    }, 
+    },
+    {
+        "pk": 386, 
+        "model": "rapidsms_xforms.xformfield", 
+        "fields": {
+            "field_type": "fuzzynum", 
+            "question": null, 
+            "command": "tnt", 
+            "order": 0, 
+            "xform": 53
+        }
+    },      
     {
         "pk": 330, 
         "model": "rapidsms_xforms.xformfield", 
@@ -2575,7 +2602,7 @@
             "field_type": "fuzzynum", 
             "question": null, 
             "command": "rdn", 
-            "order": 0, 
+            "order": 1, 
             "xform": 53
         }
     }, 
@@ -2751,7 +2778,7 @@
             "field_type": "fuzzynum", 
             "question": null, 
             "command": "rdp", 
-            "order": 1, 
+            "order": 2, 
             "xform": 53
         }
     }, 
@@ -2927,7 +2954,7 @@
             "field_type": "fuzzynum", 
             "question": null, 
             "command": "mtn", 
-            "order": 2, 
+            "order": 3, 
             "xform": 53
         }
     }, 
@@ -3070,7 +3097,7 @@
             "field_type": "fuzzynum", 
             "question": null, 
             "command": "mtp", 
-            "order": 3, 
+            "order": 4, 
             "xform": 53
         }
     }, 
@@ -3180,7 +3207,7 @@
             "field_type": "fuzzynum", 
             "question": null, 
             "command": "tin", 
-            "order": 4, 
+            "order": 5, 
             "xform": 53
         }
     }, 
@@ -3257,7 +3284,7 @@
             "field_type": "fuzzynum", 
             "question": null, 
             "command": "tic", 
-            "order": 5, 
+            "order": 6, 
             "xform": 53
         }
     }, 
@@ -3334,7 +3361,7 @@
             "field_type": "fuzzynum", 
             "question": null, 
             "command": "tiy", 
-            "order": 6, 
+            "order": 7, 
             "xform": 53
         }
     }, 
@@ -3400,7 +3427,7 @@
             "field_type": "fuzzynum", 
             "question": null, 
             "command": "tia", 
-            "order": 7, 
+            "order": 8, 
             "xform": 53
         }
     }, 
