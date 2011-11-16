@@ -41,7 +41,7 @@ def get_ancestors(location_id):
 
 def get_district(location):
     try:
-        return location if location.type.name == 'district' else location.get_ancestors().get(type__name='district').name
+        return location.name if location.type.name == 'district' else location.get_ancestors().get(type__name='district').name
     except:
         return None
 
