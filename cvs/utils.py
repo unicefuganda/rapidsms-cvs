@@ -41,6 +41,17 @@ XFORMS = [
     'mal', # Routine HC report of weekly itp/otp treatments
     'rutf', # Routine HC report of weekly otc/itc stock reports
     'act', # Routine report of ACT stock
+    'opd',
+    'test',
+    'treat',
+    'rdt',
+    'act',
+    'qun',
+    'com',
+    'mal',
+    'rutf',
+    'olddeath',
+    'cases',
 ]
 
 GROUP_BY_WEEK = 1
