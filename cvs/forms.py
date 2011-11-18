@@ -7,6 +7,7 @@ from mptt.forms import TreeNodeChoiceField
 from rapidsms.contrib.locations.models import Location
 from django.contrib.auth.models import Group
 from mtrack.utils import get_district_for_facility
+from rapidsms.models import Contact
 
 date_range_choices = (('w', 'Previous Calendar Week'), ('m', 'Previous Calendar Month'), ('q', 'Previous calendar quarter'),)
 AREAS = Location.tree.all().select_related('type')
