@@ -1,6 +1,6 @@
 from generic.reporting.views import ReportView
 from generic.reporting.reports import Column
-from uganda_common.reports import XFormAttributeColumn, XFormSubmissionColumn, QuotientColumn
+from uganda_common.reports import XFormAttributeColumn, XFormSubmissionColumn, QuotientColumn, AdditionColumn, DifferenceColumn
 from uganda_common.views import XFormReport
 from .utils import active_reporters, registered_reporters
 from uganda_common.utils import reorganize_location
@@ -251,14 +251,20 @@ class MTrackReport(XFormReport):
         ]
 
     ma_hc = CVSAttributeColumn('cases_ma', order=1, title='Malaria (HC)')
-    ma_vht = CVSAttributeColumn(['epi_ma', 'com_fever'], order=2, title='Malaria (VHT)')
+    ma_vht = CVSAttributeColumn(['epi_ma', 'com_fever'], order=2, title='Fever (VHT)')
     bd_hc = CVSAttributeColumn('cases_bd', order=3, title='Dysentery (HC)')
-    bd_vht = CVSAttributeColumn(['epi_bd', 'com_diarrhea'], order=4, title='Dysentery (VHT)')
+    bd_vht = CVSAttributeColumn(['epi_bd', 'com_diarrhea'], order=4, title='Diarrhea (VHT)')
     opd_att = CVSAttributeColumn('opd_att', order=5, title='New Attendance')
     opd_md = CVSAttributeColumn('opd_md', order=6, title='Maternal Death')
     opd_pd = CVSAttributeColumn('opd_pd', order=7, title='Perinatal Death')
-    com_muac_red = CVSAttributeColumn('com_muac_red', order=8, title='Total Red (VHT)')
-    opd_nat = CVSAttributeColumn('opd_nat', order=9, title='New Attendees')
+    com_muac_red = AdditionColumn(\
+            CVSSubmissionColumn('muac', extra_filters={
+                'eav__muac_category':'R',
+            }),
+            CVSAttributeColumn('com_muac_red'), \
+            order=8, title='Total Red (VHT)')
+
+    opd_nat = CVSAttributeColumn('opd_nat', order=9, title='New Attendees (HC)')
     active_reporters = ActiveReportersColumn(order=10, title="Submitted Report For Last Period", chart_title='Active Reporters')
 
     def get_default_column(self):
@@ -274,10 +280,9 @@ class MTrackEpiReport(XFormReport):
 
 #    ma_vht = CVSAttributeColumn(['epi_ma', 'com_fever'], order=1, title='Malaria')
 #FIXME charts should take multi values
-    ma_vht = CVSAttributeColumn('com_fever', order=1, title='Malaria')
+    ma_vht = CVSAttributeColumn('com_fever', order=1, title='Fever')
     tb_vht = CVSAttributeColumn('epi_tb', order=2, title='Tb')
-    pneumonia = CVSAttributeColumn('com_pneumonia', order=3, title='Pneumonia')
-#    bd_vht = CVSAttributeColumn(['com_diarrhea', 'epi_bd'], order=4, title='Diarrhea')
+    pneumonia = CVSAttributeColumn('com_pneumonia', order=3, title='Fast Breathing')
     bd_vht = CVSAttributeColumn(['epi_bd', 'com_diarrhea'], order=4, title='Diarrhea')
 
     ma_hc = CVSAttributeColumn('cases_ma', order=5, title='Malaria (HC)')
@@ -301,33 +306,53 @@ class MTrackBirthReport(XFormReport):
         CVSSubmissionColumn('birth'), \
         order=1, title='% Delivered at Home'
     )
-    deaths_total = CVSSubmissionColumn('death', order=2, title='Total Child Deaths')
+    deaths_total = CVSAttributeColumn('com_death', order=2, title='Total Deaths')
     opd_att = CVSAttributeColumn('opd_att', order=3, title='New Attendance')
     opd_nat = CVSAttributeColumn('opd_nat', order=4, title='Total Attendance')
     opd_md = CVSAttributeColumn('opd_md', order=5, title='Maternal Death')
     opd_pd = CVSAttributeColumn('opd_pd', order=6, title='Perinatal Death')
 
 class MTrackNutritionReport(XFormReport):
-#|HC STATS (MAL)
-#|new total total total (see spec)
+
     def get_top_columns(self):
         return [
             ('VHTs', '#', 4),
-#            ('Health Center', '#', 4),
+            ('Health Center', '#', 4),
         ]
 
-    red = CVSSubmissionColumn('muac', extra_filters={
+    red = AdditionColumn(\
+            CVSSubmissionColumn('muac', extra_filters={
                 'eav__muac_category':'R',
-            }, order=1, title='Red')
-    yellow = CVSSubmissionColumn('muac', extra_filters={
+            }),
+            CVSAttributeColumn('com_muac_red'), \
+            order=1, title='Red')
+
+    yellow = AdditionColumn(\
+            CVSSubmissionColumn('muac', extra_filters={
                 'eav__muac_category':'Y',
-            }, order=2, title='Yellow')
-    green = CVSSubmissionColumn('muac', extra_filters={
+            }),
+            CVSAttributeColumn('com_muac_yellow'), \
+            order=2, title='Yellow')
+
+    green = AdditionColumn(\
+            CVSSubmissionColumn('muac', extra_filters={
                 'eav__muac_category':'G',
-            }, order=3, title='Green')
-    oe = CVSSubmissionColumn('muac', extra_filters={
+            }),
+            CVSAttributeColumn('com_muac_green'), \
+            order=3, title='Green')
+
+    oe = AdditionColumn(\
+            CVSSubmissionColumn('muac', extra_filters={
                 'eav__muac_ignored':'T',
-            }, order=4, title='Oedema')
+            }),
+            CVSAttributeColumn('com_bi_od'), \
+            order=4, title='Oedema')
+
+    new_adm = CVSAttributeColumn('mal_total_new', order=5, title='New Admissions')
+    tot_adm = CVSAttributeColumn('mal_total_admissions', order=6, title='Total Admissions')
+    defaults = CVSAttributeColumn('mal_total_default', order=7, title='Defaults')
+    deaths = CVSAttributeColumn('mal_total_death', order=8, title='Deaths')
+
 
 class MTrackMalariaReport(XFormReport):
 
