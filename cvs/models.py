@@ -422,19 +422,19 @@ def xform_received_handler(sender, **kwargs):
         submission.response = "Thank you for registering the birth of %s. We have recorded that the birth took place at %s." % (patient_label(patient), birth_location)
         submission.save()
 
-#    elif xform.keyword == 'death':
-#        days = submission.eav.death_age
-#        birthdate = datetime.datetime.now() - datetime.timedelta(days=days)
-#        patient = get_or_create_patient(health_provider, submission.eav.death_name, birthdate=birthdate, gender=submission.eav.death_gender, deathdate=datetime.datetime.now())
-#        check_validity(xform.keyword, submission, health_provider, patient, 1)
-#        report = PatientEncounter.objects.create(
-#                submission=submission,
-#                reporter=health_provider,
-#                patient=patient,
-#                message=message,
-#                valid=True)
-#        submission.response = "We have recorded the death of %s." % patient_label(patient)
-#        submission.save()
+    elif xform.keyword == 'olddeath':
+        days = submission.eav.death_age
+        birthdate = datetime.datetime.now() - datetime.timedelta(days=days)
+        patient = get_or_create_patient(health_provider, submission.eav.death_name, birthdate=birthdate, gender=submission.eav.death_gender, deathdate=datetime.datetime.now())
+        check_validity(xform.keyword, submission, health_provider, patient, 1)
+        report = PatientEncounter.objects.create(
+                submission=submission,
+                reporter=health_provider,
+                patient=patient,
+                message=message,
+                valid=True)
+        submission.response = "We have recorded the death of %s." % patient_label(patient)
+        submission.save()
 
     elif xform.keyword in ['act', 'com', 'mal', 'rutf', 'home', 'epi', 'cases', 'death', 'opd', 'test', 'treat', 'rdt', 'qun']:
         check_basic_validity(xform.keyword, submission, health_provider, 1)
