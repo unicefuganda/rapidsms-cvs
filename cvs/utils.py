@@ -221,8 +221,8 @@ def get_all_messages(**kwargs):
     request = kwargs.pop('request')
     area = get_location_for_user(request)
     if not area == Location.tree.root_nodes()[0]:
-        return Message.objects.exclude(connection__backend__name="console").filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())#exclude non-critical messages
-    return Message.objects.exclude(connection__backend__name="console").filter(direction='I')
+        return Message.objects.exclude(connection__backend__name="yo8200").filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())#exclude non-critical messages
+    return Message.objects.exclude(connection__backend__name="yo8200").filter(direction='I')
 
 def get_mass_messages(**kwargs):
     request = kwargs.pop('request')
