@@ -156,6 +156,7 @@ urlpatterns = patterns('',
        'sort_column':'date',
        'sort_ascending':False,
     }, name="cvs-messagelog"),
+    
     url(r'^cvs/allmessagelog/$', login_required(generic), {
        'model':Message,
        'queryset':get_all_messages,
@@ -173,6 +174,7 @@ urlpatterns = patterns('',
        'sort_column':'date',
        'sort_ascending':False,
     }, name="cvs-allmessages"),
+    
     url(r'^cvs/massmessages/$', login_required(generic), {
        'model':MassText,
        'queryset':get_mass_messages,

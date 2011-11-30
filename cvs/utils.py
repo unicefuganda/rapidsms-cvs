@@ -19,7 +19,7 @@ from script.models import Script, ScriptStep
 from rapidsms.models import Contact
 from uganda_common.utils import get_location_for_user, get_messages
 from mtrack.utils import last_reporting_period
-
+from mtrack.models import AnonymousReport
 try:
     from django.contrib.sites import Site
 except ImportError:
@@ -215,12 +215,14 @@ def get_unsolicited_messages(**kwargs):
     return messages
 
 def get_all_messages(**kwargs):
+    """
+    Get all messages that are direct responses to polls (not related to the anonymous hotline)
+    """
     request = kwargs.pop('request')
     area = get_location_for_user(request)
     if not area == Location.tree.root_nodes()[0]:
-        return Message.objects.filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())
-
-    return Message.objects.filter(direction='I')
+        return Message.objects.exclude(connection__backend__name="yo8200").filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())#exclude non-critical messages
+    return Message.objects.exclude(connection__backend__name="yo8200").filter(direction='I')
 
 def get_mass_messages(**kwargs):
     request = kwargs.pop('request')
