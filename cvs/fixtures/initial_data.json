@@ -4100,7 +4100,7 @@
             "end_date": null,
             "contacts": [],
             "messages": [],
-            "question": "Welcome to RapidSMS, the Ministry of Health's data collection system. What is your role?",
+            "question": "Welcome to the MOH's mobile phone data collection system. What is your role (VHT, HC, DHT)?",
             "sites": [
                 1
             ],
