@@ -1,0 +1,6 @@
+{% extends 'generic/reporting/partials/partial_row.html' %}
+{% load reportdict %}
+{% block row_heading %}
+<! -- link here to HC id {{ d|reportdict:drill_key }} -->
+<td>{{ d|reportdict:row_name_key }}</td>
+{% endblock %}

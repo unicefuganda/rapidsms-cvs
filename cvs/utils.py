@@ -184,6 +184,62 @@ def total_attribute_by_facility(attribute_slug, start_date, end_date, map_window
         .values('facility_name', 'facility_id', 'latitude', 'longitude', 'type')\
         .annotate(value=Sum('value_int'))
 
+def total_facility_submissions(keyword, start_date, end_date, location, extra_filters=None, group_by_timespan=None):
+    q = XFormSubmission.objects
+    if extra_filters:
+        extra_filters = dict([(str(k), v) for k, v in extra_filters.items()])
+        q = XFormSubmission.objects.filter(**extra_filters)
+
+    values = ['connection__contact__healthproviderbase__healthprovider__facility__name', \
+                'connection__contact__healthproviderbase__healthprovider__facility__id', \
+                'connection__contact__healthproviderbase__healthprovider__facility__type__name']
+    select = {}
+    if group_by_timespan:
+        select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+        select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+        select.update({select_value: select_clause,
+                       'year': 'extract (year from rapidsms_xforms_xformsubmission.created)', })
+        values.extend([select_value, 'year'])
+
+
+    locations = location.get_descendents(include_self=True)
+    return q.filter(\
+        xform__keyword=keyword, \
+        has_errors=False, \
+        connection__contact__healthproviderbase__healthprovider__facility__catchment_areas__in=locations, \
+        created__range=(start_date, end_date))\
+        .extra(select=select)\
+        .values(*values)\
+        .annotate(Count('id'))
+
+def total_facility_attributes(attribute_slug_list, start_date, end_date, location, group_by_timespan=None):
+    if type(attribute_slug_list) != list:
+        attribute_slug_list = [attribute_slug_list]
+
+    locations = location.get_descendents(include_self=True)
+
+    select = {}
+    values = ['submission__connection__contact__healthproviderbase__healthprovider__facility__name', \
+                'submission__connection__contact__healthproviderbase__healthprovider__facility__id', \
+                'submission__connection__contact__healthproviderbase__healthprovider__facility__type__name']
+    select = {}
+
+    if group_by_timespan:
+        select_value = GROUP_BY_SELECTS[group_by_timespan][0]
+        select_clause = GROUP_BY_SELECTS[group_by_timespan][1]
+        select.update({select_value: select_clause,
+                       'year': 'extract (year from rapidsms_xforms_xformsubmission.created)', })
+        values.extend([select_value, 'year'])
+
+    return XFormSubmissionValue.objects.filter(\
+        submission__has_errors=False, \
+        submission__connection__contact__healthproviderbase__healthprovider__facility__catchment_areas__in=locations, \
+        attribute__slug__in=attribute_slug_list, \
+        submission__created__range=(start_date, end_date))\
+        .extra(select=select)\
+        .values(*values)\
+        .annotate(value=Sum('value_int'))
+
 def get_area(request):
     if request.user.is_authenticated() and Location.objects.filter(type__name='district', name=request.user.username).count():
         area = Location.objects.filter(type__name='district', name=request.user.username)[0]

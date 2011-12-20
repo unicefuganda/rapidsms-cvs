@@ -2,8 +2,9 @@ from generic.reporting.views import ReportView
 from generic.reporting.reports import Column
 from uganda_common.reports import XFormAttributeColumn, XFormSubmissionColumn, QuotientColumn, AdditionColumn, DifferenceColumn
 from uganda_common.views import XFormReport
-from .utils import active_reporters, registered_reporters
+from .utils import active_reporters, registered_reporters, total_facility_submissions, total_facility_attributes
 from uganda_common.utils import reorganize_location
+from cvs.views.reports import CVSReportView
 
 COLUMN_TITLE_DICT = {
     'muac':'Total New Cases',
@@ -29,17 +30,52 @@ COLUMN_TITLE_DICT = {
 }
 
 
+def reorganize_hc(key, report, report_dict, append_submission=False):
+    # getting to facility is a huge join, and these parameters and keys
+    # get cumbersome
+    facility_base = 'connection__contact__healthproviderbase__healthprovider__facility'
+    # if this is a query from XFormSubmissionValue, we'll need to do one extra join
+    # to the submission associated with this value
+    if append_submission:
+        facility_base = "%s__%s" % ('submission', facility_base)
+    id_key = "%s__id" % facility_base
+    name_key = "%s__name" % facility_base
+    type_key = "%s__type__name" % facility_base
+
+    for rdict in report:
+        location = rdict[id_key]
+        report_dict.setdefault(location,
+                {'location_name': "%s (%s)" % \
+                 (rdict[name_key], rdict[type_key])})
+        report_dict[location][key] = rdict['value']
+
 class CVSSubmissionColumn(XFormSubmissionColumn):
+
     def get_title(self):
         return self.title or (COLUMN_TITLE_DICT[self.keyword] if self.keyword in COLUMN_TITLE_DICT else '')
 
+    def add_to_report(self, report, key, dictionary):
+        if report.drill_to_facility:
+            val = total_facility_submissions(self.keyword, report.start_date, report.end_date, report.location, self.extra_filters)
+            reorganize_hc(key, val, dictionary)
+        else:
+            XFormSubmissionColumn.add_to_report(self, report, key, dictionary)
+
 
 class CVSAttributeColumn(XFormAttributeColumn):
+
     def get_title(self):
         tolookup = self.keyword
         if type(self.keyword) == list:
             tolookup = self.keyword[0]
         return self.title or (COLUMN_TITLE_DICT[tolookup] if tolookup in COLUMN_TITLE_DICT else '')
+
+    def add_to_report(self, report, key, dictionary):
+        if report.drill_to_facility:
+            val = total_facility_attributes(self.keyword, report.start_date, report.end_date, report.location, self.extra_filters)
+            reorganize_hc(key, val, dictionary, append_submission=True)
+        else:
+            XFormAttributeColumn.add_to_report(self, report, key, dictionary)
 
 
 class ActiveReportersColumn(Column):
@@ -85,7 +121,7 @@ class RegisteredReportersColumn(Column):
         return None
 
 
-class MainReport(XFormReport):
+class MainReport(CVSReportView):
 
     def get_top_columns(self):
         return [
@@ -107,7 +143,7 @@ class MainReport(XFormReport):
     reporters = RegisteredReportersColumn(order=7, title="Registered")
     active_reporters = ActiveReportersColumn(order=8, title="Active", chart_title='Active Reporters')
 
-class MuacReport(XFormReport):
+class MuacReport(CVSReportView):
     total = CVSSubmissionColumn('muac', order=0, title='Total')
     green = CVSSubmissionColumn('muac', extra_filters={
                 'eav__muac_category':'G',
@@ -129,7 +165,7 @@ class MuacReport(XFormReport):
             }, order=5, title='Red+oe')
 
 
-class EpiReport(XFormReport):
+class EpiReport(CVSReportView):
     total = CVSSubmissionColumn('epi', order=0, title='Total', chart_title='Variation of Total EPI Reports')
     bd = CVSAttributeColumn('epi_bd', order=1)
     ma = CVSAttributeColumn('epi_ma', order=2)
@@ -148,7 +184,7 @@ class EpiReport(XFormReport):
     ei = CVSAttributeColumn('epi_ei', order=15)
 
 
-class BirthReport(XFormReport):
+class BirthReport(CVSReportView):
     at_home_filter = {'eav__birth_place':'HOME', }
     at_facility_filter = {'eav__birth_place':'FACILITY', }
 
@@ -176,7 +212,7 @@ class BirthReport(XFormReport):
 
 
 
-class DeathReport(XFormReport):
+class DeathReport(CVSReportView):
     total = CVSSubmissionColumn('olddeath', order=0, title='Total Child Deaths')
     boys = CVSSubmissionColumn('olddeath', order=1, extra_filters={
                 'eav__olddeath_gender':'M',
@@ -198,7 +234,7 @@ class DeathReport(XFormReport):
             }, title='Deaths 1 to 5 years')
 
 
-class HomeReport(XFormReport):
+class HomeReport(CVSReportView):
     def get_top_columns(self):
         return [
             ('', '#', 2),
@@ -239,7 +275,7 @@ class HomeReport(XFormReport):
         chart_title='Variation of % Access to ITTNs/LLINs',
     )
 
-class MTrackReport(XFormReport):
+class MTrackReport(CVSReportView):
     template_name = "cvs/partials/stats_base.html"
 
     def get_top_columns(self):
@@ -270,7 +306,7 @@ class MTrackReport(XFormReport):
     def get_default_column(self):
         return ('ma_vht', self.ma_vht)
 
-class MTrackEpiReport(XFormReport):
+class MTrackEpiReport(CVSReportView):
     def get_top_columns(self):
         return [
             ('VHTs', '#', 4),
@@ -290,7 +326,7 @@ class MTrackEpiReport(XFormReport):
     sa_hc = CVSAttributeColumn('cases_sa', order=7, title='SARI (fast breathing)')
     ab_hc = CVSAttributeColumn('cases_ab', order=8, title='Animal Bites')
 
-class MTrackBirthReport(XFormReport):
+class MTrackBirthReport(CVSReportView):
     at_home_filter = {'eav__birth_place':'HOME', }
     at_facility_filter = {'eav__birth_place':'FACILITY', }
 
@@ -312,7 +348,7 @@ class MTrackBirthReport(XFormReport):
     opd_md = CVSAttributeColumn('opd_md', order=5, title='Maternal Death')
     opd_pd = CVSAttributeColumn('opd_pd', order=6, title='Perinatal Death')
 
-class MTrackNutritionReport(XFormReport):
+class MTrackNutritionReport(CVSReportView):
 
     def get_top_columns(self):
         return [
@@ -354,7 +390,7 @@ class MTrackNutritionReport(XFormReport):
     deaths = CVSAttributeColumn('mal_total_death', order=8, title='Deaths')
 
 
-class MTrackMalariaReport(XFormReport):
+class MTrackMalariaReport(CVSReportView):
 
     def get_top_columns(self):
         return [
