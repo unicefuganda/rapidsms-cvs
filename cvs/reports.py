@@ -2,7 +2,7 @@ from generic.reporting.views import ReportView
 from generic.reporting.reports import Column
 from uganda_common.reports import XFormAttributeColumn, XFormSubmissionColumn, QuotientColumn, AdditionColumn, DifferenceColumn
 from uganda_common.views import XFormReport
-from .utils import active_reporters, registered_reporters, total_facility_submissions, total_facility_attributes
+from .utils import active_reporters, registered_reporters, total_facility_submissions, total_facility_attributes, active_facility_reporters
 from uganda_common.utils import reorganize_location
 from cvs.views.reports import CVSReportView
 
@@ -85,8 +85,12 @@ class ActiveReportersColumn(Column):
         self.period = period
 
     def add_to_report(self, report, key, dictionary):
-        val = active_reporters(report.start_date, report.end_date, report.location, roles=self.roles, period=self.period)
-        reorganize_location(key, val, dictionary)
+        if report.drill_to_facility:
+            val = active_facility_reporters(report.start_date, report.end_date, report.location, roles=self.roles, period=self.period)
+            reorganize_hc(key, val, dictionary)
+        else:
+            val = active_reporters(report.start_date, report.end_date, report.location, roles=self.roles, period=self.period)
+            reorganize_location(key, val, dictionary)
 
     def get_chart(self):
         from .views.chart import ActiveReportersChartView

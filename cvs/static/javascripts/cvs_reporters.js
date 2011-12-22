@@ -12,12 +12,29 @@ function editReporter(elem, pk) {
     });
 }
 
-function submitForm(link, action, resultDiv) {
-    form = $(link).parents("form");
-    form_data = form.serializeArray();
-    resultDiv.load(action, form_data);
+function newReporter(elem) {
+	// ajax load in the new reporter view
+	$(elem).parents('tr').load('../reporter/new');
 }
 
+/**
+ * Post the form to the edit reporter view, then ajax load the results into the 
+ * target element (see cvs.views.reporter and cvs/templates/reporter/partials)
+ * @param link - the save link that was clicked
+ * @param action - the url to post to
+ * @param resultElem - the element to load the results into (usually a TR)
+ */
+function submitForm(link, action, resultElem) {
+    form = $(link).parents("form");
+    form_data = form.serializeArray();
+    resultElem.load(action, form_data);
+}
+
+/**
+ * Ajax load new facility and location drop-downs, progressively filtered
+ * by the new district value (see cvs.views.reporter and cvs/templates/reporter/partials)
+ * @param elem - the select box (for districts) that was changed
+ */
 function update_district(elem) {
 	reporter_pk = $(elem).parents("tr").children(".reporter").attr('id').substring(4);
     $('#reporter_facility').empty();

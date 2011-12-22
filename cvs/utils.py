@@ -66,6 +66,28 @@ GROUP_BY_SELECTS = {
     GROUP_BY_QUARTER:('quarter', 'extract(quarter from rapidsms_xforms_xformsubmission.created)',),
 }
 
+def active_facility_reporters(start_date, end_date, location, roles=['VHT', 'PVHT'], group_by_timespan=None, period=0):
+    """ get all active reporters for a health facilty"""
+    if period:
+        start_date, end_date = last_reporting_period(period)
+
+    locations = location.get_descendants(include_self=True)
+
+    return XFormSubmission.objects\
+               .exclude(connection__contact__healthproviderbase=None)\
+               .filter(
+                   has_errors=False, \
+                   created__lte=end_date, \
+                   created__gte=start_date, \
+                   connection__contact__healthproviderbase__healthprovider__facility__catchment_areas__in=locations, \
+                   connection__contact__groups__name__in=roles, \
+               connection__contact__active=True).\
+               values(
+               'connection__contact__healthproviderbase__healthprovider__facility__name', \
+                'connection__contact__healthproviderbase__healthprovider__facility__id', \
+                'connection__contact__healthproviderbase__healthprovider__facility__type__name')\
+               .annotate(value=Count('connection__contact__id')).distinct()
+
 
 def active_reporters(start_date, end_date, location, roles=['VHT', 'PVHT'], group_by_timespan=None, period=0):
     """ get all active reporters  """
@@ -268,6 +290,7 @@ def get_unsolicited_messages(**kwargs):
     messages = messages.filter(connection__contact__reporting_location__in=location.get_descendants(include_self=True).all())
     # get rid of unregistered, anonymous, and trainee connections
     messages = messages.exclude(connection__contact=None).exclude(connection__contact__active=False)
+    messages = messages.order_by('-date')
     return messages
 
 def get_all_messages(**kwargs):
@@ -277,8 +300,9 @@ def get_all_messages(**kwargs):
     request = kwargs.pop('request')
     area = get_location_for_user(request)
     if not area == Location.tree.root_nodes()[0]:
-        return Message.objects.exclude(connection__backend__name="yo8200").filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all())#exclude non-critical messages
-    return Message.objects.exclude(connection__backend__name="yo8200").filter(direction='I')
+        return Message.objects.exclude(connection__backend__name="yo8200").filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all()).order_by('-date')
+
+    return Message.objects.exclude(connection__backend__name="yo8200").filter(direction='I').order_by('-date')
 
 def get_mass_messages(**kwargs):
     request = kwargs.pop('request')
@@ -411,7 +435,7 @@ def monthly_reports():
                                      status='P')
 
 def get_training_messages(request):
-    return Message.objects.filter(connection__contact__active=False)
+    return Message.objects.filter(connection__contact__active=False).order_by('-date')
 
 def get_training_vhts(request):
     return HealthProvider.objects.filter(active=False)

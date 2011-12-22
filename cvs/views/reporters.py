@@ -42,6 +42,10 @@ def editReporter(request, reporter_pk):
 
 
 def editReporterLocations(request, reporter_pk, district_pk=None):
+    """ This view renders only the select box for locations, which has autocomplete
+    for all the descendants of the district that the reporter belongs to
+    (or all locations, if the district is de-selected)
+    """
     reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
     locations = reporter.reporting_location or reporter.location
     if not locations:
@@ -62,6 +66,12 @@ def editReporterLocations(request, reporter_pk, district_pk=None):
 
 
 def editReporterFacilities(request, reporter_pk, district_pk=None):
+    """ 
+    This view renders only the select box for facilities, which is filtered
+    to only those health facilities that have catchment areas within all the descendants 
+    of the district that the reporter belongs to
+    (or all heatlh facilities, if the district is de-selected)
+    """
     reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
     locations = reporter.reporting_location or reporter.location
     facilities = HealthFacility.objects.all()

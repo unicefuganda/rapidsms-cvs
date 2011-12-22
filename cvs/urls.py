@@ -37,6 +37,7 @@ urlpatterns = patterns('',
       'action_forms':[MassTextForm],
       'objects_per_page':25,
       'partial_row':'cvs/reporter/partials/reporter_row.html',
+      'partial_header':'cvs/reporter/partials/partial_header.html',
       'base_template':'cvs/reporter/registered_contacts.html',
       'results_title':'Registered Users',
       'columns':[('Name', True, 'name', SimpleSorter()),
@@ -156,7 +157,25 @@ urlpatterns = patterns('',
        'sort_column':'date',
        'sort_ascending':False,
     }, name="cvs-messagelog"),
-    
+
+    url(r'^cvs/messagelogexample/$', login_required(generic), {
+       'model':Message,
+       'queryset':get_unsolicited_messages,
+       'filter_forms':[FreeSearchTextForm, DistictFilterMessageForm, HandledByForm],
+       'action_forms':[ReplyTextForm],
+       'objects_per_page':50,
+       'partial_row':'contact/partials/message_row.html',
+       'base_template':'cvs/messages_base.html',
+       'columns':[('Text', True, 'text', SimpleSorter()),
+                  ('Contact Information', True, 'connection__contact__name', SimpleSorter(),),
+                  ('Date', True, 'date', SimpleSorter(),),
+                  ('Type', True, 'application', SimpleSorter(),),
+                  ('Response', False, 'response', None,),
+                 ],
+       'sort_column':'date',
+       'sort_ascending':False,
+    },), #name="cvs-messagelog"),
+
     url(r'^cvs/allmessagelog/$', login_required(generic), {
        'model':Message,
        'queryset':get_all_messages,
@@ -174,7 +193,7 @@ urlpatterns = patterns('',
        'sort_column':'date',
        'sort_ascending':False,
     }, name="cvs-allmessages"),
-    
+
     url(r'^cvs/massmessages/$', login_required(generic), {
        'model':MassText,
        'queryset':get_mass_messages,
