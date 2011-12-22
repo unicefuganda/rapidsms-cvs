@@ -65,7 +65,7 @@ class ReporterForm(forms.Form):
             not district.get_descendants(include_self=True).filter(pk=location.pk).count():
             location = None
 
-        self.reporter.location = self.reporter.reporting_location = location or district
+        self.reporter.location = self.reporter.reporting_location = (location or district)
 
         self.reporter.name = cleaned_data.get('name')
         self.reporter.groups.clear()

@@ -510,7 +510,7 @@ def cvs_autoreg(**kwargs):
 
     try:
         contact = connection.contact or HealthProvider.objects.get(name=name, \
-                                      reporting_location=district, \
+                                      reporting_location=(village or district), \
                                       village=village, \
                                       village_name=village_name)
     except Contact.DoesNotExist, Contact.MultipleObectsReturned:
