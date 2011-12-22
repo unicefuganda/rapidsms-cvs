@@ -458,7 +458,8 @@ def xform_received_handler(sender, **kwargs):
         value_list = []
         for v in submission.eav.get_values().order_by('attribute__xformfield__order'):
             value_list.append("%s %d" % (v.attribute.name, v.value_int))
-        value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
+        if len(value_list) > 1:
+            value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
         submission.response = "You reported %s.If there is an error,please resend." % ','.join(value_list)
         submission.save()
 

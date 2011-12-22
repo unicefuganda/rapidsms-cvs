@@ -55,6 +55,9 @@ def join_date(connection):
         return None
 
 
+def get_submission_values(submission):
+    return submission.eav.get_values().order_by('attribute__xformfield__order')
+
 def name(location):
     return location.name
 
@@ -193,4 +196,5 @@ register.filter('facility_reports', facility_reports)
 register.filter('hash', hash)
 register.filter('get_district', get_district)
 register.filter('get_facility_district', get_facility_district)
+register.filter('get_submission_values', get_submission_values)
 register.tag('date_range', do_date_range)
