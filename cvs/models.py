@@ -494,13 +494,13 @@ def cvs_autoreg(**kwargs):
 
     name = find_best_response(session, namepoll)
     district = find_best_response(session, districtpoll)
-    village = find_best_response(session, villagepoll)
-    village_name = village
-    if village:
+    village_name = find_best_response(session, villagepoll)
+    village = None
+    if village_name:
         if district:
-            village = find_closest_match(village, district.get_descendants(include_self=True))
+            village = find_closest_match(village_name, district.get_descendants(include_self=True))
         else:
-            village = find_closest_match(village, Location.objects)
+            village = find_closest_match(village_name, Location.objects)
 
     healthfacility = find_best_response(session, healthfacilitypoll)
 
