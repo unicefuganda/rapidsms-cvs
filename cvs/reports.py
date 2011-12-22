@@ -2,7 +2,7 @@ from generic.reporting.views import ReportView
 from generic.reporting.reports import Column
 from uganda_common.reports import XFormAttributeColumn, XFormSubmissionColumn, QuotientColumn, AdditionColumn, DifferenceColumn
 from uganda_common.views import XFormReport
-from .utils import active_reporters, registered_reporters, total_facility_submissions, total_facility_attributes, active_facility_reporters
+from .utils import active_reporters, registered_reporters, total_facility_submissions, total_facility_attributes, active_facility_reporters, registered_facility_reporters
 from uganda_common.utils import reorganize_location
 from cvs.views.reports import CVSReportView
 
@@ -30,14 +30,9 @@ COLUMN_TITLE_DICT = {
 }
 
 
-def reorganize_hc(key, report, report_dict, append_submission=False):
+def reorganize_hc(key, report, report_dict, facility_base='connection__contact__healthproviderbase__healthprovider__facility'):
     # getting to facility is a huge join, and these parameters and keys
     # get cumbersome
-    facility_base = 'connection__contact__healthproviderbase__healthprovider__facility'
-    # if this is a query from XFormSubmissionValue, we'll need to do one extra join
-    # to the submission associated with this value
-    if append_submission:
-        facility_base = "%s__%s" % ('submission', facility_base)
     id_key = "%s__id" % facility_base
     name_key = "%s__name" % facility_base
     type_key = "%s__type__name" % facility_base
@@ -73,7 +68,7 @@ class CVSAttributeColumn(XFormAttributeColumn):
     def add_to_report(self, report, key, dictionary):
         if report.drill_to_facility:
             val = total_facility_attributes(self.keyword, report.start_date, report.end_date, report.location, self.extra_filters)
-            reorganize_hc(key, val, dictionary, append_submission=True)
+            reorganize_hc(key, val, dictionary, facility_base='submission__connection__contact__healthproviderbase__healthprovider__facility')
         else:
             XFormAttributeColumn.add_to_report(self, report, key, dictionary)
 
@@ -115,8 +110,20 @@ class RegisteredReportersColumn(Column):
         self.roles = roles
 
     def add_to_report(self, report, key, dictionary):
-        val = registered_reporters(report.location, roles=self.roles)
-        reorganize_location(key, val, dictionary)
+        if report.drill_to_facility:
+            val = registered_facility_reporters(report.location, roles=self.roles)
+            if 'HC' in self.roles:
+                # add all health facilities, so we can show unregistered ones too
+                from healthmodels.models import HealthFacility
+                locations = report.location.get_descendants(include_self=True)
+                for hc in HealthFacility.objects.filter(catchment_areas__in=locations):
+                    dictionary.setdefault(hc.id, \
+                            {'location_name': "%s (%s)" % \
+                             (hc.name, hc.type.name)})
+            reorganize_hc(key, val, dictionary, facility_base='facility')
+        else:
+            val = registered_reporters(report.location, roles=self.roles)
+            reorganize_location(key, val, dictionary)
 
     def get_chart(self):
         return None

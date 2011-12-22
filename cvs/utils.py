@@ -136,6 +136,19 @@ def active_reporters(start_date, end_date, location, roles=['VHT', 'PVHT'], grou
                    location_children_where]).extra(\
                select=select).values(*values).annotate(value=Count(count_val)).extra(order_by=['location_name'])
 
+
+def registered_facility_reporters(location, roles=['VHT', 'PVHT']):
+    locations = location.get_descendants(include_self=True)
+
+    return  HealthProvider.objects.filter(groups__name__in=roles, active=True).exclude(facility=None)\
+            .filter(facility__catchment_areas__in=locations)\
+            .values(\
+                'facility__name', \
+                'facility__id', \
+                'facility__type__name')\
+            .annotate(value=Count('id')).distinct()
+
+
 def registered_reporters(location, roles=['VHT', 'PVHT']):
     tnum = 7
     count_val = 'id'
