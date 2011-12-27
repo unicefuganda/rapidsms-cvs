@@ -1,6 +1,7 @@
 from django import forms
 import datetime
-from healthmodels.models.HealthProvider import HealthProvider
+from healthmodels.models.HealthProvider import HealthProvider, \
+    HealthProviderBase
 from generic.forms import ActionForm, FilterForm
 from healthmodels.models.HealthFacility import HealthFacility, HealthFacilityType
 from mptt.forms import TreeNodeChoiceField
@@ -32,6 +33,8 @@ class ReporterForm(forms.Form):
     reporter_district = forms.ModelChoiceField(queryset=Location.objects.filter(type__name='district').order_by('name'), empty_label='----', required=False, \
                                       widget=forms.Select({'onchange':'update_district(this)'}))
     reporting_location = forms.ModelChoiceField(queryset=Location.objects.all(), required=False)
+    connection = forms.CharField(max_length=20, required=False,
+                                 widget=forms.TextInput(attrs={'class':'itext', 'size':'10'}))
 
     def get_district(self):
         district = None
@@ -44,17 +47,18 @@ class ReporterForm(forms.Form):
         return district
 
     def __init__(self, *args, **kwargs):
-        self.reporter = kwargs.pop('instance')
-        if not 'data' in kwargs:
-            initial = { \
-                'name':self.reporter.name, \
-                'roles':self.reporter.groups.all(), \
-                'facility':self.reporter.facility, \
-            }
-            district = self.get_district()
-            if district:
-                initial.update({'reporter_district':district})
-            kwargs.update({'initial':initial})
+        if 'instance' in kwargs:
+            self.reporter = kwargs.pop('instance')
+            if not 'data' in kwargs:
+                initial = { \
+                    'name':self.reporter.name, \
+                    'roles':self.reporter.groups.all(), \
+                    'facility':self.reporter.facility, \
+                }
+                district = self.get_district()
+                if district:
+                    initial.update({'reporter_district':district})
+                kwargs.update({'initial':initial})
         forms.Form.__init__(self, *args, **kwargs)
 
     def save(self):
@@ -64,9 +68,7 @@ class ReporterForm(forms.Form):
         if district and location and \
             not district.get_descendants(include_self=True).filter(pk=location.pk).count():
             location = None
-
-        self.reporter.location = self.reporter.reporting_location = (location or district)
-
+        self.reporter.location = self.reporter.reporting_location = location or district
         self.reporter.name = cleaned_data.get('name')
         self.reporter.groups.clear()
         for g in cleaned_data.get('roles'):

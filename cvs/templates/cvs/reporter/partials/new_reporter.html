@@ -1,0 +1,66 @@
+{% load stats_extras %}
+<td>&nbsp;</td>
+{% if added_reporter %}
+<td colspan="6" id="tmp_{{added_reporter.pk }}">
+	<!-- successfully added new reporter {{ added_reporter.name }}!-->
+</td>
+<td colspan="2" style="text-align:right">
+    <a href="javascript:void(0)" onclick="newReporter(this)">Add New Reporter</a>
+    <script>
+	$('#tmp_{{ added_reporter.pk }}').parents('tr').after('<tr id="row_{{ added_reporter.pk }}"></tr>');
+	$('#row_{{ added_reporter.pk }}').load('../reporter/{{ added_reporter.pk }}/show');
+	</script>
+</td>
+
+{% else %}
+	<td id="row_0" class="reporter">
+	    {% if reporter_form.name.errors %}
+	        <br clear="left"/>
+	        {{ reporter_form.name.errors }}
+	    {% endif %}
+	    {{ reporter_form.name }}
+	</td>
+	<td class="reporter">{{ reporter_form.connection }}
+		{% if reporter_form.connection.errors %}
+	        <br clear="left"/>
+	        {{ reporter_form.connection.errors }}
+	    {% endif %}
+	</td>
+	<td>
+	<!--  Role(s)  -->
+	    {{ reporter_form.roles }}
+	    {% if reporter_form.roles.errors %}
+	        <br clear="left"/>
+	        {{ reporter_form.roles.errors }}
+	    {% endif %}
+	</td>
+	<td>{{ reporter_form.reporter_district }}</td>
+	<td></td>
+	<td>&nbsp;</td>
+	<td id="reporter_facilityx">
+		{{ reporter_form.facility }}
+	</td>
+	<td id="reporter_villagex">
+		{{ reporter_form.village_name }}
+	</td>
+	<td class="button_col">&nbsp;
+	<script>
+		$('#id_reporter_district').change(function(){
+			var district = $(this).val();
+			$('#reporter_facilityx').load('../reporter/facilities/edit/' + district + '/');
+			$('#reporter_villagex').load('../reporter/locations/edit/' + district + '/');
+		});
+	</script>
+	<!-- This one should have our link to save new reporter -->
+		<div class="buttons">
+	        <a href="javascript:void(0)"
+	           onclick="$(this).parents('tr').html('<td colspan=\'10\' style=\'text-align:right\'><a href=\'javascript:void(0)\' onclick=\'newReporter(this)\'>Add New Reporter</a></td>')">
+	            <img src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png"/>
+	        </a>
+	        <a href="javascript:void(0)"
+	           onclick="submitForm(this, '../reporter/new/', $(this).parents('tr'))">
+	            <img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept.png"/>
+	        </a>
+	    </div>
+	</td>
+{% endif %}

@@ -99,11 +99,14 @@ urlpatterns = patterns('',
 
     url(r'^cvs/((train|orphaned)/)?reporter/(?P<reporter_pk>\d+)/edit', reporters.editReporter),
     url(r'^cvs/((train|orphaned)/)?reporter/(?P<reporter_pk>\d+)/locations/edit/((?P<district_pk>\d+)/)?', reporters.editReporterLocations),
+    url(r'^cvs/((train|orphaned)/)?reporter/locations/edit/((?P<district_pk>\d+)/)?', reporters.editReporterLocations),
     url(r'^cvs/((train|orphaned)/)?reporter/(?P<reporter_pk>\d+)/facilities/edit/((?P<district_pk>\d+)/)?', reporters.editReporterFacilities),
+    url(r'^cvs/((train|orphaned)/)?reporter/facilities/edit/((?P<district_pk>\d+)/)?', reporters.editReporterFacilities),
     url(r'^cvs/((train|orphaned)/)?reporter/(?P<reporter_pk>\d+)/delete', reporters.deleteReporter),
     url(r'^cvs/(orphaned/)?reporter/(?P<pk>\d+)/show', generic_row, {'model':HealthProviderBase, 'partial_row':'cvs/reporter/partials/reporter_row.html'}),
     url(r'^cvs/train/reporter/(?P<pk>\d+)/show', generic_row, {'model':HealthProviderBase, 'partial_row':'cvs/reporter/partials/trainee_row.html'}),
-
+    url(r'^cvs/reporter/new', reporters.newReporter),
+    #url(r'^cvs/reporter/new',),
 
 
     #############################################

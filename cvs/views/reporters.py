@@ -10,6 +10,7 @@ from cvs.forms import ReporterForm
 from django.contrib.auth.decorators import login_required
 from generic.views import generic_row
 from rapidsms.contrib.locations.models import Location
+from uganda_common.utils import assign_backend
 
 
 @login_required
@@ -41,23 +42,25 @@ def editReporter(request, reporter_pk):
                                   context_instance=RequestContext(request))
 
 
-def editReporterLocations(request, reporter_pk, district_pk=None):
+def editReporterLocations(request, reporter_pk=None, district_pk=None):
     """ This view renders only the select box for locations, which has autocomplete
     for all the descendants of the district that the reporter belongs to
     (or all locations, if the district is de-selected)
     """
-    reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
-    locations = reporter.reporting_location or reporter.location
-    if not locations:
-        return HttpResponse(status=404)
-    locations = locations.get_descendants(include_self=True)
+    if reporter_pk:
+        reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
+        locations = reporter.reporting_location or reporter.location
+        if not locations:
+            return HttpResponse(status=404)
+        locations = locations.get_descendants(include_self=True)
+        if reporter.reporting_location and reporter.reporting_location.type.name != 'district':
+            village_val = reporter.reporting_location.name
+        else:
+            village_val = reporter.village_name
+    else:reporter = None; village_val = ""
     if district_pk:
         district = get_object_or_404(Location, pk=district_pk)
         locations = district.get_descendants(include_self=True)
-    if reporter.reporting_location and reporter.reporting_location.type.name != 'district':
-        village_val = reporter.reporting_location.name
-    else:
-        village_val = reporter.village_name
     return render_to_response('cvs/reporter/partials/edit_reporter_locations.html',
                               {'locations': locations,
                                'village_val': village_val,
@@ -65,19 +68,21 @@ def editReporterLocations(request, reporter_pk, district_pk=None):
                               context_instance=RequestContext(request))
 
 
-def editReporterFacilities(request, reporter_pk, district_pk=None):
+def editReporterFacilities(request, reporter_pk=None, district_pk=None):
     """ 
     This view renders only the select box for facilities, which is filtered
     to only those health facilities that have catchment areas within all the descendants 
     of the district that the reporter belongs to
     (or all heatlh facilities, if the district is de-selected)
     """
-    reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
-    locations = reporter.reporting_location or reporter.location
-    facilities = HealthFacility.objects.all()
-    if not locations:
-        return HttpResponse(status=404)
-    locations = locations.get_descendants(include_self=True)
+    if reporter_pk:
+        reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
+        locations = reporter.reporting_location or reporter.location
+        if not locations:
+            return HttpResponse(status=404)
+        facilities = HealthFacility.objects.all()
+        locations = locations.get_descendants(include_self=True)
+    else: reporter = None
     if district_pk:
         district = get_object_or_404(Location, pk=district_pk)
         locations = district.get_descendants(include_self=True)
@@ -86,3 +91,40 @@ def editReporterFacilities(request, reporter_pk, district_pk=None):
                               {'facilities': facilities,
                                'reporter': reporter},
                               context_instance=RequestContext(request))
+@login_required
+def newReporter(request):
+    if request.method == 'POST':
+        reporter_form = ReporterForm(data=request.POST)
+        if reporter_form.is_valid():
+            cleaned_data = reporter_form.cleaned_data
+            name = cleaned_data.get('name')
+            (identity, backend) = assign_backend(cleaned_data.get('connection'))
+            district = cleaned_data.get('reporter_district')
+            location = cleaned_data.get('reporting_location')
+            if district and location and \
+                not district.get_descendants(include_self=True).filter(pk=location.pk).count():
+                location = None
+            reporter = HealthProvider.objects.create(name=name)
+            reporter.connection_set.create(identity=identity, backend=backend)
+            reporter.location = reporter.reporting_location = location or district
+            reporter.groups.clear()
+            for g in cleaned_data.get('roles'):
+                reporter.groups.add(g)
+            reporter.facility = cleaned_data.get('facility')
+            if not location:
+                reporter.village_name = cleaned_data.get('village_name')
+            reporter.save()
+            return render_to_response('cvs/reporter/partials/new_reporter.html',
+                                      {'added_reporter':reporter},
+                                      context_instance=RequestContext(request))
+        else:
+            return render_to_response('cvs/reporter/partials/new_reporter.html',
+                                      {'report_form':reporter_form},
+                                      context_instance=RequestContext(request))
+    else:
+        reporter_form = ReporterForm()
+        #print reporter_form
+        return render_to_response('cvs/reporter/partials/new_reporter.html',
+                           {'reporter_form':reporter_form},
+                           context_instance=RequestContext(request))
+

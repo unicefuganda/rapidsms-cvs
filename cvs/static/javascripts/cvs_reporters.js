@@ -14,7 +14,10 @@ function editReporter(elem, pk) {
 
 function newReporter(elem) {
 	// ajax load in the new reporter view
-	$(elem).parents('tr').load('../reporter/new');
+	overlay_loading_panel($(elem).parents('tr'));
+	$(elem).parents('tr').load('../reporter/new', '', function () {
+		$('#div_panel_loading').hide();
+	});
 }
 
 /**
