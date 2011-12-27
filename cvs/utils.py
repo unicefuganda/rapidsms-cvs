@@ -245,7 +245,7 @@ def total_facility_submissions(keyword, start_date, end_date, location, extra_fi
         created__range=(start_date, end_date))\
         .extra(select=select)\
         .values(*values)\
-        .annotate(Count('id'))
+        .annotate(value=Count('id'))
 
 def total_facility_attributes(attribute_slug_list, start_date, end_date, location, group_by_timespan=None):
     if type(attribute_slug_list) != list:
