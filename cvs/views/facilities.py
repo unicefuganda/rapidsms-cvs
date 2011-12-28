@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from generic.views import generic_row
 from rapidsms.contrib.locations.models import Location
 from mtrack.utils import get_district_for_facility
+#from cvs.views.facilities import facility_form
 
 @login_required
 def deleteFacility(request, facility_pk):
@@ -40,9 +41,11 @@ def editFacility(request, facility_pk):
                                   context_instance=RequestContext(request))
 
 
-def editFacilityLocations(request, facility_pk, district_pk):
-    facility = get_object_or_404(HealthFacilityBase, pk=facility_pk)
-    areas = facility.catchment_areas.all()
+def editFacilityLocations(request, facility_pk=None, district_pk=None):
+    if facility_pk:
+        facility = get_object_or_404(HealthFacilityBase, pk=facility_pk)
+        areas = facility.catchment_areas.all()
+    else: areas = None
     if district_pk:
         district = get_object_or_404(Location, pk=district_pk)
     else:
@@ -56,4 +59,24 @@ def editFacilityLocations(request, facility_pk, district_pk):
       },
       context_instance=RequestContext(request))
 
+def newFacility(request):
+    if request.method == 'POST':
+        facility_form = FacilityForm(data=request.POST)
+        if facility_form.is_valid():
+            facility_form.facility = HealthFacility.objects.create()
+            facility_form.save()
+            facility = facility_form.facility
+            return render_to_response('cvs/facility/partials/new_facility.html',
+                                      {'facility_form':facility_form,
+                                       'added_facility':facility},
+                                      context_instance=RequestContext(request))
+        else:
+            return render_to_response('cvs/facility/partials/new_facility.html',
+                                      {'facility_form':facility_form},
+                                      context_instance=RequestContext(request))
+    else:
+        facility_form = FacilityForm()
+        return render_to_response('cvs/facility/partials/new_facility.html',
+                                  {'facility_form':facility_form},
+                                  context_instance=RequestContext(request))
 
