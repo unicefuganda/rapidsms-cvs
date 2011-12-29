@@ -120,6 +120,7 @@ urlpatterns = patterns('',
       'action_forms':[],
       'objects_per_page':25,
       'partial_row':'cvs/facility/partials/facility_row.html',
+      'partial_header': 'cvs/facility/partials/partial_header.html',
       'base_template':'cvs/facility/facility_base.html',
       'results_title':'Health Facilities',
       'columns':[('Name', True, 'name', SimpleSorter()),
@@ -136,9 +137,10 @@ urlpatterns = patterns('',
 
     url(r'^cvs/facility/(?P<facility_pk>\d+)/edit', facilities.editFacility),
     url(r'^cvs/facility/(?P<facility_pk>\d+)/locations/edit/((?P<district_pk>\d+)/)?', facilities.editFacilityLocations),
+    url(r'^cvs/facility/locations/new/((?P<district_pk>\d+)/)?', facilities.editFacilityLocations),
     url(r'^cvs/facility/(?P<facility_pk>\d+)/delete', facilities.deleteFacility),
     url(r'^cvs/facility/(?P<pk>\d+)/show', generic_row, {'model':HealthFacilityBase, 'partial_row':'cvs/facility/partials/facility_row.html'}),
-
+    url(r'^cvs/facility/new', facilities.newFacility),
 
 
     #############################################

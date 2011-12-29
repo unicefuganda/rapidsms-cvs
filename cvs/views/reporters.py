@@ -10,7 +10,6 @@ from cvs.forms import ReporterForm
 from django.contrib.auth.decorators import login_required
 from generic.views import generic_row
 from rapidsms.contrib.locations.models import Location
-from uganda_common.utils import assign_backend
 
 
 @login_required
@@ -96,24 +95,9 @@ def newReporter(request):
     if request.method == 'POST':
         reporter_form = ReporterForm(data=request.POST)
         if reporter_form.is_valid():
-            cleaned_data = reporter_form.cleaned_data
-            name = cleaned_data.get('name')
-            (identity, backend) = assign_backend(cleaned_data.get('connection'))
-            district = cleaned_data.get('reporter_district')
-            location = cleaned_data.get('reporting_location')
-            if district and location and \
-                not district.get_descendants(include_self=True).filter(pk=location.pk).count():
-                location = None
-            reporter = HealthProvider.objects.create(name=name)
-            reporter.connection_set.create(identity=identity, backend=backend)
-            reporter.location = reporter.reporting_location = location or district
-            reporter.groups.clear()
-            for g in cleaned_data.get('roles'):
-                reporter.groups.add(g)
-            reporter.facility = cleaned_data.get('facility')
-            if not location:
-                reporter.village_name = cleaned_data.get('village_name')
-            reporter.save()
+            reporter_form.reporter = HealthProvider.objects.create()
+            reporter_form.save()
+            reporter = reporter_form.reporter
             return render_to_response('cvs/reporter/partials/new_reporter.html',
                                       {'added_reporter':reporter},
                                       context_instance=RequestContext(request))

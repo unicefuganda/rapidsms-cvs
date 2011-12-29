@@ -1,0 +1,61 @@
+{% load stats_extras %}
+<td>&nbsp;</td>
+{% if added_facility %}
+	<td colspan="6" id="tmp_{{added_facility.pk }}">
+		<!-- successfully added new facility {{ added_facility.name }}!-->
+	</td>
+	<td colspan="2" style="text-align:right">
+	    <a href="javascript:void(0)" onclick="newFacility(this)">Add New Facility</a>
+	    <script>
+		$('#tmp_{{ added_facility.pk }}').parents('tr').after('<tr id="row_{{ added_facility.pk }}"></tr>');
+		$('#row_{{ added_facility.pk }}').load('../facility/{{ added_facility.pk }}/show');
+		</script>
+	</td>
+{% else %}
+	<td id="row_0" class="facility">
+		{{ facility_form.name }}
+		{% if facility_form.name.errors %}
+        	<br clear="left"/>
+        	{{ facility_form.name.errors }}
+    	{% endif %}
+	</td>
+	<td>
+		{{ facility_form.type }}
+    	{% if facility_form.type.errors %}
+        	<br clear="left"/>
+        	{{ report_form.type.errors }}
+    	{% endif %}
+	</td>
+	<td>
+		{{ facility_form.code }}
+    	{% if facility_form.code.errors %}
+        	<br clear="left"/>
+        {{ report_form.code.errors }}
+    	{% endif %}
+	</td>
+	<td>
+		{{ facility_form.facility_district }}
+	</td>
+	<td>&nbsp;</td>
+	<td>&nbsp;</td>
+	<td id="facility_locationsx">
+	</td>
+	<td>
+		<script>
+			$('#id_facility_district').change(function(){
+				var district = $(this).val();
+				$('#facility_locationsx').load('../facility/locations/new/' + district + '/');
+			});
+		</script>
+		<div class="buttons">
+	        <a href="javascript:void(0)"
+	           onclick="$(this).parents('tr').html('<td colspan=\'10\' style=\'text-align:right\'><a href=\'javascript:void(0)\' onclick=\'newFacility(this)\'>Add New Facility</a></td>')">
+	            <img src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png"/>
+	        </a>
+	        <a href="javascript:void(0)"
+	           onclick="submitForm(this, '../facility/new/', $(this).parents('tr'))">
+	            <img src="{{ MEDIA_URL }}rapidsms/icons/silk/accept.png"/>
+	        </a>
+	    </div>
+	</td>
+{% endif%}

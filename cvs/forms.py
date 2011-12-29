@@ -8,7 +8,10 @@ from mptt.forms import TreeNodeChoiceField
 from rapidsms.contrib.locations.models import Location
 from django.contrib.auth.models import Group
 from mtrack.utils import get_district_for_facility
-from rapidsms.models import Contact
+from rapidsms.models import Contact, Connection
+from uganda_common.utils import assign_backend
+from django.utils.translation import ugettext_lazy as _
+from random import choice
 
 date_range_choices = (('w', 'Previous Calendar Week'), ('m', 'Previous Calendar Month'), ('q', 'Previous calendar quarter'),)
 AREAS = Location.tree.all().select_related('type')
@@ -71,12 +74,26 @@ class ReporterForm(forms.Form):
                 if district:
                     initial.update({'reporter_district':district})
                 kwargs.update({'initial':initial})
+        else:
+            self.reporter = None
         forms.Form.__init__(self, *args, **kwargs)
+
+    def clean_connection(self):
+        connection = self.cleaned_data.get('connection')
+        if not self.reporter and not connection.strip():
+            raise forms.ValidationError(_("Connection is required for new reporters"))
+        else:
+            return connection
 
     def save(self):
         cleaned_data = self.cleaned_data
         district = cleaned_data.get('reporter_district')
         location = cleaned_data.get('reporting_location')
+        connection = cleaned_data.get('connection')
+        if connection:
+            (identity, backend) = assign_backend(connection)
+            connection, _x = Connection.objects.get_or_create(identity=identity, backend=backend)
+            self.reporter.connection_set.add(connection)
         if district and location and \
             not district.get_descendants(include_self=True).filter(pk=location.pk).count():
             location = None
@@ -118,7 +135,6 @@ class FacilityResponseForm(forms.Form):
 
 
 class FacilityForm(forms.Form):
-
     name = forms.CharField(max_length=100, required=True)
     code = forms.CharField(max_length=50, required=False)
     type = forms.ModelChoiceField(queryset=HealthFacilityType.objects.all(), required=True)
@@ -127,18 +143,26 @@ class FacilityForm(forms.Form):
                                       widget=forms.Select({'onchange':'update_facility_district(this)'}))
 
     def __init__(self, *args, **kwargs):
-        self.facility = kwargs.pop('instance')
-        if not 'data' in kwargs:
-            initial = { \
-                'name':self.facility.name, \
-                'code':self.facility.code, \
-                'type':self.facility.type, \
-                'catchment_areas':self.facility.catchment_areas.all(), \
-            }
-            district = get_district_for_facility(self.facility)
-            if district:
-                initial.update({'facility_district':district})
+        if 'instance' in kwargs:
+            self.facility = kwargs.pop('instance')
+            if not 'data' in kwargs:
+                initial = { \
+                    'name':self.facility.name, \
+                    'code':self.facility.code, \
+                    'type':self.facility.type, \
+                    'catchment_areas':self.facility.catchment_areas.all(), \
+                }
+                district = get_district_for_facility(self.facility)
+                if district:
+                    initial.update({'facility_district':district})
+                kwargs.update({'initial':initial})
+        else:
+            chars = '1234567890_QWERTYUOPASDFGHJKLZXCVBNM'
+            self.code = u"gen" + u"".join([choice(chars) \
+                                          for i in range(10)]).lower()
+            initial = {'code':self.code}
             kwargs.update({'initial':initial})
+            self.facility = None
         forms.Form.__init__(self, *args, **kwargs)
 
     def save(self):
