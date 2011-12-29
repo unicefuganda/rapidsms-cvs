@@ -287,10 +287,10 @@ def get_area(request):
 def get_reporters(**kwargs):
     request = kwargs.pop('request')
     area = get_area(request)
+    toret = HealthProvider.objects.filter(active=True)
     if area:
-        return HealthProvider.objects.filter(reporting_location__in=area.get_descendants(include_self=True).all()).select_related('facility', 'location').annotate(Count('connection__submissions')).all()
-    else:
-        return HealthProvider.objects.select_related('facility', 'location').annotate(Count('connection__submissions')).all()
+        toret = toret.filter(reporting_location__in=area.get_descendants(include_self=True).all()).select_related('facility', 'location').annotate(Count('connection__submissions')).all()
+    return toret.select_related('facility', 'location').annotate(Count('connection__submissions')).all()
 
 def get_unsolicited_messages(**kwargs):
     request = kwargs.pop('request')
@@ -451,10 +451,10 @@ def get_training_messages(request):
     return Message.objects.filter(connection__contact__active=False).order_by('-date')
 
 def get_training_vhts(request):
-    return HealthProvider.objects.filter(active=False)
+    return HealthProvider.objects.filter(active=False).select_related('facility', 'location').annotate(Count('connection__submissions')).all()
 
 def get_nolocation_vhts(request):
-    return HealthProvider.objects.filter(location=None, reporting_location=None)
+    return HealthProvider.objects.filter(location=None, reporting_location=None).select_related('facility', 'location').annotate(Count('connection__submissions')).all()
 
 def get_dashboard_messages(request=None):
     # FIXME: implement full functionality

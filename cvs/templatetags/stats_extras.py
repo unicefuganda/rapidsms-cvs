@@ -25,6 +25,11 @@ def get_parent(location_id):
         location = Location.tree.root_nodes()[0]
     return location
 
+def breadcrumb(location):
+    toret = list(location.get_ancestors())
+    toret.append(location)
+    return toret
+
 def get_parentId(location_id):
     if location_id:
         location = get_object_or_404(Location, pk=location_id)
@@ -50,7 +55,7 @@ def get_facility_district(hc):
 
 def join_date(connection):
     try:
-        ScriptSession.objects.filter(connection=connection, script__slug='cvs_autoreg').latest('end_time').end_date
+        return ScriptSession.objects.filter(connection=connection, script__slug='cvs_autoreg').latest('end_time').end_time
     except:
         return None
 
@@ -197,4 +202,5 @@ register.filter('hash', hash)
 register.filter('get_district', get_district)
 register.filter('get_facility_district', get_facility_district)
 register.filter('get_submission_values', get_submission_values)
+register.filter('breadcrumb', breadcrumb)
 register.tag('date_range', do_date_range)

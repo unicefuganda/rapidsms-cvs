@@ -25,6 +25,18 @@ class ActivateForm(ActionForm):
         return ('%d Contacts are now on the live system.' % len(results), 'success',)
 
 
+class DeactivateForm(ActionForm):
+
+    action_label = 'Deactivate selected reporters'
+
+    def perform(self, request, results):
+        pks = []
+        for r in results:
+            pks.append(r.pk)
+        Contact.objects.filter(pk__in=pks).update(active=True)
+        return ('%d Contacts are now deactivated.' % len(results), 'success',)
+
+
 class ReporterForm(forms.Form):
     name = forms.CharField(max_length=100, required=True)
     facility = forms.ModelChoiceField(queryset=HealthFacility.objects.all(), required=False)

@@ -45,11 +45,14 @@
             {{ object.village_name }}
         {% endif %}
     </td>
+    <td>{{ object.active }}</td>
     <td class="button_col">
         <div class="buttons">
-            <a href="javascript:void(0)" onclick="deleteReporter(this, {{ object.pk }},'{{ object.name }}')">
-                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
-            </a>
+            {% if perms.rapidsms.delete_contact %}
+	            <a href="javascript:void(0)" onclick="deleteReporter(this, {{ object.pk }},'{{ object.name }}')">
+	                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
+	            </a>
+            {% endif %}
              <a href="javascript:void(0)" onclick="editReporter(this, {{ object.pk }})">
                 <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" />
             </a>

@@ -4,7 +4,7 @@ from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
-from cvs.forms import ActivateForm, FacilityFilterForm
+from cvs.forms import ActivateForm, FacilityFilterForm, DeactivateForm
 from cvs.utils import get_reporters
 from cvs.sorters import \
     LatestSubmissionSorter, \
@@ -34,7 +34,7 @@ urlpatterns = patterns('',
       'model':HealthProviderBase,
       'queryset':get_reporters,
       'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm],
-      'action_forms':[MassTextForm],
+      'action_forms':[MassTextForm, DeactivateForm],
       'objects_per_page':25,
       'partial_row':'cvs/reporter/partials/reporter_row.html',
       'partial_header':'cvs/reporter/partials/partial_header.html',
@@ -48,6 +48,7 @@ urlpatterns = patterns('',
                  ('Total Reports', True, 'connection__submissions__count', SimpleSorter(),),
                  ('Facility', True, 'facility__name', SimpleSorter(),),
                  ('Location', True, 'location__name', SimpleSorter(),),
+                 ('Active', True, 'active', SimpleSorter(),),
                  ('', False, '', None,)],
       'sort_column':'latest_submission_date',
       'sort_ascending':False,

@@ -1,6 +1,8 @@
 from uganda_common.views import XFormReport
 
 class CVSReportView(XFormReport):
+    partial_base = 'cvs/partials/stats_partial_base.html'
+
     drill_to_facility = False
 
     def drill_on(self, key):
