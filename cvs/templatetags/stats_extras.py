@@ -76,7 +76,11 @@ def facility_latest(obj):
     return get_last_reporting_date(obj)
 
 def facility_reports(obj):
-    return reporting_facilities(None, facilities=[obj], count=True, date_range=None)
+    toret = reporting_facilities(None, facilities=[obj], count=False, date_range=None)
+    if len(toret):
+        return toret[0]['pk__count']
+    else:
+        return 0
 
 def hash(h, key):
     try:
