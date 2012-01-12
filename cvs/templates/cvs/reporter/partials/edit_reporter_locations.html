@@ -10,7 +10,7 @@ $('#id_village_name').autocomplete({
     select: function(event, ui) {
         sel = ui.item;
         $('#id_village_name').val(sel.label);
-        $('#reporting_location').val(sel.value);
+        $('#id_reporting_location').val(sel.value);
         return false;
     }
 });
