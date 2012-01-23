@@ -141,21 +141,21 @@ def registered_facility_reporters(location, roles=['VHT', 'PVHT']):
     locations = location.get_descendants(include_self=True)
 
     return  HealthProvider.objects.filter(groups__name__in=roles, active=True).exclude(facility=None)\
-            .filter(facility__catchment_areas__in=locations)\
+            .filter(reporting_location__in=locations)\
             .values(\
                 'facility__name', \
                 'facility__id', \
                 'facility__type__name')\
-            .annotate(value=Count('id')).distinct()
-
+            .distinct() \
+            .annotate(value=Count('id'))
 
 def registered_reporters(location, roles=['VHT', 'PVHT']):
     tnum = 7
     count_val = 'id'
 
     if 'HC' in roles:
-        count_val = 'facility'
-        tnum = 8
+        count_val = 'facility__id'
+        tnum = 9
 
     select = {
         'location_name':'T%d.name' % tnum,
@@ -170,11 +170,12 @@ def registered_reporters(location, roles=['VHT', 'PVHT']):
                        'pk', flat=True)))))
     else:
         location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
+
     return  HealthProvider.objects.filter(groups__name__in=roles, active=True).exclude(reporting_location=None).values('reporting_location__name').extra(
             tables=['locations_location'], where=[\
                    'T%d.lft <= locations_location.lft' % tnum, \
                    'T%d.rght >= locations_location.rght' % tnum, \
-                   location_children_where]).extra(select=select).values(*values).annotate(value=Count(count_val))
+                   location_children_where]).extra(select=select).values(*values).distinct().annotate(value=Count(count_val))
 
 def total_submissions_by_facility(keyword, start_date, end_date, map_window):
     minlat, minlon, maxlat, maxlon = map_window
@@ -237,7 +238,7 @@ def total_facility_submissions(keyword, start_date, end_date, location, extra_fi
         values.extend([select_value, 'year'])
 
 
-    locations = location.get_descendents(include_self=True)
+    locations = location.get_descendants(include_self=True)
     return q.filter(\
         xform__keyword=keyword, \
         has_errors=False, \
@@ -251,7 +252,7 @@ def total_facility_attributes(attribute_slug_list, start_date, end_date, locatio
     if type(attribute_slug_list) != list:
         attribute_slug_list = [attribute_slug_list]
 
-    locations = location.get_descendents(include_self=True)
+    locations = location.get_descendants(include_self=True)
 
     select = {}
     values = ['submission__connection__contact__healthproviderbase__healthprovider__facility__name', \

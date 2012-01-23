@@ -1,10 +1,9 @@
-{% load stats_extras %}
 <td>&nbsp;</td>
 {% if added_reporter %}
 <td colspan="6" id="tmp_{{added_reporter.pk }}">
 	<!-- successfully added new reporter {{ added_reporter.name }}!-->
 </td>
-<td colspan="2" style="text-align:right">
+<td colspan="5" style="text-align:right">
     <a href="javascript:void(0)" onclick="newReporter(this)">Add New Reporter</a>
     <script>
 	$('#tmp_{{ added_reporter.pk }}').parents('tr').after('<tr id="row_{{ added_reporter.pk }}"></tr>');
@@ -38,11 +37,17 @@
 	<td></td>
 	<td>&nbsp;</td>
 	<td id="reporter_facilityx">
-		{{ reporter_form.facility }}
+		<select name="facility" id="id_facility">
+		<option value='-1'>----</option>
+			{% for f in facilities %}
+    			<option value="{{ f.pk }}">{{ f.name }}</option>
+			{% endfor %}
+		</select>
 	</td>
 	<td id="reporter_villagex">
 		{{ reporter_form.village_name }}
 	</td>
+	<td>&nbsp;{{ check }}</td>
 	<td class="button_col">&nbsp;
 	<script>
 		$('#id_reporter_district').change(function(){
@@ -54,7 +59,7 @@
 	<!-- This one should have our link to save new reporter -->
 		<div class="buttons">
 	        <a href="javascript:void(0)"
-	           onclick="$(this).parents('tr').html('<td colspan=\'10\' style=\'text-align:right\'><a href=\'javascript:void(0)\' onclick=\'newReporter(this)\'>Add New Reporter</a></td>')">
+	           onclick="$(this).parents('tr').html('<td colspan=\'11\' style=\'text-align:right\'><a href=\'javascript:void(0)\' onclick=\'newReporter(this)\'>Add New Reporter</a></td>')">
 	            <img src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png"/>
 	        </a>
 	        <a href="javascript:void(0)"

@@ -95,7 +95,7 @@ def newReporter(request):
     if request.method == 'POST':
         reporter_form = ReporterForm(data=request.POST)
         if reporter_form.is_valid():
-            reporter_form.reporter = HealthProvider.objects.create()
+            reporter_form.reporter = HealthProvider.objects.create(active=True)
             reporter_form.save()
             reporter = reporter_form.reporter
             return render_to_response('cvs/reporter/partials/new_reporter.html',
@@ -109,6 +109,6 @@ def newReporter(request):
         reporter_form = ReporterForm()
         #print reporter_form
         return render_to_response('cvs/reporter/partials/new_reporter.html',
-                           {'reporter_form':reporter_form},
+                           {'reporter_form':reporter_form,
+                            'facilities':HealthFacility.objects.all()},
                            context_instance=RequestContext(request))
-
