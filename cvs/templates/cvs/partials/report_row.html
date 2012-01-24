@@ -1,6 +1,5 @@
 {% extends 'generic/partials/partial_row.html' %}
 {% block remaining_row_content %}
-{% load usertags %}
     <td>
         {{ object.message.connection.contact.healthproviderbase.healthprovider.facility.name }}
         {% if object.message.connection.contact.healthproviderbase.healthprovider.facility %}

@@ -139,7 +139,7 @@ class DateRangeNode(template.Node):
                     start_opts = start_opts + opt_month
                     for day in range(1, calendar.monthrange(year, month)[1] + 1):
                         option = "<option value=%d>%s-%s-%s</option>"\
-                     % (time.mktime(datetime.datetime(year, month, day).timetuple())*1000, str(day), str(month_options[month][1]), str(year))
+                     % (time.mktime(datetime.datetime(year, month, day).timetuple()) * 1000, str(day), str(month_options[month][1]), str(year))
                         start_opts = start_opts + option
                     start_opts = start_opts + '</optgroup>'
 
@@ -150,7 +150,7 @@ class DateRangeNode(template.Node):
                     start_opts = start_opts + opt_month
                     for day in range(1, calendar.monthrange(year, month)[1] + 1):
                         option = "<option value=%d>%s-%s-%s</option>"\
-                     % (time.mktime(datetime.datetime(year, month, day).timetuple())*1000, str(day), str(month_options[month][1]), str(year))
+                     % (time.mktime(datetime.datetime(year, month, day).timetuple()) * 1000, str(day), str(month_options[month][1]), str(year))
                         start_opts = start_opts + option
                     start_opts = start_opts + '</optgroup>'
             else:
@@ -159,14 +159,14 @@ class DateRangeNode(template.Node):
                     start_opts = start_opts + opt_month
                     for day in range(1, calendar.monthrange(year, month)[1] + 1):
                         option = "<option value=%d>%s-%s-%s</option>"\
-                     % (time.mktime(datetime.datetime(year, month, day).timetuple())*1000, str(day), str(month_options[month][1]), str(year))
+                     % (time.mktime(datetime.datetime(year, month, day).timetuple()) * 1000, str(day), str(month_options[month][1]), str(year))
                         start_opts = start_opts + option
                     start_opts = start_opts + '</optgroup>'
 
             start_opts = start_opts + '</optgroup>'
         start_opts = start_opts + '</select>'
-        start_ts = time.mktime(start_date.date().timetuple())*1000
-        end_ts = time.mktime(end_date.date().timetuple())*1000
+        start_ts = time.mktime(start_date.date().timetuple()) * 1000
+        end_ts = time.mktime(end_date.date().timetuple()) * 1000
         start_re = re.compile("<option value=%d>" % start_ts)
         end_re = re.compile("<option value=%d>" % end_ts)
         start_selected_str = "<option value=%d' selected='selected'>" % start_ts
@@ -191,6 +191,21 @@ def do_date_range(parser, token):
 
 	return DateRangeNode(chunks[1], chunks[2], chunks[3], chunks[4])
 
+#get reporting period for given date
+def get_reporting_period(d, period=0, weekday=3):
+    d = datetime.datetime(d.year, d.month, d.day)
+    last_thursday = d - datetime.timedelta((((7 - weekday) + d.weekday()) % 7)) - datetime.timedelta((period - 1) * 7)
+    return (last_thursday - datetime.timedelta(7), last_thursday)
+
+# returns week# for a given date
+def get_reporting_week_number(d):
+    first_monday = get_reporting_period(d, weekday=0, period=0)[0]
+    start_of_year = datetime.datetime(first_monday.year, 1, 1, 0, 0, 0)
+    td = first_monday - start_of_year
+    toret = int(td.days / 7)
+    if start_of_year.weekday() != 0:
+        toret += 1
+    return toret
 
 register = template.Library()
 register.filter('section', get_section)
@@ -207,4 +222,5 @@ register.filter('get_district', get_district)
 register.filter('get_facility_district', get_facility_district)
 register.filter('get_submission_values', get_submission_values)
 register.filter('breadcrumb', breadcrumb)
+register.filter('reporting_week', get_reporting_week_number)
 register.tag('date_range', do_date_range)
