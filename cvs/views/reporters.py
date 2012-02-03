@@ -79,13 +79,13 @@ def editReporterFacilities(request, reporter_pk=None, district_pk=None):
         locations = reporter.reporting_location or reporter.location
         if not locations:
             return HttpResponse(status=404)
-        facilities = HealthFacility.objects.all()
+        facilities = HealthFacility.objects.all().values('pk', 'name', 'type__name')
         locations = locations.get_descendants(include_self=True)
     else: reporter = None
     if district_pk:
         district = get_object_or_404(Location, pk=district_pk)
         locations = district.get_descendants(include_self=True)
-        facilities = HealthFacility.objects.filter(catchment_areas__in=locations).distinct()
+        facilities = HealthFacility.objects.filter(catchment_areas__in=locations).distinct().values('pk', 'name', 'type__name')
     return render_to_response('cvs/reporter/partials/edit_reporter_facilities.html',
                               {'facilities': facilities,
                                'reporter': reporter},
@@ -110,5 +110,5 @@ def newReporter(request):
         #print reporter_form
         return render_to_response('cvs/reporter/partials/new_reporter.html',
                            {'reporter_form':reporter_form,
-                            'facilities':HealthFacility.objects.all()},
+                            'facilities':HealthFacility.objects.all().values('pk', 'name', 'type__name')},
                            context_instance=RequestContext(request))

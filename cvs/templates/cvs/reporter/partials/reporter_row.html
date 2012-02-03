@@ -5,7 +5,11 @@
         {% if object.default_connection %}
             <a href="/contact/{{ object.default_connection.pk }}/message_history/">
         {% endif %}
-        {{ object.name }}
+        {% if object.name %}
+        	{{ object.name }}
+        {% else %}
+        	Anonymous User
+        {% endif %}
         {% if object.default_connection %}
             </a>
         {% endif %}

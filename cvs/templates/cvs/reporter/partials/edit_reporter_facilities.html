@@ -2,9 +2,9 @@
 <option value='-1'>----</option>
 {% for f in facilities %}
     <option value="{{ f.pk }}"
-    {% ifequal reporter.facility f %}
+    {% ifequal reporter.facility.pk f.pk %}
         selected="true"
     {% endifequal %}    
-    >{{ f.name }}</option>
+    >{{ f.name }} {{ f.type__name }}</option>
 {% endfor %}
 </select>

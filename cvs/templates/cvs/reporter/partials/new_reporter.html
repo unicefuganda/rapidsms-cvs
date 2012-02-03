@@ -40,7 +40,7 @@
 		<select name="facility" id="id_facility">
 		<option value='-1'>----</option>
 			{% for f in facilities %}
-    			<option value="{{ f.pk }}">{{ f.name }}</option>
+    			<option value="{{ f.pk }}">{{ f.name }} {{ f.type__name }}</option>
 			{% endfor %}
 		</select>
 	</td>
