@@ -206,6 +206,14 @@ def get_reporting_week_number(d):
     if start_of_year.weekday() != 0:
         toret += 1
     return toret
+#return name for user's excel report
+def get_user_report_name(user):
+    if user.upper() in ['NMS', 'MU', 'MOH']:
+        return 'report.xls'
+    d = Location.objects.filter(name__iexact=user, type='district')
+    if len(d) > 0:
+        return 'report_%s.xls' % (user.capitalize())
+    return "reports.xls"
 
 register = template.Library()
 register.filter('section', get_section)
@@ -223,4 +231,5 @@ register.filter('get_facility_district', get_facility_district)
 register.filter('get_submission_values', get_submission_values)
 register.filter('breadcrumb', breadcrumb)
 register.filter('reporting_week', get_reporting_week_number)
+register.filter('get_user_report_name', get_user_report_name)
 register.tag('date_range', do_date_range)

@@ -1,5 +1,6 @@
 {% extends "generic/reporting/report_base.html" %}
+{% load stats_extras %}
 {% block content %}
-    <a href="/static/mtrack/spreadsheets/reports.xls">Download all reports &raquo;</a>
+    <a href="/static/mtrack/spreadsheets/{{ user.username|get_user_report_name }}">Download all reports &raquo;</a>
     {{ block.super }}
 {% endblock %}
