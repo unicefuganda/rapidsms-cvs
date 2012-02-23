@@ -1,7 +1,7 @@
 from rapidsms.models import Contact
 from django.conf import settings
 from rapidsms.apps.base import AppBase
-from script.models import ScriptProgress, Script
+from script.models import ScriptProgress, Script, ScriptSession
 from unregister.models import Blacklist
 
 class App (AppBase):
@@ -10,7 +10,7 @@ class App (AppBase):
         opt_out_words = [w.lower() for w in getattr(settings, 'OPT_OUT_WORDS', [])]
         opt_in_words = [w.lower() for w in getattr(settings, 'OPT_IN_WORDS', [])]
         if getattr(settings, 'ACTIVATION_CODE', None) and message.text.strip().lower().startswith(settings.ACTIVATION_CODE.lower()):
-            if not message.connection.contact:
+            if not message.connection.contact and (ScriptSession.objects.filter(connection=message.connection).exists() and not ScriptProgress.objects.filter(connection=message.connection).exists()):
                 message.respond('You must first register with the system.Text JOIN to 6767 to begin.')
                 return True
             if not message.connection.contact.active:
