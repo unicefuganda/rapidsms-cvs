@@ -209,10 +209,10 @@ def get_reporting_week_number(d):
 #return name for user's excel report
 def get_user_report_name(user):
     if user.upper() in ['NMS', 'MU', 'MOH']:
-        return 'report.xls'
+        return 'reports.xls'
     d = Location.objects.filter(name__iexact=user, type='district')
     if len(d) > 0:
-        return 'report_%s.xls' % (user.capitalize())
+        return 'reports_%s.xls' % (user.capitalize())
     return "reports.xls"
 
 register = template.Library()
