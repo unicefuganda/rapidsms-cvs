@@ -574,8 +574,9 @@ def ussd_reg(sender, **kwargs):
         else:
             facility = find_closest_match(facility, HealthFacility.objects)
         provider = HealthProvider.objects.create(name=name, facility=facility, reporting_location=district, active=False)
-        sender.connection.contact = provider
-        sender.connection.save()
+        provider.connection_set.add(sender.connection)
+        #sender.connection.contact = provider
+        #sender.connection.save()
     except Navigation.DoesNotExist:
         pass
 

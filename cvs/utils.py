@@ -150,7 +150,7 @@ def registered_facility_reporters(location, roles=['VHT', 'PVHT']):
             .annotate(value=Count('id'))
 
 def registered_reporters(location, roles=['VHT', 'PVHT']):
-    tnum = 7
+    tnum = 8
     count_val = 'id'
 
     if 'HC' in roles:
@@ -171,7 +171,7 @@ def registered_reporters(location, roles=['VHT', 'PVHT']):
     else:
         location_children_where = 'T%d.id = %d' % (tnum, location.get_children()[0].pk)
 
-    return  HealthProvider.objects.filter(groups__name__in=roles, active=True).exclude(reporting_location=None).values('reporting_location__name').extra(
+    return  HealthProvider.objects.filter(groups__name__in=roles, active=True).exclude(facility=None).exclude(reporting_location=None).values('reporting_location__name').extra(
             tables=['locations_location'], where=[\
                    'T%d.lft <= locations_location.lft' % tnum, \
                    'T%d.rght >= locations_location.rght' % tnum, \
@@ -446,7 +446,7 @@ def monthly_reports():
         Message.objects.create(connection=contact.default_connection,
                                      text=msg,
                                      direction='O',
-                                     status='P')
+                                     status='Q')
 
 def get_training_messages(request):
     return Message.objects.filter(connection__contact__active=False).order_by('-date')
