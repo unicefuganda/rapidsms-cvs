@@ -57,7 +57,7 @@
 	                <img src="{{ MEDIA_URL }}rapidsms/icons/silk/delete.png" />
 	            </a>
             {% endif %}
-            {% if perms.rapidsms.edit_contact %}
+            {% if perms.rapidsms.change_contact %}
              <a href="javascript:void(0)" onclick="editReporter(this, {{ object.pk }})">
                 <img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" />
             </a>
