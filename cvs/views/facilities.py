@@ -63,7 +63,11 @@ def newFacility(request):
     if request.method == 'POST':
         facility_form = FacilityForm(data=request.POST)
         if facility_form.is_valid():
-            facility_form.facility = HealthFacility.objects.create()
+            #facility_form.facility = HealthFacility.objects.create()
+            #facility_form.save()
+            facility_form.facility = HealthFacility.objects.create(name=facility_form.cleaned_data['name'],
+                                          code=facility_form.cleaned_data['code'],
+                                          type=facility_form.cleaned_data['type'])
             facility_form.save()
             facility = facility_form.facility
             return render_to_response('cvs/facility/partials/new_facility.html',
