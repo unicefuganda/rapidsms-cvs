@@ -5,6 +5,7 @@ from rapidsms_xforms.models import XFormSubmission
 from script.models import ScriptSession
 import datetime
 from django.utils.safestring import mark_safe
+from django.conf import settings
 from mtrack.utils import \
     get_district_for_facility, \
     get_last_reporting_date, \
@@ -192,14 +193,14 @@ def do_date_range(parser, token):
 	return DateRangeNode(chunks[1], chunks[2], chunks[3], chunks[4])
 
 #get reporting period for given date
-def get_reporting_period(d, period=0, weekday=3):
+def get_reporting_period(d, period=0, weekday=getattr(settings, 'FIRSTDAY_OF_REPORTING_WEEK', 3)):
     d = datetime.datetime(d.year, d.month, d.day)
     last_thursday = d - datetime.timedelta((((7 - weekday) + d.weekday()) % 7)) - datetime.timedelta((period - 1) * 7)
     return (last_thursday - datetime.timedelta(7), last_thursday)
 
 # returns week# for a given date
 def get_reporting_week_number(d):
-    first_monday = get_reporting_period(d, weekday=0, period=0)[0]
+    first_monday = get_reporting_period(d)[0]
     start_of_year = datetime.datetime(first_monday.year, 1, 1, 0, 0, 0)
     td = first_monday - start_of_year
     toret = int(td.days / 7)
