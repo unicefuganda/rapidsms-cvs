@@ -176,15 +176,21 @@ class FacilityForm(forms.Form):
             return Location.objects.filter(type__name='district').order_by('name')
     def save(self):
         cleaned_data = self.cleaned_data
+        if cleaned_data.get('facility_district'):
+            district = cleaned_data.get('facility_district').name
+        else:
+            district = ""
         if not self.facility:
             self.facility = HealthFacility.objects.create(
                                                           name=cleaned_data.get('name'),
                                                           code=cleaned_data.get('code'),
-                                                          type=cleaned_data.get('type'))
+                                                          type=cleaned_data.get('type'),
+                                                          district=district)
         else:
             self.facility.name = cleaned_data.get('name')
             self.facility.code = cleaned_data.get('code')
             self.facility.type = cleaned_data.get('type')
+            self.facility.district = district
         self.facility.save()
 
         self.facility.catchment_areas.clear()
