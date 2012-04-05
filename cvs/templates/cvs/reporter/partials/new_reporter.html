@@ -59,7 +59,7 @@
 	<!-- This one should have our link to save new reporter -->
 		<div class="buttons">
 	        <a href="javascript:void(0)"
-	           onclick="$(this).parents('tr').html('<td colspan=\'11\' style=\'text-align:right\'><a href=\'javascript:void(0)\' onclick=\'newReporter(this)\'>Add New Reporter</a></td>')">
+	           onclick="$(this).parents('tr').html('<td colspan=\'11\' style=\'text-align:right\'><a href=\'{% url cvs-facility %}\'>View/Edit Health Facilities</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href=\'javascript:void(0)\' onclick=\'newReporter(this)\'>Add New Reporter</a></td>')">
 	            <img src="{{ MEDIA_URL }}rapidsms/icons/silk/decline.png"/>
 	        </a>
 	        <a href="javascript:void(0)"
