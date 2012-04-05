@@ -12,6 +12,8 @@ from rapidsms.models import Contact, Connection
 from uganda_common.utils import assign_backend
 from django.utils.translation import ugettext_lazy as _
 from random import choice
+from uganda_common.utils import get_location_for_user
+from django.conf import settings
 
 date_range_choices = (('w', 'Previous Calendar Week'), ('m', 'Previous Calendar Month'), ('q', 'Previous calendar quarter'),)
 AREAS = Location.tree.all().select_related('type')
@@ -135,14 +137,12 @@ class FacilityResponseForm(forms.Form):
 
 
 class FacilityForm(forms.Form):
-    name = forms.CharField(max_length=100, required=True)
+    name = forms.CharField(max_length=100, required=getattr(settings, 'ALLOW_BLANK_HEALTHFACILITY', True))
     code = forms.CharField(max_length=50, required=False)
     type = forms.ModelChoiceField(queryset=HealthFacilityType.objects.all(), required=True)
     catchment_areas = forms.ModelMultipleChoiceField(queryset=Location.objects.all(), required=False)
-    facility_district = forms.ModelChoiceField(queryset=Location.objects.filter(type__name='district').order_by('name'), empty_label='----', required=False, \
-                                      widget=forms.Select({'onchange':'update_facility_district(this)'}))
-
     def __init__(self, *args, **kwargs):
+        self.username = kwargs.pop('username', '')
         if 'instance' in kwargs:
             self.facility = kwargs.pop('instance')
             if not 'data' in kwargs:
@@ -164,7 +164,16 @@ class FacilityForm(forms.Form):
             kwargs.update({'initial':initial})
             self.facility = None
         forms.Form.__init__(self, *args, **kwargs)
+        self.fields['facility_district'] = forms.ModelChoiceField(queryset=self.get_districts_for_form(self.username), empty_label='----', required=False, \
+                                      widget=forms.Select({'onchange':'update_facility_district(this)'}))
 
+
+    def get_districts_for_form(self, user):
+        loc = Location.objects.filter(name=str(user).capitalize(), type__name='district')
+        if loc:
+            return loc
+        else:
+            return Location.objects.filter(type__name='district').order_by('name')
     def save(self):
         cleaned_data = self.cleaned_data
         if not self.facility:

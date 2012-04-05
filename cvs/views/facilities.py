@@ -22,7 +22,7 @@ def deleteFacility(request, facility_pk):
 @login_required
 def editFacility(request, facility_pk):
     facility = get_object_or_404(HealthFacilityBase, pk=facility_pk)
-    facility_form = FacilityForm(instance=facility)
+    facility_form = FacilityForm(instance=facility, username=request.user)
     if request.method == 'POST':
         facility_form = FacilityForm(instance=facility,
                 data=request.POST)
@@ -61,7 +61,7 @@ def editFacilityLocations(request, facility_pk=None, district_pk=None):
 
 def newFacility(request):
     if request.method == 'POST':
-        facility_form = FacilityForm(data=request.POST)
+        facility_form = FacilityForm(data=request.POST, username=request.user)
         if facility_form.is_valid():
             #facility_form.facility = HealthFacility.objects.create()
             #facility_form.save()
@@ -79,7 +79,7 @@ def newFacility(request):
                                       {'facility_form':facility_form},
                                       context_instance=RequestContext(request))
     else:
-        facility_form = FacilityForm()
+        facility_form = FacilityForm(username=request.user)
         return render_to_response('cvs/facility/partials/new_facility.html',
                                   {'facility_form':facility_form},
                                   context_instance=RequestContext(request))
