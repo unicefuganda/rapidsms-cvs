@@ -113,7 +113,9 @@ class ReporterForm(forms.Form):
 
 class FacilityFilterForm(FilterForm):
     """ filter form for cvs facilities """
-    facility = forms.ChoiceField(choices=(('', '-----'), (-1, 'Has No Facility'),) + tuple(HealthFacility.objects.values_list('pk', 'name').order_by('type', 'name')))
+    facility = forms.ChoiceField(label="Facility", choices=(('', '-----'),
+                                                             (-1, 'Has No Facility'),) + tuple([(pk, '%s %s' % (name, type)) for pk, name, type in HealthFacility.objects.values_list('pk', 'name', 'type__name').order_by('type', 'name')]),
+                                  widget=forms.Select({'class':'ffacility'}))
 
 
     def filter(self, request, queryset):

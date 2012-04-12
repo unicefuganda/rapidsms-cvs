@@ -3,7 +3,7 @@ from cvs.views import basic, reporters, map, facilities
 from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
-from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm
+from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm, RolesFilter
 from cvs.forms import ActivateForm, FacilityFilterForm, DeactivateForm
 from cvs.utils import get_reporters
 from cvs.sorters import \
@@ -33,7 +33,7 @@ urlpatterns = patterns('',
     url(r'^cvs/reporter/$', login_required(generic), {
       'model':HealthProviderBase,
       'queryset':get_reporters,
-      'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm],
+      'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm, RolesFilter],
       'action_forms':[MassTextForm, DeactivateForm],
       'objects_per_page':25,
       'partial_row':'cvs/reporter/partials/reporter_row.html',

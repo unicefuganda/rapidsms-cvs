@@ -3,4 +3,21 @@
     <a style="font-size:12pt" href="{% url cvs-training-contact %}">Trainees &gt;&gt;</a> | 
     <a style="font-size:12pt" href="{% url cvs-orphan-contact %}">No Location &gt;&gt;</a>
     {{ block.super }}
+    <style type="text/css">
+    #filters{
+    	height:9em;
+    	}
+    #div_filter_0 input{
+    	position:relative;
+    }
+    #div_filter_1{left:35%}
+    #div_filter_3{
+    	top:7em;
+    	position: absolute;
+    	left: 0%;
+    }
+    #id_facility2{
+    	width: 7em;
+    }
+    </style>
 {% endblock %}

@@ -46,3 +46,8 @@ function update_district(elem) {
     $('#reporter_facility').load('../reporter/' + reporter_pk + '/facilities/edit/' + district_pk + '/');
     $('#reporter_village').load('../reporter/' + reporter_pk + '/locations/edit/' + district_pk + '/');            
 }
+function update_district2(elem) {
+	parent_td = $(elem).parents("td");
+    district_pk = $(elem).val(); 
+    $('.ffacility').parents('td').load('../reporter/facilities/edit/' + district_pk + '/');           
+}
