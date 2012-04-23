@@ -521,15 +521,15 @@ def cvs_autoreg(**kwargs):
     if name:
         contact.name = name
 
-    if district:
-        contact.reporting_location = district
-    else:
-        contact.reporting_location = Location.tree.root_nodes()[0]
-
     if village:
+        contact.reporting_location = village
         contact.village = village
         contact.village_name = None
     else:
+        if district:
+            contact.reporting_location = district
+        else:
+            contact.reporting_location = Location.tree.root_nodes()[0]
         contact.village_name = village_name
         contact.village = None
 
