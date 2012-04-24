@@ -137,12 +137,43 @@ class FacilityResponseForm(forms.Form):
 
     value = forms.ModelChoiceField(queryset=HealthFacility.objects.order_by('name'))
 
+OWNERS = (
+          ('', '-----'),
+          ('GOVT', 'Government'),
+          ('NGO', 'NGO'),
+          ('PRIVATE', 'Private'),
+          )
+AUTHORITIES = (
+               ('', '-------'),
+               ('AIDS PROG', 'AIDS PROG'),
+               ('COMMUNITY', 'COMMUNITY'),
+               ('CSO', 'CSO'),
+               ('GTZ', 'GTZ'),
+               ('HOSFA', 'HOSFA'),
+               ('MAP', 'MAP'),
+               ('MSU', 'MSU'),
+               ('OTHER NGO', 'OTHER NGO'),
+               ('PRIVATE', 'PRIVATE'),
+               ('RH UGANDA', 'RH UGANDA'),
+               ('RHU', 'RHU'),
+               ('SDA', 'SDA'),
+               ('TEA FACTORY', 'TEA FACTORY'),
+               ('TOURISM', 'TOURISM'),
+               ('UCBM', 'UCBM'),
+               ('UG. CLAYS', 'UG. CLAYS'),
+               ('UMMB', 'UMMB'),
+               ('UNHCR', 'UNHCR'),
+               ('UPMB', 'UPMB'),
+               ('WORLD VISION', 'WORLD VISION'),
+               )
 
 class FacilityForm(forms.Form):
     name = forms.CharField(max_length=100, required=getattr(settings, 'ALLOW_BLANK_HEALTHFACILITY', True))
-    code = forms.CharField(max_length=50, required=False)
+    code = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={'size':14}))
     type = forms.ModelChoiceField(queryset=HealthFacilityType.objects.all(), required=True)
     catchment_areas = forms.ModelMultipleChoiceField(queryset=Location.objects.all(), required=False)
+    owner = forms.ChoiceField(choices=OWNERS, required=False)
+    authority = forms.ChoiceField(choices=AUTHORITIES, required=False)
     def __init__(self, *args, **kwargs):
         self.username = kwargs.pop('username', '')
         if 'instance' in kwargs:
@@ -152,6 +183,8 @@ class FacilityForm(forms.Form):
                     'name':self.facility.name, \
                     'code':self.facility.code, \
                     'type':self.facility.type, \
+                    'owner':self.facility.owner, \
+                    'authority':self.facility.authority, \
                     'catchment_areas':self.facility.catchment_areas.all(), \
                 }
                 district = get_district_for_facility(self.facility)
@@ -187,12 +220,17 @@ class FacilityForm(forms.Form):
                                                           name=cleaned_data.get('name'),
                                                           code=cleaned_data.get('code'),
                                                           type=cleaned_data.get('type'),
-                                                          district=district)
+                                                          district=district,
+                                                          owner=cleaned_data.get('owner'),
+                                                          authority=cleaned_data.get('authority')
+                                                          )
         else:
             self.facility.name = cleaned_data.get('name')
             self.facility.code = cleaned_data.get('code')
             self.facility.type = cleaned_data.get('type')
             self.facility.district = district
+            self.facility.owner = cleaned_data.get('owner')
+            self.facility.authority = cleaned_data.get('authority')
         self.facility.save()
 
         self.facility.catchment_areas.clear()

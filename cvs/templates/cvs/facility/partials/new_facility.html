@@ -36,8 +36,22 @@
 	<td>
 		{{ facility_form.facility_district }}
 	</td>
-	<td>&nbsp;</td>
-	<td>&nbsp;</td>
+	<td>
+		Owner:<br/>
+		{{facility_form.owner}}
+		{% if facility_form.owner.errors %}
+        	<br clear="left"/>
+        {{ report_form.owner.errors }}
+    	{% endif %}
+	</td>
+	<td>
+		Authority:<br/>
+		{{facility_form.authority}}
+		{% if facility_form.authority.errors %}
+        	<br clear="left"/>
+        {{ report_form.authority.errors }}
+    	{% endif %}
+	</td>
 	<td id="facility_locationsx">
 	</td>
 	<td>
