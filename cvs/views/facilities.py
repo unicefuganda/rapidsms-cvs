@@ -11,6 +11,7 @@ from generic.views import generic_row
 from rapidsms.contrib.locations.models import Location
 from mtrack.utils import get_district_for_facility
 #from cvs.views.facilities import facility_form
+from django.views.decorators.cache import cache_page
 
 @login_required
 def deleteFacility(request, facility_pk):
@@ -59,6 +60,7 @@ def editFacilityLocations(request, facility_pk=None, district_pk=None):
       },
       context_instance=RequestContext(request))
 
+@cache_page(60 * 15)
 def newFacility(request):
     if request.method == 'POST':
         facility_form = FacilityForm(data=request.POST, username=request.user)

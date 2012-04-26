@@ -10,7 +10,7 @@ from cvs.forms import ReporterForm
 from django.contrib.auth.decorators import login_required
 from generic.views import generic_row
 from rapidsms.contrib.locations.models import Location
-
+from django.views.decorators.cache import cache_page
 
 @login_required
 def deleteReporter(request, reporter_pk):
@@ -90,6 +90,7 @@ def editReporterFacilities(request, reporter_pk=None, district_pk=None):
                               {'facilities': facilities,
                                'reporter': reporter},
                               context_instance=RequestContext(request))
+@cache_page(60 * 15)
 @login_required
 def newReporter(request):
     if request.method == 'POST':

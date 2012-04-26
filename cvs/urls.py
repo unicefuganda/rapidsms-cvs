@@ -24,13 +24,14 @@ from rapidsms_httprouter.models import Message
 from contact.models import MassText
 from contact.forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
 from django.views.generic.simple import direct_to_template
+from django.views.decorators.cache import cache_page
 
 urlpatterns = patterns('',
    #############################################
    #              REPORTERS VIEWS              #
    #############################################
    # Registered Users
-    url(r'^cvs/reporter/$', login_required(generic), {
+    url(r'^cvs/reporter/$', login_required(cache_page(generic, 60 * 15)), {
       'model':HealthProviderBase,
       'queryset':get_reporters,
       'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm, RolesFilter],
@@ -44,18 +45,19 @@ urlpatterns = patterns('',
                  ('Number', True, 'connection__identity', SimpleSorter(),),
                  ('Role(s)', True, 'groups__name', SimpleSorter(),),
                  ('District', False, 'district', None,),
-                 ('Last Reporting Date', True, 'latest_submission_date', LatestSubmissionSorter(),),
+                 ('Last Reporting Date', False, 'latest_submission_date', None,), #LatestSubmissionSorter(),),
                  ('Total Reports', True, 'connection__submissions__count', SimpleSorter(),),
                  ('Facility', True, 'facility__name', SimpleSorter(),),
                  ('Location', True, 'location__name', SimpleSorter(),),
                  ('Active', True, 'active', SimpleSorter(),),
                  ('', False, '', None,)],
-      'sort_column':'latest_submission_date',
-      'sort_ascending':False,
+      #'sort_column':'latest_submission_date',
+      #'sort_ascending':False,
     }, name="cvs-contact"),
     # Trainees
-    url(r'^cvs/train/reporter/$', login_required(generic), {
+    url(r'^cvs/train/reporter/$', login_required(cache_page(generic, 60 * 15)), {
       'model':HealthProviderBase,
+
       'queryset':get_training_vhts,
       'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm],
       'action_forms':[MassTextForm, ActivateForm],
@@ -76,7 +78,7 @@ urlpatterns = patterns('',
                  ('', False, '', None,)],
     }, name="cvs-training-contact"),
     # Orphaned
-    url(r'^cvs/orphaned/reporter/$', login_required(generic), {
+    url(r'^cvs/orphaned/reporter/$', login_required(cache_page(generic, 60 * 15)), {
       'model':HealthProviderBase,
       'queryset':get_nolocation_vhts,
       'filter_forms':[FreeSearchForm, FacilityFilterForm],
@@ -113,7 +115,7 @@ urlpatterns = patterns('',
     #############################################
     #              FACILITY VIEWS               #
     #############################################
-    url(r'^cvs/facility/$', login_required(generic), {
+    url(r'^cvs/facility/$', login_required(cache_page(generic, 60 * 15)), {
       'model':HealthFacilityBase,
       'queryset':get_facilites_for_view,
       'filter_forms':[],
