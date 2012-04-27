@@ -10,8 +10,8 @@ class LatestSubmissionSorter():
     def sort(self, column, object_list, ascending=True):
         order_by = "%s%s" % ('' if ascending else '-', column)
         toret = list(object_list.exclude(last_reporting_date=None).order_by(order_by))
-        if not ascending:
-            toret.reverse()
+        #if not ascending:
+        #    toret.reverse()
         toret += list(object_list.filter(last_reporting_date=None))
         return toret
 
