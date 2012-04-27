@@ -9,7 +9,6 @@ from cvs.utils import get_reporters
 from cvs.sorters import \
     LatestSubmissionSorter, \
     LatestJoinedSorter, \
-    LatestFacilitySubmissionSorter, \
     TotalFacilitySubmissionSorter
 from uganda_common.reports import XFormDateGetter
 from cvs.views.stats import export_as_excel
@@ -45,14 +44,14 @@ urlpatterns = patterns('',
                  ('Number', True, 'connection__identity', SimpleSorter(),),
                  ('Role(s)', True, 'groups__name', SimpleSorter(),),
                  ('District', False, 'district', None,),
-                 ('Last Reporting Date', False, 'latest_submission_date', None,), #LatestSubmissionSorter(),),
+                 ('Last Reporting Date', True, 'last_reporting_date', LatestSubmissionSorter(),),
                  ('Total Reports', True, 'connection__submissions__count', SimpleSorter(),),
                  ('Facility', True, 'facility__name', SimpleSorter(),),
                  ('Location', True, 'location__name', SimpleSorter(),),
                  ('Active', True, 'active', SimpleSorter(),),
                  ('', False, '', None,)],
-      #'sort_column':'latest_submission_date',
-      #'sort_ascending':False,
+      'sort_column':'last_reporting_date',
+      'sort_ascending':False,
     }, name="cvs-contact"),
     # Trainees
     url(r'^cvs/train/reporter/$', login_required(cache_page(generic, 60 * 15)), {
@@ -93,7 +92,7 @@ urlpatterns = patterns('',
                  ('Number', True, 'connection__identity', SimpleSorter(),),
                  ('Role(s)', True, 'groups__name', SimpleSorter(),),
                  ('District', False, 'district', None,),
-                 ('Last Reporting Date', True, 'latest_submission_date', LatestSubmissionSorter(),),
+                 ('Last Reporting Date', True, 'last_reporting_date', LatestSubmissionSorter(),),
                  ('Total Reports', True, 'connection__submissions__count', SimpleSorter(),),
                  ('Facility', True, 'facility__name', SimpleSorter(),),
                  ('Location', True, 'location__name', SimpleSorter(),),
@@ -129,11 +128,11 @@ urlpatterns = patterns('',
                  ('Type', True, 'type', SimpleSorter()),
                  ('Code', True, 'code', SimpleSorter(),),
                  ('District', True, 'district', SimpleSorter(),),
-                 ('Last Reporting Date', True, 'latest_submission', LatestFacilitySubmissionSorter(),),
+                 ('Last Reporting Date', True, 'last_reporting_date', LatestSubmissionSorter(),),
                  ('Total Reports', True, 'submissions', TotalFacilitySubmissionSorter(),),
                  ('Catchment Areas', True, 'catchment_areas__name', SimpleSorter(),),
                  ('', False, '', None,)],
-      'sort_column':'latest_submission',
+      'sort_column':'last_reporting_date',
       'sort_ascending':False,
     }, name="cvs-facility"),
 

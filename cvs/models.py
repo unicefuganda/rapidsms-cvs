@@ -406,6 +406,10 @@ def xform_received_handler(sender, **kwargs):
                 message=message,
                 valid=True)
         muac_label = "Severe Acute Malnutrition" if (submission.eav.muac_category == 'R') else "Risk of Malnutrition"
+        health_provider.last_reporting_date = datetime.datetime.now().date()
+        health_provider.save()
+        health_provider.facility.last_reporting_date = datetime.datetime.now().date()
+        health_provider.facility.save()
         submission.response = "%s has been identified with %s" % (patient_label(patient), muac_label)
         submission.save()
 
@@ -419,6 +423,10 @@ def xform_received_handler(sender, **kwargs):
                 message=message,
                 valid=True)
         birth_location = "a facility" if submission.eav.birth_place == 'FACILITY' else 'home'
+        health_provider.last_reporting_date = datetime.datetime.now().date()
+        health_provider.save()
+        health_provider.facility.last_reporting_date = datetime.datetime.now().date()
+        health_provider.facility.save()
         submission.response = "Thank you for registering the birth of %s. We have recorded that the birth took place at %s." % (patient_label(patient), birth_location)
         submission.save()
 
@@ -433,6 +441,10 @@ def xform_received_handler(sender, **kwargs):
                 patient=patient,
                 message=message,
                 valid=True)
+        health_provider.last_reporting_date = datetime.datetime.now().date()
+        health_provider.save()
+        health_provider.facility.last_reporting_date = datetime.datetime.now().date()
+        health_provider.facility.save()
         submission.response = "We have recorded the death of %s." % patient_label(patient)
         submission.save()
 
@@ -460,6 +472,10 @@ def xform_received_handler(sender, **kwargs):
             value_list.append("%s %d" % (v.attribute.name, v.value_int))
         if len(value_list) > 1:
             value_list[len(value_list) - 1] = " and %s" % value_list[len(value_list) - 1]
+        health_provider.last_reporting_date = datetime.datetime.now().date()
+        health_provider.save()
+        health_provider.facility.last_reporting_date = datetime.datetime.now().date()
+        health_provider.facility.save()
         submission.response = "You reported %s.If there is an error,please resend." % ','.join(value_list)
         submission.save()
 
