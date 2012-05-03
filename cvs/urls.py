@@ -30,7 +30,7 @@ urlpatterns = patterns('',
    #              REPORTERS VIEWS              #
    #############################################
    # Registered Users
-    url(r'^cvs/reporter/$', login_required(cache_page(generic, 60 * 15)), {
+    url(r'^cvs/reporter/$', login_required(generic), {
       'model':HealthProviderBase,
       'queryset':get_reporters,
       'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm, RolesFilter],
@@ -54,7 +54,7 @@ urlpatterns = patterns('',
       'sort_ascending':False,
     }, name="cvs-contact"),
     # Trainees
-    url(r'^cvs/train/reporter/$', login_required(cache_page(generic, 60 * 15)), {
+    url(r'^cvs/train/reporter/$', login_required(generic), {
       'model':HealthProviderBase,
 
       'queryset':get_training_vhts,
@@ -77,7 +77,7 @@ urlpatterns = patterns('',
                  ('', False, '', None,)],
     }, name="cvs-training-contact"),
     # Orphaned
-    url(r'^cvs/orphaned/reporter/$', login_required(cache_page(generic, 60 * 15)), {
+    url(r'^cvs/orphaned/reporter/$', login_required(generic), {
       'model':HealthProviderBase,
       'queryset':get_nolocation_vhts,
       'filter_forms':[FreeSearchForm, FacilityFilterForm],
@@ -114,7 +114,7 @@ urlpatterns = patterns('',
     #############################################
     #              FACILITY VIEWS               #
     #############################################
-    url(r'^cvs/facility/$', login_required(cache_page(generic, 60 * 15)), {
+    url(r'^cvs/facility/$', login_required(generic), {
       'model':HealthFacilityBase,
       'queryset':get_facilites_for_view,
       'filter_forms':[],
