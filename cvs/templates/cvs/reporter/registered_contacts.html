@@ -1,7 +1,71 @@
 {% extends "cvs/reporter/contacts_base.html" %}
-{% block content %} 
-    <a style="font-size:12pt" href="{% url cvs-training-contact %}">Trainees &gt;&gt;</a> | 
-    <a style="font-size:12pt" href="{% url cvs-orphan-contact %}">No Location &gt;&gt;</a>
+{% block content %}
+	<script language="javascript">
+        function createUploader(){
+            var uploader = new qq.FileUploader( {
+            action: "{% url ajax_upload %}",
+            element: $('#file-uploader')[0],
+            multiple: true,
+            onComplete: function( id, fileName, responseJSON ) {
+              if( responseJSON.success )
+                // alert( "success!" ) ;
+                $('#res').html("Success!!")
+              else
+                // alert( "upload failed!" ) ;
+                $('#res').html('Upload failed!!')
+            },
+            onAllComplete: function( uploads ) {
+              // alert( "All complete!" ) ;
+              $('#res').html('All complete!');
+            },
+            params: {
+              'csrf_token': '{{ csrf_token }}',
+              'csrf_name': 'csrfmiddlewaretoken',
+              'csrf_xname': 'X-CSRFToken',
+            },
+          } ) ;
+        }
+
+		$(document).ready(function(){
+            createUploader();
+            $('#new').hide();
+            $('#a-new').click(function(){
+                $('#new').show();
+            });
+
+            $('#a-back').click(function(){
+                $('#new').hide();
+            });
+		});
+	</script>
+    <a href="{% url cvs-training-contact %}">Trainees &gt;&gt;</a> |
+    <a href="{% url cvs-orphan-contact %}">No Location &gt;&gt;</a> |
+    <a href="#" id="a-new">Bulk Import Reporters</a>
+    <div id="new" class="module">
+    	<h2>Bulk Import Reporters</h2>
+        <a href='#' id='a-back'>Back without importing</a>
+        <p>Excel Format:<br>
+        Name, Phonenumber, District, Role, Facility, Facility Type, Village, Village Type, PVHT<br/>
+            e.g.<br/>
+            Sam, 256782820208, Kampala,  VHT,  Mulago Hospital, hospital, Kampala, parish
+        </p>
+        <form id="reporterform" enctype="multipart/form-data" method="post" action="">
+        <table>
+            <tr>
+                <td>File(Excel):</td>
+                <td>
+                    <div id="file-uploader">
+                        <noscript>
+                            <p>Enable Javascript</p>
+                        </noscript>
+                    </div>
+                </td>
+                <td><span id='res'></span></td>
+            </tr>
+        </table>
+        </form>
+    </div>
+    <br/>
     {{ block.super }}
     <style type="text/css">
     #filters{

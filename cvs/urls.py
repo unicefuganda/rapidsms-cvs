@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import *
-from cvs.views import basic, reporters, map, facilities
+from cvs.views import basic, reporters, map, facilities, ajax_upload
 from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
@@ -109,6 +109,7 @@ urlpatterns = patterns('',
     url(r'^cvs/train/reporter/(?P<pk>\d+)/show', generic_row, {'model':HealthProviderBase, 'partial_row':'cvs/reporter/partials/trainee_row.html'}),
     url(r'^cvs/reporter/new', reporters.newReporter),
     #url(r'^cvs/reporter/new',),
+    url(r'^ajax_upload/$', ajax_upload.ajax_upload, name="ajax_upload"),
 
 
     #############################################
