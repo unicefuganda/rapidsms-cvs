@@ -18,6 +18,9 @@ from script.utils.handling import find_closest_match, find_best_response
 from ussd.models import ussd_pre_transition, ussd_complete, Navigation, TransitionException, Field, Question
 from rapidsms.contrib.locations.models import Location
 import itertools
+from django.conf import settings
+
+mcd_keywords = getattr(settings, 'MCDTRAC_XFORMS_KEYWORDS', ['dpt', 'muac', 'tet', 'anc', 'eid', 'reg', 'me', 'vit', 'worm'])
 
 def parse_timedelta(command, value):
     lvalue = value.lower().strip()
@@ -332,6 +335,8 @@ def fix_location(sender, **kwargs):
 
 def xform_received_handler(sender, **kwargs):
     xform = kwargs['xform']
+    if xform.keyword in mcd_keywords:
+        return
     submission = kwargs['submission']
 
     if submission.has_errors:
