@@ -90,7 +90,6 @@ def editReporterFacilities(request, reporter_pk=None, district_pk=None):
                               {'facilities': facilities,
                                'reporter': reporter},
                               context_instance=RequestContext(request))
-@cache_page(60 * 15)
 @login_required
 def newReporter(request):
     if request.method == 'POST':

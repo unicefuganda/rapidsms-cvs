@@ -60,7 +60,6 @@ def editFacilityLocations(request, facility_pk=None, district_pk=None):
       },
       context_instance=RequestContext(request))
 
-@cache_page(60 * 15)
 def newFacility(request):
     if request.method == 'POST':
         facility_form = FacilityForm(data=request.POST, username=request.user)

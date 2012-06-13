@@ -4,7 +4,7 @@ from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
 from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm, RolesFilter
-from cvs.forms import ActivateForm, FacilityFilterForm, DeactivateForm
+from cvs.forms import ActivateForm, FacilityFilterForm, DeactivateForm, LastReportingFilter, FacilityDistrictFilter
 from cvs.utils import get_reporters
 from cvs.sorters import \
     LatestSubmissionSorter, \
@@ -33,7 +33,7 @@ urlpatterns = patterns('',
     url(r'^cvs/reporter/$', login_required(generic), {
       'model':HealthProviderBase,
       'queryset':get_reporters,
-      'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm, RolesFilter],
+      'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm, RolesFilter, LastReportingFilter],
       'action_forms':[MassTextForm, DeactivateForm],
       'objects_per_page':25,
       'partial_row':'cvs/reporter/partials/reporter_row.html',
@@ -118,7 +118,7 @@ urlpatterns = patterns('',
     url(r'^cvs/facility/$', login_required(generic), {
       'model':HealthFacilityBase,
       'queryset':get_facilites_for_view,
-      'filter_forms':[],
+      'filter_forms':[FacilityDistrictFilter],
       'action_forms':[],
       'objects_per_page':25,
       'partial_row':'cvs/facility/partials/facility_row.html',
@@ -127,7 +127,7 @@ urlpatterns = patterns('',
       'results_title':'Health Facilities',
       'columns':[('Name', True, 'name', SimpleSorter()),
                  ('Type', True, 'type', SimpleSorter()),
-                 ('Code', True, 'code', SimpleSorter(),),
+                 #('Code', True, 'code', SimpleSorter(),),
                  ('District', True, 'district', SimpleSorter(),),
                  ('Last Reporting Date', True, 'last_reporting_date', LatestSubmissionSorter(),),
                  ('Total Reports', True, 'submissions', TotalFacilitySubmissionSorter(),),

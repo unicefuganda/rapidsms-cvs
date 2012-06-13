@@ -26,13 +26,7 @@
         	{{ report_form.type.errors }}
     	{% endif %}
 	</td>
-	<td>
-		{{ facility_form.code }}
-    	{% if facility_form.code.errors %}
-        	<br clear="left"/>
-        {{ report_form.code.errors }}
-    	{% endif %}
-	</td>
+	{#<td>{{ facility_form.code }}{% if facility_form.code.errors %}<br clear="left"/>{{ report_form.code.errors }}{% endif %}</td>#}
 	<td>
 		{{ facility_form.facility_district }}
 	</td>

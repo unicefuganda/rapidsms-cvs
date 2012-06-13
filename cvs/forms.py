@@ -127,6 +127,30 @@ class FacilityFilterForm(FilterForm):
         else:
             return queryset.filter(facility=facility_pk)
 
+class LastReportingFilter(FilterForm):
+    last_reporting_date = forms.CharField(max_length=100, required=False)
+    def filter(self, request, queryset):
+        date = self.cleaned_data['last_reporting_date']
+        if date == '':
+            return queryset
+        else:
+            return queryset.filter(last_reporting_date__in=[date])
+
+class FacilityDistrictFilter(FilterForm):
+
+    """ filter cvs districs on their districts """
+    districtx = forms.ChoiceField(label="District", choices=(('', 'No District'),) + tuple([(d.name,
+                                 d.name) for d in
+                                 Location.objects.filter(type__slug='district'
+                                 ).order_by('name')]), required=False,)
+
+    def filter(self, request, queryset):
+        district_name = self.cleaned_data['districtx']
+        if district_name == '':
+            return queryset
+        else:
+            return queryset.filter(district=district_name)
+
 class FacilityResponseForm(forms.Form):
     def __init__(self, data=None, **kwargs):
         response = kwargs.pop('response')
