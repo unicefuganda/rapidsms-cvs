@@ -1,5 +1,1345 @@
 [
-    redm_number", 
+    {
+        "pk": 343, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "12 pack on hand", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "act_tps", 
+            "name": "12 pack on hand"
+        }
+    }, 
+    {
+        "pk": 342, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "12 tabled pack dispensed", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "act_tpd", 
+            "name": "12 tabled pack dispensed"
+        }
+    }, 
+    {
+        "pk": 337, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "12+ years", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "treat_tia", 
+            "name": "12+ years"
+        }
+    }, 
+    {
+        "pk": 345, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "18 pack on hand", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "act_eps", 
+            "name": "18 pack on hand"
+        }
+    }, 
+    {
+        "pk": 344, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "18 tabled pack dispensed", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "act_epd", 
+            "name": "18 tabled pack dispensed"
+        }
+    }, 
+    {
+        "pk": 347, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "24 pack on hand", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "act_fps", 
+            "name": "24 pack on hand"
+        }
+    }, 
+    {
+        "pk": 346, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "24 tablet pack dispensed", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "act_fpd", 
+            "name": "24 tablet pack dispensed"
+        }
+    }, 
+    {
+        "pk": 335, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "3+ to 6 years", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "treat_tic", 
+            "name": "3+ to 6 years"
+        }
+    }, 
+    {
+        "pk": 334, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "4+ months to 2 years", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "treat_tin", 
+            "name": "4+ months to 2 years"
+        }
+    }, 
+    {
+        "pk": 341, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "6 pack balance on hand", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "act_sps", 
+            "name": "6 pack balance on hand"
+        }
+    }, 
+    {
+        "pk": 340, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "6 tablet pack dispensed", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "act_spd", 
+            "name": "6 tablet pack dispensed"
+        }
+    }, 
+    {
+        "pk": 336, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "7+ to 11 years", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "treat_tiy", 
+            "name": "7+ to 11 years"
+        }
+    }, 
+    {
+        "pk": 392, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "ACT Blue Doses", 
+            "created": "2012-05-02 16:52:19", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-05-02 16:52:19", 
+            "type": null, 
+            "slug": "med_act_blue", 
+            "name": "ACT Blue Doses"
+        }
+    }, 
+    {
+        "pk": 393, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "ACT Yellow Doses", 
+            "created": "2012-05-02 16:52:41", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-05-02 16:52:41", 
+            "type": null, 
+            "slug": "med_act_yel", 
+            "name": "ACT Yellow Doses"
+        }
+    }, 
+    {
+        "pk": 76, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Acute Flaccid Paralysis (Polio)", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:51", 
+            "type": "int", 
+            "slug": "epi_af", 
+            "name": "Acute Flaccid Paralysis (Polio)"
+        }
+    }, 
+    {
+        "pk": 358, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Cases of Acute Flacid Paralysis", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "cases_af", 
+            "name": "Acute Flacid Paralysis cases"
+        }
+    }, 
+    {
+        "pk": 359, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Deaths from Acute Flacid Paralysis", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "death_af", 
+            "name": "Acute Flacid Paralysis deaths"
+        }
+    }, 
+    {
+        "pk": 360, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Cases of Adverse Events Following Immunization", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "cases_ae", 
+            "name": "Adverse Events Following Immunization cases"
+        }
+    }, 
+    {
+        "pk": 361, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Deaths from Adverse Events Following Immunization", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "death_ae", 
+            "name": "Adverse Events Following Immunization deaths"
+        }
+    }, 
+    {
+        "pk": 395, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Amoxyline Green Doses", 
+            "created": "2012-05-02 16:53:57", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-05-02 16:53:57", 
+            "type": null, 
+            "slug": "med_amox_green", 
+            "name": "Amox Green Doses"
+        }
+    }, 
+    {
+        "pk": 394, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Amox Red Doses", 
+            "created": "2012-05-02 16:53:02", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-05-02 16:53:02", 
+            "type": null, 
+            "slug": "med_amox_red", 
+            "name": "Amox Red Doses"
+        }
+    }, 
+    {
+        "pk": 75, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Animal Bites", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:51", 
+            "type": "int", 
+            "slug": "epi_ab", 
+            "name": "Animal Bites"
+        }
+    }, 
+    {
+        "pk": 362, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Cases of Animal Bites", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "cases_ab", 
+            "name": "Animal Bites cases"
+        }
+    }, 
+    {
+        "pk": 363, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Deaths from Animal Bites", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "death_ab", 
+            "name": "Animal Bites deaths"
+        }
+    }, 
+    {
+        "pk": 364, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Cases of Bacterial Meningitis", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "cases_mg", 
+            "name": "Bacterial Meningitis cases"
+        }
+    }, 
+    {
+        "pk": 365, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Deaths from Bacterial Meningitis", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "death_mg", 
+            "name": "Bacterial Meningitis deaths"
+        }
+    }, 
+    {
+        "pk": 200, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Bloody diarrhea (Dysentery)", 
+            "created": "2011-11-02 09:46:35", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 09:46:35", 
+            "type": null, 
+            "slug": "epi_dy", 
+            "name": "Bloody diarrhea (Dysentery)"
+        }
+    }, 
+    {
+        "pk": 72, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Bloody diarrhea (Dysentery)", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:50", 
+            "type": "int", 
+            "slug": "epi_bd", 
+            "name": "Bloody diarrhea (Dysentery)"
+        }
+    }, 
+    {
+        "pk": 79, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Cholera", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:51", 
+            "type": "int", 
+            "slug": "epi_ch", 
+            "name": "Cholera"
+        }
+    }, 
+    {
+        "pk": 366, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Cases of Cholera", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "cases_ch", 
+            "name": "Cholera cases"
+        }
+    }, 
+    {
+        "pk": 367, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Deaths from Cholera", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "death_ch", 
+            "name": "Cholera deaths"
+        }
+    }, 
+    {
+        "pk": 407, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of children", 
+            "created": "2012-06-14 12:39:41", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:39:41", 
+            "type": null, 
+            "slug": "tet_dose2", 
+            "name": "Dose 2"
+        }
+    }, 
+    {
+        "pk": 408, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of children", 
+            "created": "2012-06-14 12:39:42", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:39:42", 
+            "type": null, 
+            "slug": "tet_dose3", 
+            "name": "Dose 3"
+        }
+    }, 
+    {
+        "pk": 409, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of children", 
+            "created": "2012-06-14 12:39:43", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:39:43", 
+            "type": null, 
+            "slug": "tet_dose4", 
+            "name": "Dose 4"
+        }
+    }, 
+    {
+        "pk": 410, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of children", 
+            "created": "2012-06-14 12:39:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:39:44", 
+            "type": null, 
+            "slug": "tet_dose5", 
+            "name": "Dose 5"
+        }
+    }, 
+    {
+        "pk": 354, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Cases of Dysentery", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "cases_dy", 
+            "name": "Dysentery cases"
+        }
+    }, 
+    {
+        "pk": 355, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Deaths from Dysentery", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "death_dy", 
+            "name": "Dysentery deaths"
+        }
+    }, 
+    {
+        "pk": 196, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "F-75 Balance", 
+            "created": "2011-10-02 11:52:40", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-10-02 11:52:40", 
+            "type": "int", 
+            "slug": "rutf_closing_f75_stock", 
+            "name": "F-75 Balance"
+        }
+    }, 
+    {
+        "pk": 195, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "F-75 New", 
+            "created": "2011-10-02 11:52:40", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-10-02 11:52:40", 
+            "type": "int", 
+            "slug": "rutf_new_f75_stock", 
+            "name": "F-75 New"
+        }
+    }, 
+    {
+        "pk": 399, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of female children", 
+            "created": "2012-06-14 12:29:51", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:29:51", 
+            "type": null, 
+            "slug": "vacm_female", 
+            "name": "Female Children"
+        }
+    }, 
+    {
+        "pk": 415, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of female children", 
+            "created": "2012-06-14 12:44:20", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:44:20", 
+            "type": null, 
+            "slug": "breg_female", 
+            "name": "Female children"
+        }
+    }, 
+    {
+        "pk": 413, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of female children", 
+            "created": "2012-06-14 12:42:37", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:42:37", 
+            "type": null, 
+            "slug": "eid_female", 
+            "name": "Female children"
+        }
+    }, 
+    {
+        "pk": 405, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of female children", 
+            "created": "2012-06-14 12:35:01", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:35:01", 
+            "type": null, 
+            "slug": "worm_female", 
+            "name": "Female children"
+        }
+    }, 
+    {
+        "pk": 397, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of females", 
+            "created": "2012-06-14 12:27:53", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:27:53", 
+            "type": null, 
+            "slug": "dpt_female", 
+            "name": "Female children"
+        }
+    }, 
+    {
+        "pk": 401, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of female children 1 year", 
+            "created": "2012-06-14 12:33:05", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:33:05", 
+            "type": null, 
+            "slug": "vita_female1", 
+            "name": "Female children one year"
+        }
+    }, 
+    {
+        "pk": 403, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of female children over 1 year", 
+            "created": "2012-06-14 12:33:07", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:33:07", 
+            "type": null, 
+            "slug": "vita_female2", 
+            "name": "Female children over 1 year"
+        }
+    }, 
+    {
+        "pk": 190, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Green", 
+            "created": "2011-10-02 11:52:40", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-10-02 11:52:40", 
+            "type": "int", 
+            "slug": "com_muac_green", 
+            "name": "Green"
+        }
+    }, 
+    {
+        "pk": 80, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Guinea Worm", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:51", 
+            "type": "int", 
+            "slug": "epi_gw", 
+            "name": "Guinea Worm"
+        }
+    }, 
+    {
+        "pk": 368, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Cases of Guinea Worm", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "cases_gw", 
+            "name": "Guinea Worm cases"
+        }
+    }, 
+    {
+        "pk": 369, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Deaths from Guinea Worm", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "death_gw", 
+            "name": "Guinea Worm deaths"
+        }
+    }, 
+    {
+        "pk": 90, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Handwashing Facilities", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:51", 
+            "type": "int", 
+            "slug": "home_ha", 
+            "name": "Handwashing Facilities"
+        }
+    }, 
+    {
+        "pk": 88, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "ITTNs/LLINs", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:51", 
+            "type": "int", 
+            "slug": "home_it", 
+            "name": "ITTNs/LLINs"
+        }
+    }, 
+    {
+        "pk": 89, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Latrines", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:51", 
+            "type": "int", 
+            "slug": "home_la", 
+            "name": "Latrines"
+        }
+    }, 
+    {
+        "pk": 96, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "The location associated with a particular contact", 
+            "created": "2011-03-21 10:25:34", 
+            "datatype": "object", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 3, 
+            "modified": "2011-03-21 10:25:34", 
+            "type": null, 
+            "slug": "contact_location", 
+            "name": "Location"
+        }
+    }, 
+    {
+        "pk": 101, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "The location associated with a particular contact", 
+            "created": "2011-08-18 22:28:24", 
+            "datatype": "object", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-08-18 22:28:24", 
+            "type": null, 
+            "slug": "contact_location", 
+            "name": "Location"
+        }
+    }, 
+    {
+        "pk": 100, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "A response value for a Poll with expected location-based responses", 
+            "created": "2011-08-18 22:28:24", 
+            "datatype": "object", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-08-18 22:28:24", 
+            "type": null, 
+            "slug": "poll_location_value", 
+            "name": "Location"
+        }
+    }, 
+    {
+        "pk": 97, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "The location associated with a particular contact", 
+            "created": "2011-04-28 18:45:42", 
+            "datatype": "object", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 2, 
+            "modified": "2011-04-28 18:45:42", 
+            "type": null, 
+            "slug": "contact_location", 
+            "name": "Location"
+        }
+    }, 
+    {
+        "pk": 73, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Malaria", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:51", 
+            "type": "int", 
+            "slug": "epi_ma", 
+            "name": "Malaria"
+        }
+    }, 
+    {
+        "pk": 388, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Malaria Cases", 
+            "created": "2012-05-02 16:48:32", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-05-02 16:48:32", 
+            "type": null, 
+            "slug": "doc_ma", 
+            "name": "Malaria Cases"
+        }
+    }, 
+    {
+        "pk": 352, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Cases of Malaria", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "cases_ma", 
+            "name": "Malaria cases"
+        }
+    }, 
+    {
+        "pk": 353, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Deaths from Malaria", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "death_ma", 
+            "name": "Malaria deaths"
+        }
+    }, 
+    {
+        "pk": 396, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of males", 
+            "created": "2012-06-14 12:27:51", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:27:51", 
+            "type": null, 
+            "slug": "dpt_male", 
+            "name": "Male children"
+        }
+    }, 
+    {
+        "pk": 398, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of male children", 
+            "created": "2012-06-14 12:29:50", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:29:50", 
+            "type": null, 
+            "slug": "vacm_male", 
+            "name": "Male children"
+        }
+    }, 
+    {
+        "pk": 404, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of male children", 
+            "created": "2012-06-14 12:35:00", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:35:00", 
+            "type": null, 
+            "slug": "worm_male", 
+            "name": "Male children"
+        }
+    }, 
+    {
+        "pk": 412, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of male children", 
+            "created": "2012-06-14 12:42:36", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:42:36", 
+            "type": null, 
+            "slug": "eid_male", 
+            "name": "Male children"
+        }
+    }, 
+    {
+        "pk": 414, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of male children", 
+            "created": "2012-06-14 12:44:19", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:44:19", 
+            "type": null, 
+            "slug": "breg_male", 
+            "name": "Male children"
+        }
+    }, 
+    {
+        "pk": 400, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of male children 1 year", 
+            "created": "2012-06-14 12:33:04", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:33:04", 
+            "type": null, 
+            "slug": "vita_male1", 
+            "name": "Male children one year"
+        }
+    }, 
+    {
+        "pk": 402, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of male children over 1 year", 
+            "created": "2012-06-14 12:33:06", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:33:06", 
+            "type": null, 
+            "slug": "vita_male2", 
+            "name": "Male children over 1 year"
+        }
+    }, 
+    {
+        "pk": 321, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Maternal Deaths", 
+            "created": "2011-11-02 10:25:27", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:27", 
+            "type": null, 
+            "slug": "opd_md", 
+            "name": "Maternal Deaths"
+        }
+    }, 
+    {
+        "pk": 78, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Measles", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:51", 
+            "type": "int", 
+            "slug": "epi_me", 
+            "name": "Measles"
+        }
+    }, 
+    {
+        "pk": 370, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Cases of Measles", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "cases_me", 
+            "name": "Measles cases"
+        }
+    }, 
+    {
+        "pk": 371, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Deaths from Measles", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "death_me", 
+            "name": "Measles deaths"
+        }
+    }, 
+    {
+        "pk": 77, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Meningitis", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:51", 
+            "type": "int", 
+            "slug": "epi_mg", 
+            "name": "Meningitis"
+        }
+    }, 
+    {
+        "pk": 332, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Microscopy negative cases treated", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "treat_mtn", 
+            "name": "Microscopy negative cases treated"
+        }
+    }, 
+    {
+        "pk": 327, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Microscopy positive cases", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "test_mtp", 
+            "name": "Microscopy positive cases"
+        }
+    }, 
+    {
+        "pk": 333, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Microscopy positive cases treated", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "treat_mtp", 
+            "name": "Microscopy positive cases treated"
+        }
+    }, 
+    {
+        "pk": 326, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Microscopy tested cases", 
+            "created": "2011-11-02 10:25:28", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 10:25:28", 
+            "type": null, 
+            "slug": "test_mtc", 
+            "name": "Microscopy tested cases"
+        }
+    }, 
+    {
+        "pk": 81, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Neonatal Tetanus", 
+            "created": "2011-02-16 06:50:44", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-03-02 14:31:51", 
+            "type": "int", 
+            "slug": "epi_nt", 
+            "name": "Neonatal Tetanus"
+        }
+    }, 
+    {
+        "pk": 372, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Cases of Neonatal Tetanus", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "cases_nt", 
+            "name": "Neonatal Tetanus cases"
+        }
+    }, 
+    {
+        "pk": 373, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Deaths from Neonatal Tetanus", 
+            "created": "2011-11-02 14:30:38", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-11-02 14:30:38", 
+            "type": null, 
+            "slug": "death_nt", 
+            "name": "Neonatal Tetanus deaths"
+        }
+    }, 
+    {
+        "pk": 391, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Newborns seen within 24 hours", 
+            "created": "2012-05-02 16:50:46", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-05-02 16:50:46", 
+            "type": null, 
+            "slug": "doc_nbb", 
+            "name": "Newborns seen within 24 hours"
+        }
+    }, 
+    {
+        "pk": 98, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "A response value for a Poll with expected numeric responses", 
+            "created": "2011-08-18 22:28:24", 
+            "datatype": "float", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2011-08-18 22:28:24", 
+            "type": null, 
+            "slug": "poll_number_value", 
+            "name": "Number"
+        }
+    }, 
+    {
+        "pk": 411, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of children", 
+            "created": "2012-06-14 12:41:09", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:41:09", 
+            "type": null, 
+            "slug": "anc_number", 
+            "name": "Number of children"
+        }
+    }, 
+    {
+        "pk": 406, 
+        "model": "eav.attribute", 
+        "fields": {
+            "description": "Number of children", 
+            "created": "2012-06-14 12:37:01", 
+            "datatype": "int", 
+            "enum_group": null, 
+            "required": false, 
+            "site": 1, 
+            "modified": "2012-06-14 12:37:01", 
+            "type": null, 
+            "slug": "redm_number", 
             "name": "Number of children"
         }
     }, 
@@ -1220,8 +2560,7 @@
             "email": "david.a.mccann@gmail.com",
             "date_joined": "2010-10-25 00:17:35"
         }
-    }
-][
+    },
     {
         "pk": 2, 
         "model": "rapidsms_xforms.xform", 
@@ -1881,8 +3220,7 @@
             "keyword_prefix": null, 
             "description": "Number of chldren under 5 years registered"
         }
-    }
-][
+    },
     {
         "pk": 61, 
         "model": "rapidsms_xforms.xformfield", 
@@ -3521,8 +4859,7 @@
             "order": 16, 
             "xform": 58
         }
-    }
-][
+    },
     {
         "pk": 2, 
         "model": "rapidsms_xforms.xformfieldconstraint", 
@@ -3841,8 +5178,7 @@
             "type": "req_val", 
             "order": 1000
         }
-    }
-][
+    },
     {
         "pk": "cvs_autoreg", 
         "model": "script.script", 
@@ -3864,8 +5200,7 @@
                 4
             ]
         }
-    }
-][
+    },
     {
         "pk": 126, 
         "model": "poll.poll", 
@@ -4100,8 +5435,7 @@
             "start_date": null, 
             "response_type": "a"
         }
-    }
-][
+    },
     {
         "pk": 193, 
         "model": "poll.category", 
@@ -4296,8 +5630,7 @@
             "poll": 37, 
             "response": null
         }
-    }
-][
+    },
     {
         "pk": 130, 
         "model": "poll.rule", 
@@ -4397,8 +5730,7 @@
             "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
             "rule_type": "r"
         }
-    }
-][
+    },
     {
         "pk": 94, 
         "model": "script.scriptstep", 
