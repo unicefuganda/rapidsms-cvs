@@ -1,5 +1,104 @@
 [
     {
+        "pk": 4, 
+        "model": "sites.site", 
+        "fields": {
+            "domain": "cvs.rapidsms.org", 
+            "name": "CVS (Community Vulnerability Surveillance)"
+        }
+    }, 
+    {
+        "pk": 1, 
+        "model": "sites.site", 
+        "fields": {
+            "domain": "example.com", 
+            "name": "example.com"
+        }
+    }, 
+    
+    {
+        "pk": 93,
+        "model": "auth.group",
+        "fields": {
+            "name": "Health Nutrition Officer",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 94,
+        "model": "auth.group",
+        "fields": {
+            "name": "Health Surveillance Officer",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 95,
+        "model": "auth.group",
+        "fields": {
+            "name": "MAP Trained",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 124,
+        "model": "auth.group",
+        "fields": {
+            "name": "VHT",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 125,
+        "model": "auth.group",
+        "fields": {
+            "name": "PVHT",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 126,
+        "model": "auth.group",
+        "fields": {
+            "name": "HC",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 128,
+        "model": "auth.group",
+        "fields": {
+            "name": "DHT",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 130,
+        "model": "auth.group",
+        "fields": {
+            "name": "Other CVS Reporters",
+            "permissions": []
+        }
+    },
+    {
+        "pk": 1,
+        "model": "auth.user",
+        "fields": {
+            "username": "admin",
+            "first_name": "",
+            "last_name": "",
+            "is_active": true,
+            "is_superuser": true,
+            "is_staff": true,
+            "last_login": "2011-10-27 12:16:06",
+            "groups": [],
+            "user_permissions": [],
+            "password": "sha1$1bb7f$6dee102de8a48539b5b9250bd29980a3aed1dee5",
+            "email": "david.a.mccann@gmail.com",
+            "date_joined": "2010-10-25 00:17:35"
+        }
+    },
+    {
         "pk": 343, 
         "model": "eav.attribute", 
         "fields": {
@@ -848,70 +947,6 @@
         }
     }, 
     {
-        "pk": 96, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "The location associated with a particular contact", 
-            "created": "2011-03-21 10:25:34", 
-            "datatype": "object", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 3, 
-            "modified": "2011-03-21 10:25:34", 
-            "type": null, 
-            "slug": "contact_location", 
-            "name": "Location"
-        }
-    }, 
-    {
-        "pk": 101, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "The location associated with a particular contact", 
-            "created": "2011-08-18 22:28:24", 
-            "datatype": "object", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 1, 
-            "modified": "2011-08-18 22:28:24", 
-            "type": null, 
-            "slug": "contact_location", 
-            "name": "Location"
-        }
-    }, 
-    {
-        "pk": 100, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "A response value for a Poll with expected location-based responses", 
-            "created": "2011-08-18 22:28:24", 
-            "datatype": "object", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 1, 
-            "modified": "2011-08-18 22:28:24", 
-            "type": null, 
-            "slug": "poll_location_value", 
-            "name": "Location"
-        }
-    }, 
-    {
-        "pk": 97, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "The location associated with a particular contact", 
-            "created": "2011-04-28 18:45:42", 
-            "datatype": "object", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 2, 
-            "modified": "2011-04-28 18:45:42", 
-            "type": null, 
-            "slug": "contact_location", 
-            "name": "Location"
-        }
-    }, 
-    {
         "pk": 73, 
         "model": "eav.attribute", 
         "fields": {
@@ -1293,22 +1328,6 @@
             "type": null, 
             "slug": "doc_nbb", 
             "name": "Newborns seen within 24 hours"
-        }
-    }, 
-    {
-        "pk": 98, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "A response value for a Poll with expected numeric responses", 
-            "created": "2011-08-18 22:28:24", 
-            "datatype": "float", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 1, 
-            "modified": "2011-08-18 22:28:24", 
-            "type": null, 
-            "slug": "poll_number_value", 
-            "name": "Number"
         }
     }, 
     {
@@ -1952,22 +1971,6 @@
         }
     }, 
     {
-        "pk": 99, 
-        "model": "eav.attribute", 
-        "fields": {
-            "description": "A response value for a Poll with expected text responses", 
-            "created": "2011-08-18 22:28:24", 
-            "datatype": "text", 
-            "enum_group": null, 
-            "required": false, 
-            "site": 1, 
-            "modified": "2011-08-18 22:28:24", 
-            "type": null, 
-            "slug": "poll_text_value", 
-            "name": "Text"
-        }
-    }, 
-    {
         "pk": 387, 
         "model": "eav.attribute", 
         "fields": {
@@ -2480,88 +2483,6 @@
         }
     },
     {
-        "pk": 93,
-        "model": "auth.group",
-        "fields": {
-            "name": "Health Nutrition Officer",
-            "permissions": []
-        }
-    },
-    {
-        "pk": 94,
-        "model": "auth.group",
-        "fields": {
-            "name": "Health Surveillance Officer",
-            "permissions": []
-        }
-    },
-    {
-        "pk": 95,
-        "model": "auth.group",
-        "fields": {
-            "name": "MAP Trained",
-            "permissions": []
-        }
-    },
-    {
-        "pk": 124,
-        "model": "auth.group",
-        "fields": {
-            "name": "VHT",
-            "permissions": []
-        }
-    },
-    {
-        "pk": 125,
-        "model": "auth.group",
-        "fields": {
-            "name": "PVHT",
-            "permissions": []
-        }
-    },
-    {
-        "pk": 126,
-        "model": "auth.group",
-        "fields": {
-            "name": "HC",
-            "permissions": []
-        }
-    },
-    {
-        "pk": 128,
-        "model": "auth.group",
-        "fields": {
-            "name": "DHT",
-            "permissions": []
-        }
-    },
-    {
-        "pk": 130,
-        "model": "auth.group",
-        "fields": {
-            "name": "Other CVS Reporters",
-            "permissions": []
-        }
-    },
-    {
-        "pk": 1,
-        "model": "auth.user",
-        "fields": {
-            "username": "admin",
-            "first_name": "",
-            "last_name": "",
-            "is_active": true,
-            "is_superuser": true,
-            "is_staff": true,
-            "last_login": "2011-10-27 12:16:06",
-            "groups": [],
-            "user_permissions": [],
-            "password": "sha1$1bb7f$6dee102de8a48539b5b9250bd29980a3aed1dee5",
-            "email": "david.a.mccann@gmail.com",
-            "date_joined": "2010-10-25 00:17:35"
-        }
-    },
-    {
         "pk": 2, 
         "model": "rapidsms_xforms.xform", 
         "fields": {
@@ -3011,7 +2932,7 @@
             "restrict_message": "Only VHTs can send in this report.", 
             "modified": "2012-05-02 16:47:34", 
             "site": 1, 
-            "owner": 177, 
+            "owner": 1, 
             "separator": ",;:.*/", 
             "restrict_to": [], 
             "active": true, 
@@ -3031,7 +2952,7 @@
             "restrict_message": "Only VHTs can send in this report.", 
             "modified": "2012-05-02 16:51:55", 
             "site": 1, 
-            "owner": 177, 
+            "owner": 1, 
             "separator": ",;:.*/", 
             "restrict_to": [], 
             "active": true, 
@@ -5539,33 +5460,7 @@
             "poll": 130, 
             "response": null
         }
-    }, 
-    {
-        "pk": 90, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": false, 
-            "name": "no", 
-            "color": "", 
-            "priority": null, 
-            "default": false, 
-            "poll": 37, 
-            "response": null
-        }
-    }, 
-    {
-        "pk": 196, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": false, 
-            "name": "no", 
-            "color": "", 
-            "priority": null, 
-            "default": false, 
-            "poll": 140, 
-            "response": null
-        }
-    }, 
+    },  
     {
         "pk": 192, 
         "model": "poll.category", 
@@ -5578,59 +5473,7 @@
             "poll": 133, 
             "response": "We did not understand your answer.  Kindly note that this number is for official use only."
         }
-    }, 
-    {
-        "pk": 197, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": true, 
-            "name": "unknown", 
-            "color": "", 
-            "priority": null, 
-            "default": true, 
-            "poll": 140, 
-            "response": null
-        }
-    }, 
-    {
-        "pk": 91, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": false, 
-            "name": "unknown", 
-            "color": "", 
-            "priority": null, 
-            "default": true, 
-            "poll": 37, 
-            "response": null
-        }
-    }, 
-    {
-        "pk": 195, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": false, 
-            "name": "yes", 
-            "color": "", 
-            "priority": null, 
-            "default": false, 
-            "poll": 140, 
-            "response": null
-        }
-    }, 
-    {
-        "pk": 89, 
-        "model": "poll.category", 
-        "fields": {
-            "error_category": false, 
-            "name": "yes", 
-            "color": "", 
-            "priority": null, 
-            "default": false, 
-            "poll": 37, 
-            "response": null
-        }
-    },
+    },  
     {
         "pk": 130, 
         "model": "poll.rule", 
@@ -5682,26 +5525,6 @@
         }
     }, 
     {
-        "pk": 48, 
-        "model": "poll.rule", 
-        "fields": {
-            "regex": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
-            "category": 89, 
-            "rule_string": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
-            "rule_type": "r"
-        }
-    }, 
-    {
-        "pk": 49, 
-        "model": "poll.rule", 
-        "fields": {
-            "regex": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
-            "category": 90, 
-            "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
-            "rule_type": "r"
-        }
-    }, 
-    {
         "pk": 135, 
         "model": "poll.rule", 
         "fields": {
@@ -5711,26 +5534,6 @@
             "rule_type": "sw"
         }
     }, 
-    {
-        "pk": 136, 
-        "model": "poll.rule", 
-        "fields": {
-            "regex": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
-            "category": 195, 
-            "rule_string": "^\\s*(yes|yeah|yep|yay|y)(\\s|[^a-zA-Z]|$)", 
-            "rule_type": "r"
-        }
-    }, 
-    {
-        "pk": 137, 
-        "model": "poll.rule", 
-        "fields": {
-            "regex": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
-            "category": 196, 
-            "rule_string": "^\\s*(no|nope|nah|nay|n)(\\s|[^a-zA-Z]|$)", 
-            "rule_type": "r"
-        }
-    },
     {
         "pk": 94, 
         "model": "script.scriptstep", 
