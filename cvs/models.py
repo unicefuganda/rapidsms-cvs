@@ -18,6 +18,8 @@ from script.utils.handling import find_closest_match, find_best_response
 from ussd.models import ussd_pre_transition, ussd_complete, Navigation, TransitionException, Field, Question
 from rapidsms.contrib.locations.models import Location
 import itertools
+from dhis2.utils import get_reporting_week_for_day
+from cvs.tasks import sendSubmissionToDHIS2
 from django.conf import settings
 
 mcd_keywords = getattr(settings, 'MCDTRAC_XFORMS_KEYWORDS', ['dpt', 'muac', 'tet', 'anc', 'eid', 'reg', 'me', 'vit', 'worm'])
@@ -200,7 +202,7 @@ def generate_tracking_tag(start='2a2', base_numbers='2345679',
         should validate against.
 
         This is espacially usefull to get a unique tag to display on mobile
-        device so you can exclude figures and letters that could be 
+        device so you can exclude figures and letters that could be
         confusing or hard to type.
 
         Default values are empirically proven to be easy to read and type
@@ -484,6 +486,15 @@ def xform_received_handler(sender, **kwargs):
         if health_provider.facility:
             health_provider.facility.last_reporting_date = datetime.datetime.now().date()
             health_provider.facility.save()
+            if getattr(settings, 'DHIS2_ENABLED', False):
+                facility_code = health_provider.facility.code
+                week_num = get_reporting_week_for_day(datetime.datetime.now().date())
+                yr = datetime.datetime.now().year
+                week = "%sW%s" % (yr, format(week_num, "02d"))
+
+                #now make a celery call to upload the data
+                sendSubmissionToDHIS2.delay(submission, facility_code, week)
+
         submission.response = "You reported %s.If there is an error,please resend." % ','.join(value_list)
         submission.save()
 
@@ -494,8 +505,8 @@ def xform_received_handler(sender, **kwargs):
         return
 
 def cvs_autoreg(**kwargs):
-    ''' 
-    CVS autoreg post registration particulars handling. 
+    '''
+    CVS autoreg post registration particulars handling.
     This method responds to a signal sent by the Script module on completion of the cvs_autoreg script
     '''
     connection = kwargs['connection']
