@@ -177,7 +177,7 @@ def registered_reporters(location, roles=['VHT', 'PVHT']):
     count_val = 'id'
 
     if 'HC' in roles:
-        return do_stuff2(location)
+        #return do_stuff2(location)
         count_val = 'facility__id'
         tnum = 9
 
