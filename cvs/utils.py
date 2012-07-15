@@ -149,11 +149,35 @@ def registered_facility_reporters(location, roles=['VHT', 'PVHT']):
             .distinct() \
             .annotate(value=Count('id'))
 
+def do_stuff(location):
+    locations = location.get_children().exclude(type='office').values('id', 'name', 'rght', 'lft').order_by('name')
+    for loc in locations:
+        my_loc = Location.objects.get(pk=loc['id'])
+        loc['value'] = HealthProvider.objects.filter(active=True, groups__name__in=['HC']).exclude(facility=None).filter(reporting_location__in=my_loc.get_descendants(include_self=True)).values_list('facility_id', flat=True).distinct().count()
+        loc['location_name'] = loc.pop('name')
+        loc['location_id'] = loc.pop('id')
+    return locations
+
+def do_stuff2(location):
+    toret = []
+    locations = location.get_children().exclude(type='office').values('id', 'name', 'rght', 'lft').order_by('name')
+    for loc in locations:
+        my_loc = Location.objects.get(pk=loc['id'])
+        my_val = HealthProvider.objects.filter(active=True, groups__name__in=['HC']).exclude(facility=None).filter(reporting_location__in=my_loc.get_descendants(include_self=True)).values_list('facility_id', flat=True).distinct().count()
+        if my_val == 0:
+            continue
+        loc['value'] = my_val
+        loc['location_name'] = loc.pop('name')
+        loc['location_id'] = loc.pop('id')
+        toret.append(loc)
+    return toret
+
 def registered_reporters(location, roles=['VHT', 'PVHT']):
     tnum = 8
     count_val = 'id'
 
     if 'HC' in roles:
+        #return do_stuff2(location)
         count_val = 'facility__id'
         tnum = 9
 
@@ -277,8 +301,8 @@ def total_facility_attributes(attribute_slug_list, start_date, end_date, locatio
         .annotate(value=Sum('value_int'))
 
 def get_area(request):
-    if request.user.is_authenticated() and Location.objects.filter(type__name='district', name=request.user.username).count():
-        area = Location.objects.filter(type__name='district', name=request.user.username)[0]
+    if request.user.is_authenticated() and Location.objects.filter(type__name='district', name=request.user.username.capitalize()).count():
+        area = Location.objects.filter(type__name='district', name=request.user.username.capitalize())[0]
     elif request.user.is_authenticated() and Contact.objects.filter(user=request.user).count():
         area = Contact.objects.filter(user=request.user)[0].reporting_location
     else:
@@ -290,7 +314,7 @@ def get_reporters(**kwargs):
     area = get_area(request)
     toret = HealthProvider.objects.filter(active=True)
     if area:
-        toret = toret.filter(reporting_location__in=area.get_descendants(include_self=True).all()).select_related('facility', 'location').annotate(Count('connection__submissions')).all()
+        toret = toret.filter(reporting_location__in=area.get_descendants(include_self=True))
     return toret.select_related('facility', 'location').annotate(Count('connection__submissions')).all()
 
 def get_unsolicited_messages(**kwargs):
