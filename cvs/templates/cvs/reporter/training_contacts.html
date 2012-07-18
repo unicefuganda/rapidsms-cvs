@@ -3,4 +3,29 @@
     <a style="font-size:12pt" href="{% url cvs-contact %}">&lt;&lt; Registered Users</a> | 
     <a style="font-size:12pt" href="{% url cvs-orphan-contact %}">No Location &gt;&gt;</a>
     {{ block.super }}
+    <style type="text/css">
+    #filters{
+        height:9em;
+        }
+    #div_filter_0 input{
+        position:relative;
+    }
+    #div_filter_1{left:35%}
+    #div_filter_3{
+        top:7em;
+        position: absolute;
+        left: 0%;
+    }
+    #div_filter_4{
+        top:7em;
+        position: absolute;
+        left: 30%;
+    }
+    #div_filter_4 input{
+        border: solid 1px #CCC;
+    }
+    #id_facility2{
+        width: 7em;
+    }
+    </style>
 {% endblock %}
