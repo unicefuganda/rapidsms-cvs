@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from generic.views import generic_row
 from rapidsms.contrib.locations.models import Location
 from django.views.decorators.cache import cache_page
+from uganda_common.utils import get_user_district_facilities
 
 @login_required
 def deleteReporter(request, reporter_pk):
@@ -22,7 +23,7 @@ def deleteReporter(request, reporter_pk):
 @login_required
 def editReporter(request, reporter_pk):
     reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
-    reporter_form = ReporterForm(instance=reporter)
+    reporter_form = ReporterForm(instance=reporter, request=request)
     if request.method == 'POST':
         reporter_form = ReporterForm(instance=reporter,
                 data=request.POST)
@@ -79,13 +80,13 @@ def editReporterFacilities(request, reporter_pk=None, district_pk=None):
         locations = reporter.reporting_location or reporter.location
         if not locations:
             return HttpResponse(status=404)
-        facilities = HealthFacility.objects.all().values('pk', 'name', 'type__name')
+        facilities = get_user_district_facilities(request.user)
         locations = locations.get_descendants(include_self=True)
     else: reporter = None
     if district_pk:
         district = get_object_or_404(Location, pk=district_pk)
         locations = district.get_descendants(include_self=True)
-        facilities = HealthFacility.objects.filter(catchment_areas__in=locations).distinct().values('pk', 'name', 'type__name')
+        facilities = HealthFacility.objects.filter(catchment_areas__in=locations).distinct().values('pk', 'name', 'type__name').order_by('name')
     return render_to_response('cvs/reporter/partials/edit_reporter_facilities.html',
                               {'facilities': facilities,
                                'reporter': reporter},
@@ -106,9 +107,10 @@ def newReporter(request):
                                       {'report_form':reporter_form},
                                       context_instance=RequestContext(request))
     else:
-        reporter_form = ReporterForm()
+        reporter_form = ReporterForm(request=request)
         #print reporter_form
+        facilities = get_user_district_facilities(request.user)
         return render_to_response('cvs/reporter/partials/new_reporter.html',
                            {'reporter_form':reporter_form,
-                            'facilities':HealthFacility.objects.all().values('pk', 'name', 'type__name')},
+                            'facilities':facilities},
                            context_instance=RequestContext(request))

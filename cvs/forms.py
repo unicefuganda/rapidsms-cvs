@@ -12,7 +12,7 @@ from rapidsms.models import Contact, Connection
 from uganda_common.utils import assign_backend
 from django.utils.translation import ugettext_lazy as _
 from random import choice
-from uganda_common.utils import get_location_for_user
+from uganda_common.utils import get_location_for_user, get_districts_for_user
 from django.conf import settings
 
 date_range_choices = (('w', 'Previous Calendar Week'), ('m', 'Previous Calendar Month'), ('q', 'Previous calendar quarter'),)
@@ -64,6 +64,7 @@ class ReporterForm(forms.Form):
         return district
 
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
         if 'instance' in kwargs:
             self.reporter = kwargs.pop('instance')
             if not 'data' in kwargs:
@@ -79,6 +80,7 @@ class ReporterForm(forms.Form):
         else:
             self.reporter = None
         forms.Form.__init__(self, *args, **kwargs)
+        self.fields['reporter_district'].queryset = get_districts_for_user(self.request.user)
 
     def clean_connection(self):
         connection = self.cleaned_data.get('connection')
