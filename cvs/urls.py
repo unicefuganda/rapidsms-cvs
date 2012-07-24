@@ -58,7 +58,7 @@ urlpatterns = patterns('',
       'model':HealthProviderBase,
 
       'queryset':get_training_vhts,
-      'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm],
+      'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm, RolesFilter],
       'action_forms':[MassTextForm, ActivateForm],
       'objects_per_page':25,
       'partial_row':'cvs/reporter/partials/trainee_row.html',
