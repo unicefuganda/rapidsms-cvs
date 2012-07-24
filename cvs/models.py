@@ -22,6 +22,8 @@ from dhis2.utils import get_reporting_week_for_day
 from cvs.tasks import sendSubmissionToDHIS2
 from django.conf import settings
 from rapidsms_httprouter.models import Message
+from django.dispatch import receiver
+from unregister.models import Blacklist
 
 mcd_keywords = getattr(settings, 'MCDTRAC_XFORMS_KEYWORDS', ['dpt', 'muac', 'tet', 'anc', 'eid', 'reg', 'me', 'vit', 'worm'])
 
@@ -616,14 +618,12 @@ def ussd_reg(sender, **kwargs):
     except Navigation.DoesNotExist:
         pass
 
-from django.dispatch import receiver
-from unregister.models import Blacklist
-@receiver(post_save, sender=Message)    
+
+@receiver(post_save, sender=Message)
 def post_process_pending(sender, **kwargs):
     msg = kwargs['instance']
     if msg.direction == 'O' and msg.status == 'P' and not msg.connection in Blacklist.objects.all().values_list('connection', flat=True):
-        print 'here'
-        msg.status='Q'
+        msg.status = 'Q'
         msg.save()
 
 ussd_pre_transition.connect(ussd_jump_diseases, weak=False)
