@@ -6,7 +6,7 @@ from healthmodels.models.HealthProvider import HealthProviderBase
 from rapidsms.contrib.locations.models import Location
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Group
-from django.db.models.signals import pre_delete, post_syncdb
+from django.db.models.signals import pre_delete, post_syncdb, post_save
 from rapidsms.models import Contact
 from poll.models import Poll
 from eav.models import Attribute
@@ -21,6 +21,7 @@ import itertools
 from dhis2.utils import get_reporting_week_for_day
 from cvs.tasks import sendSubmissionToDHIS2
 from django.conf import settings
+from rapidsms_httprouter.models import Message
 
 mcd_keywords = getattr(settings, 'MCDTRAC_XFORMS_KEYWORDS', ['dpt', 'muac', 'tet', 'anc', 'eid', 'reg', 'me', 'vit', 'worm'])
 
@@ -614,6 +615,16 @@ def ussd_reg(sender, **kwargs):
         #sender.connection.save()
     except Navigation.DoesNotExist:
         pass
+
+from django.dispatch import receiver
+from unregister.models import Blacklist
+@receiver(post_save, sender=Message)    
+def post_process_pending(sender, **kwargs):
+    msg = kwargs['instance']
+    if msg.direction == 'O' and msg.status == 'P' and not msg.connection in Blacklist.objects.all().values_list('connection', flat=True):
+        print 'here'
+        msg.status='Q'
+        msg.save()
 
 ussd_pre_transition.connect(ussd_jump_diseases, weak=False)
 ussd_complete.connect(ussd_reg, weak=False)

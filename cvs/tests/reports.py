@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.conf import settings
 import datetime
 import traceback
-from rapidsms_httprouter.router import get_router, HttpRouterThread
+from rapidsms_httprouter.router import get_router #, HttpRouterThread
 from rapidsms_xforms.models import *
 from rapidsms.messages.incoming import IncomingMessage, IncomingMessage
 from rapidsms.models import Connection, Backend, Contact
@@ -61,7 +61,7 @@ class ReportsTest(TestCase): #pragma: no cover
         self.connection.save()
         def test_run(self):
             return
-        HttpRouterThread.run = test_run
+#        HttpRouterThread.run = test_run
 
     def testReport(self):
         self.fake_incoming('com 8, 3, 5, 6, 1, 7, 3')

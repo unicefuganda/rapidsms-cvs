@@ -21,7 +21,7 @@ from script.utils.outgoing import check_progress
 from unregister.models import Blacklist
 import datetime
 import traceback
-from rapidsms_httprouter.router import get_router, HttpRouterThread
+from rapidsms_httprouter.router import get_router#,  HttpRouterThread
 
 class AutoRegTest(TestCase): #pragma: no cover
 
@@ -95,7 +95,7 @@ class AutoRegTest(TestCase): #pragma: no cover
         self.mengo_healthfacility = HealthFacility.objects.create(name="Mengo", type=self.hcii)
         def test_run(self):
             return
-        HttpRouterThread.run = test_run
+#        HttpRouterThread.run = test_run
 
 
 
