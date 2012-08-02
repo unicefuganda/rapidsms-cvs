@@ -20,6 +20,7 @@ from rapidsms.models import Contact
 from uganda_common.utils import get_location_for_user, get_messages
 from mtrack.utils import last_reporting_period
 from mtrack.models import AnonymousReport
+from healthmodels.models.HealthFacility import HealthFacility
 try:
     from django.contrib.sites import Site
 except ImportError:
@@ -486,3 +487,12 @@ def get_nolocation_vhts(request):
 def get_dashboard_messages(request=None):
     # FIXME: implement full functionality
     return Message.objects.filter(direction='I')
+
+def get_user_district_facilities(user):
+    if user:
+        loc = Location.objects.filter(name__icontains=user.username, type__name='district')
+        if loc:
+            return HealthFacility.objects.filter(catchment_areas__in=loc[0].\
+                                                 get_descendants(include_self=True)).distinct().\
+                                                 values('pk', 'name', 'type__name').order_by('name')
+    return HealthFacility.objects.all().values('pk', 'name', 'type__name').order_by('name')

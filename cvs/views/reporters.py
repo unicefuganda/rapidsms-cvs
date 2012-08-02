@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from generic.views import generic_row
 from rapidsms.contrib.locations.models import Location
 from django.views.decorators.cache import cache_page
-from uganda_common.utils import get_user_district_facilities
+from cvs.utils import get_user_district_facilities
 
 @login_required
 def deleteReporter(request, reporter_pk):
