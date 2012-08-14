@@ -208,13 +208,15 @@ def get_reporting_week_number(d):
         toret += 1
     return toret
 #return name for user's excel report
-def get_user_report_name(user):
+def get_user_report_name(user, args):
+    rtype = args.strip()
+    psurfix = '' if rtype == '033b' else rtype
     if user.upper() in ['NMS', 'MU', 'MOH']:
-        return 'reports.xls'
+        return 'reports%s.xls' % psurfix
     d = Location.objects.filter(name__iexact=user, type='district')
     if len(d) > 0:
-        return 'reports_%s.xls' % (user.capitalize())
-    return "reports.xls"
+        return 'reports%s_%s.xls' % (psurfix, user.capitalize())
+    return "reports%s.xls" % psurfix
 
 register = template.Library()
 register.filter('section', get_section)

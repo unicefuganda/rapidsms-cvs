@@ -1,8 +1,12 @@
 {% extends "generic/reporting/report_base.html" %}
 {% load stats_extras %}
 {% block content %}
-    <a href="/static/mtrack/spreadsheets/{{ user.username|get_user_report_name }}">Download all reports &raquo;</a>
+    <a href="/static/mtrack/spreadsheets/{{ user.username|get_user_report_name:"" }}">Download all reports &raquo;</a>
     &nbsp;&nbsp;&nbsp;
-    <a href="/static/mtrack/spreadsheets/{{ user.username|get_user_report_name }}.zip">Download all reports(Zipped version) &raquo;</a>
+    <a href="/static/mtrack/spreadsheets/{{ user.username|get_user_report_name:"" }}.zip">Download all reports(Zipped version) &raquo;</a>
+    &nbsp;&nbsp;&nbsp;
+    <a href="/static/mtrack/spreadsheets/{{ user.username|get_user_report_name:"_vht" }}">Download VHT reports &raquo;</a>
+    &nbsp;&nbsp;&nbsp;
+    <a href="/static/mtrack/spreadsheets/{{ user.username|get_user_report_name:"_vht" }}.zip">Download VHT reports(zipped) &raquo;</a>
     {{ block.super }}
 {% endblock %}
