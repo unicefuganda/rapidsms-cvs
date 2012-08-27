@@ -94,7 +94,7 @@ def editReporterFacilities(request, reporter_pk=None, district_pk=None):
 @login_required
 def newReporter(request):
     if request.method == 'POST':
-        reporter_form = ReporterForm(data=request.POST)
+        reporter_form = ReporterForm(data=request.POST, request=request)
         if reporter_form.is_valid():
             reporter_form.reporter = HealthProvider.objects.create(active=True)
             reporter_form.save()
