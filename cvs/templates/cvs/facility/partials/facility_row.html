@@ -5,22 +5,25 @@
         {{ object.name }}
     </td>
     <td>
-        {{ object.type.name }}
+        {{ object.type }}
     </td>
     {#<td>{{ object.code }}</td>#}
     <td>
-        {{ object|get_facility_district }}
+        {#{{ object|get_facility_district }}#}
+        {{ object.district }}
     </td>
     <td>
-        {{ object|facility_latest|date:"d-m-Y" }}
+        {#{{ object|facility_latest|date:"d-m-Y" }}#}
+        {{object.last_reporting_date|date:"d-m-Y"}}
     </td>
     <td>
-        {{ object|facility_reports }}
+        {#{{ object|facility_reports }}#}
+        {{ object.total_reports }}
     </td>
     <td id="row_{{ object.pk }}">
         <ul>
-        {% for l in object.catchment_areas.all %}
-            <li>{{ l.name }}</li>
+        {% for l in object.catchment_areas|split:"," %}
+        	<li>{{ l }}</li>
         {% endfor %}
         </ul>
     </td>

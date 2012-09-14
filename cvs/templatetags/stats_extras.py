@@ -218,6 +218,9 @@ def get_user_report_name(user, args):
         return 'reports%s_%s.xls' % (psurfix, user.capitalize())
     return "reports%s.xls" % psurfix
 
+def split(value, arg):
+    return value.split(arg)
+
 register = template.Library()
 register.filter('section', get_section)
 register.filter('parent', get_parent)
@@ -235,4 +238,5 @@ register.filter('get_submission_values', get_submission_values)
 register.filter('breadcrumb', breadcrumb)
 register.filter('reporting_week', get_reporting_week_number)
 register.filter('get_user_report_name', get_user_report_name)
+register.filter('split', split)
 register.tag('date_range', do_date_range)

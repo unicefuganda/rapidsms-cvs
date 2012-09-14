@@ -18,6 +18,7 @@ from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
 from cvs.utils import get_all_messages, get_unsolicited_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
 from mtrack.utils import get_facilites_for_view
+from mtrack.models import Facilities
 from cvs.reports import *
 from rapidsms_httprouter.models import Message
 from contact.models import MassText
@@ -116,7 +117,7 @@ urlpatterns = patterns('',
     #              FACILITY VIEWS               #
     #############################################
     url(r'^cvs/facility/$', login_required(generic), {
-      'model':HealthFacilityBase,
+      'model':Facilities,
       'queryset':get_facilites_for_view,
       'filter_forms':[FacilityDistrictFilter],
       'action_forms':[],
@@ -130,8 +131,8 @@ urlpatterns = patterns('',
                  #('Code', True, 'code', SimpleSorter(),),
                  ('District', True, 'district', SimpleSorter(),),
                  ('Last Reporting Date', True, 'last_reporting_date', LatestSubmissionSorter(),),
-                 ('Total Reports', True, 'submissions', TotalFacilitySubmissionSorter(),),
-                 ('Catchment Areas', True, 'catchment_areas__name', SimpleSorter(),),
+                 ('Total Reports', True, 'total_reports', SimpleSorter()), #TotalFacilitySubmissionSorter(),),
+                 ('Catchment Areas', True, 'catchment_areas', SimpleSorter()), #__name', SimpleSorter(),),
                  ('', False, '', None,)],
       'sort_column':'last_reporting_date',
       'sort_ascending':False,
@@ -141,7 +142,7 @@ urlpatterns = patterns('',
     url(r'^cvs/facility/(?P<facility_pk>\d+)/locations/edit/((?P<district_pk>\d+)/)?', facilities.editFacilityLocations),
     url(r'^cvs/facility/locations/new/((?P<district_pk>\d+)/)?', facilities.editFacilityLocations),
     url(r'^cvs/facility/(?P<facility_pk>\d+)/delete', facilities.deleteFacility),
-    url(r'^cvs/facility/(?P<pk>\d+)/show', generic_row, {'model':HealthFacilityBase, 'partial_row':'cvs/facility/partials/facility_row.html'}),
+    url(r'^cvs/facility/(?P<pk>\d+)/show', generic_row, {'model':Facilities, 'partial_row':'cvs/facility/partials/facility_row.html'}),
     url(r'^cvs/facility/new', facilities.newFacility),
 
 

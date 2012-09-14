@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from generic.views import generic_row
 from rapidsms.contrib.locations.models import Location
 from mtrack.utils import get_district_for_facility
+from mtrack.models import Facilities
 #from cvs.views.facilities import facility_form
 from django.views.decorators.cache import cache_page
 
@@ -29,7 +30,7 @@ def editFacility(request, facility_pk):
                 data=request.POST)
         if facility_form.is_valid():
             facility_form.save()
-            return generic_row(request, model=HealthFacilityBase, pk=facility_pk, partial_row='/cvs/facility/partials/facility_row.html')
+            return generic_row(request, model=Facilities, pk=facility_pk, partial_row='/cvs/facility/partials/facility_row.html')
         else:
             return render_to_response('cvs/facility/partials/edit_facility.html'
                     , {'facility_form': facility_form, 'facility'
