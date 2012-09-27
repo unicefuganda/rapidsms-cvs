@@ -13,6 +13,7 @@ from mtrack.utils import get_district_for_facility
 from mtrack.models import Facilities
 #from cvs.views.facilities import facility_form
 from django.views.decorators.cache import cache_page
+from django.db import transaction
 
 @login_required
 def deleteFacility(request, facility_pk):
@@ -61,6 +62,7 @@ def editFacilityLocations(request, facility_pk=None, district_pk=None):
       },
       context_instance=RequestContext(request))
 
+@transaction.commit_manually
 def newFacility(request):
     if request.method == 'POST':
         facility_form = FacilityForm(data=request.POST, username=request.user)
@@ -70,19 +72,25 @@ def newFacility(request):
             facility_form.facility = HealthFacility.objects.create(name=facility_form.cleaned_data['name'],
                                           code=facility_form.cleaned_data['code'],
                                           type=facility_form.cleaned_data['type'])
+            transaction.commit()
             facility_form.save()
             facility = facility_form.facility
+            transaction.commit()
             return render_to_response('cvs/facility/partials/new_facility.html',
                                       {'facility_form':facility_form,
                                        'added_facility':facility},
                                       context_instance=RequestContext(request))
         else:
-            return render_to_response('cvs/facility/partials/new_facility.html',
+            toret = render_to_response('cvs/facility/partials/new_facility.html',
                                       {'facility_form':facility_form},
                                       context_instance=RequestContext(request))
+            transaction.commit()
+            return toret
     else:
         facility_form = FacilityForm(username=request.user)
-        return render_to_response('cvs/facility/partials/new_facility.html',
+        toret = render_to_response('cvs/facility/partials/new_facility.html',
                                   {'facility_form':facility_form},
                                   context_instance=RequestContext(request))
+        transaction.commit()
+        return toret
 

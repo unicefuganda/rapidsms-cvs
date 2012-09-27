@@ -127,7 +127,7 @@ class FacilityFilterForm(FilterForm):
         elif int(facility_pk) == -1:
             return queryset.filter(facility=None)
         else:
-            return queryset.filter(facility=facility_pk)
+            return queryset.filter(facility_id=facility_pk)
 
 class LastReportingFilter(FilterForm):
     last_reporting_date = forms.CharField(max_length=100, required=False)

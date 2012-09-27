@@ -3,7 +3,7 @@ from cvs.views import basic, reporters, map, facilities, ajax_upload
 from healthmodels import *
 from generic.views import generic, generic_row, generic_dashboard, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
-from contact.forms import FreeSearchForm, DistictFilterForm, MassTextForm, RolesFilter
+from contact.forms import FreeSearchForm, FreeSearchForm2, DistictFilterForm, MassTextForm, RolesFilter
 from cvs.forms import ActivateForm, FacilityFilterForm, DeactivateForm, LastReportingFilter, FacilityDistrictFilter
 from cvs.utils import get_reporters
 from cvs.sorters import \
@@ -18,7 +18,7 @@ from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
 from cvs.utils import get_all_messages, get_unsolicited_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
 from mtrack.utils import get_facilites_for_view
-from mtrack.models import Facilities
+from mtrack.models import Facilities, Reporters
 from cvs.reports import *
 from rapidsms_httprouter.models import Message
 from contact.models import MassText
@@ -32,23 +32,23 @@ urlpatterns = patterns('',
    #############################################
    # Registered Users
     url(r'^cvs/reporter/$', login_required(generic), {
-      'model':HealthProviderBase,
+      'model':Reporters,
       'queryset':get_reporters,
-      'filter_forms':[FreeSearchForm, DistictFilterForm, FacilityFilterForm, RolesFilter, LastReportingFilter],
+      'filter_forms':[FreeSearchForm2, DistictFilterForm, FacilityFilterForm, RolesFilter, LastReportingFilter],
       'action_forms':[MassTextForm, DeactivateForm],
       'objects_per_page':25,
-      'partial_row':'cvs/reporter/partials/reporter_row.html',
+      'partial_row':'cvs/reporter/partials/reporter_row2.html',
       'partial_header':'cvs/reporter/partials/partial_header.html',
       'base_template':'cvs/reporter/registered_contacts.html',
       'results_title':'Registered Users',
       'columns':[('Name', True, 'name', SimpleSorter()),
-                 ('Number', True, 'connection__identity', SimpleSorter(),),
-                 ('Role(s)', True, 'groups__name', SimpleSorter(),),
-                 ('District', False, 'district', None,),
+                 ('Number', True, 'connections', SimpleSorter(),),
+                 ('Role(s)', True, 'groups', SimpleSorter(),),
+                 ('District', True, 'district', SimpleSorter(),),
                  ('Last Reporting Date', True, 'last_reporting_date', LatestSubmissionSorter(),),
-                 ('Total Reports', True, 'connection__submissions__count', SimpleSorter(),),
-                 ('Facility', True, 'facility__name', SimpleSorter(),),
-                 ('Location', True, 'location__name', SimpleSorter(),),
+                 ('Total Reports', True, 'total_reports', SimpleSorter(),),
+                 ('Facility', True, 'facility', SimpleSorter(),),
+                 ('Location', True, 'loc_name', SimpleSorter(),),
                  ('Active', True, 'active', SimpleSorter(),),
                  ('', False, '', None,)],
       'sort_column':'last_reporting_date',

@@ -3,7 +3,7 @@
 {% block remaining_row_content %}
     <td>
         {% if object.default_connection %}
-            <a href="/contact/{{ object.default_connection.pk }}/message_history/">
+            <a href="/contact/{{ object.default_connection|split:","|last }}/message_history/">
         {% endif %}
         {% if object.name %}
         	{{ object.name }}
@@ -16,34 +16,34 @@
     </td>
     <td>
         <ul>
-            {% for c in object.connection_set.all %}
+            {% for c in object.connections|split:"," %}
                 <li>
-                    {{ c.identity }}
+                    {{ c }}
                 </li>
             {% endfor %}
         </ul>
     </td>
     <td>
         <ul>
-            {% for g in object.groups.all %}
+            {% for g in object.groups|split:"," %}
                 <li>
-                    {{ g.name }}
+                    {{ g }}
                 </li>
             {% endfor %}
         </ul>
     </td>
-    <td>{{ object.reporting_location|get_district }}</td>
+    <td>{{ object.district }}</td>
 {% block extra_info %}
     <td>{{ object.last_reporting_date|date:"d-m-Y" }}</td>
 {% endblock %}
-    <td>{{ object.connection__submissions__count }}</td>
+    <td>{{ object.total_reports }}</td>
     <td>{{ object.facility }}</td>
     <td id="row_{{ object.pk }}">
         {% if object.reporting_location %}
-            {% ifequal object.reporting_location object.reporting_location|get_district %}
-                {{ object.village_name }}
+            {% ifequal object.loc_name object.district %}
+                {{ object.loc_name }}
             {% else %}
-                {{ object.reporting_location.name }}
+                {{ object.loc_name }}
             {% endifequal %}
         {% else %}
             {{ object.village_name }}

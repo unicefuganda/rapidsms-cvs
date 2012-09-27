@@ -19,7 +19,7 @@ from script.models import Script, ScriptStep
 from rapidsms.models import Contact
 from uganda_common.utils import get_location_for_user, get_messages
 from mtrack.utils import last_reporting_period
-from mtrack.models import AnonymousReport
+from mtrack.models import AnonymousReport, Reporters
 from healthmodels.models.HealthFacility import HealthFacility
 try:
     from django.contrib.sites import Site
@@ -302,9 +302,9 @@ def total_facility_attributes(attribute_slug_list, start_date, end_date, locatio
         .annotate(value=Sum('value_int'))
 
 def get_area(request):
-    if request.user.is_authenticated() and Location.objects.filter(type__name='district', name=request.user.username.capitalize()).count():
+    if request.user.is_authenticated() and Location.objects.filter(type__name='district', name=request.user.username.capitalize()):
         area = Location.objects.filter(type__name='district', name=request.user.username.capitalize())[0]
-    elif request.user.is_authenticated() and Contact.objects.filter(user=request.user).count():
+    elif request.user.is_authenticated() and Contact.objects.filter(user=request.user):
         area = Contact.objects.filter(user=request.user)[0].reporting_location
     else:
         area = Location.tree.root_nodes()[0]
@@ -313,10 +313,12 @@ def get_area(request):
 def get_reporters(**kwargs):
     request = kwargs.pop('request')
     area = get_area(request)
-    toret = HealthProvider.objects.filter(active=True)
+    #toret = HealthProvider.objects.filter(active=True)
+    toret = Reporters.objects.filter(active=True)
     if area:
-        toret = toret.filter(reporting_location__in=area.get_descendants(include_self=True))
-    return toret.select_related('facility', 'location').annotate(Count('connection__submissions')).all()
+        toret = toret.filter(reporting_location__in=area.get_descendants(include_self=True).values_list('id', flat=True))
+    return toret
+    #return toret.select_related('facility__type__name', 'reporting_location').annotate(Count('connection__submissions')).all()
 
 def get_unsolicited_messages(**kwargs):
     request = kwargs.pop('request')
