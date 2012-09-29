@@ -1,5 +1,6 @@
-{% extends 'cvs/reporter/partials/reporter_row.html' %}
+{% extends 'cvs/reporter/partials/reporter_row2.html' %}
 {% load stats_extras %}
 {% block extra_info %}    
-    <td>{{ object.default_connection|join_date|date:"d-m-Y" }}</td>
+    {#<td>{{ object.default_connection|join_date|date:"d-m-Y" }}</td>#}
+    <td>{{ object.last_reporting_date }}</td>
 {% endblock %}
