@@ -18,8 +18,8 @@ from script.utils.handling import find_closest_match, find_best_response
 from ussd.models import ussd_pre_transition, ussd_complete, Navigation, TransitionException, Field, Question
 from rapidsms.contrib.locations.models import Location
 import itertools
-from dhis2.utils import get_reporting_week_for_day
-from cvs.tasks import sendSubmissionToDHIS2
+#from dhis2.utils import get_reporting_week_for_day
+#from cvs.tasks import sendSubmissionToDHIS2
 from django.conf import settings
 from rapidsms_httprouter.models import Message
 from django.dispatch import receiver
@@ -489,14 +489,14 @@ def xform_received_handler(sender, **kwargs):
         if health_provider.facility:
             health_provider.facility.last_reporting_date = datetime.datetime.now().date()
             health_provider.facility.save()
-            if getattr(settings, 'DHIS2_ENABLED', False):
-                facility_code = health_provider.facility.code
-                week_num = get_reporting_week_for_day(datetime.datetime.now().date())
-                yr = datetime.datetime.now().year
-                week = "%sW%s" % (yr, format(week_num, "02d"))
-
-                #now make a celery call to upload the data
-                sendSubmissionToDHIS2.delay(submission, facility_code, week)
+#            if getattr(settings, 'DHIS2_ENABLED', False):
+#                facility_code = health_provider.facility.code
+#                week_num = get_reporting_week_for_day(datetime.datetime.now().date())
+#                yr = datetime.datetime.now().year
+#                week = "%sW%s" % (yr, format(week_num, "02d"))
+#
+#                #now make a celery call to upload the data
+#                sendSubmissionToDHIS2.delay(submission, facility_code, week)
 
         submission.response = "You reported %s.If there is an error,please resend." % ','.join(value_list)
         submission.save()
