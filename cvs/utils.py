@@ -481,8 +481,11 @@ def get_training_messages(request):
     return Message.objects.filter(connection__contact__active=False).order_by('-date')
 
 def get_training_vhts(request):
-    return Reporters.objects.filter(active=False)
-    #return HealthProvider.objects.filter(active=False).select_related('facility', 'location').annotate(Count('connection__submissions')).all()
+    area = get_area(request)
+    toret = Reporters.objects.filter(active=False)
+    if area:
+        toret = toret.filter(reporting_location__in=area.get_descendants(include_self=True).values_list('id', flat=True))
+    return toret
 
 def get_nolocation_vhts(request):
     return HealthProvider.objects.filter(location=None, reporting_location=None).select_related('facility', 'location').annotate(Count('connection__submissions')).all()
