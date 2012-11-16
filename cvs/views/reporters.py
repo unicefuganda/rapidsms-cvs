@@ -48,6 +48,7 @@ def editReporterLocations(request, reporter_pk=None, district_pk=None):
     for all the descendants of the district that the reporter belongs to
     (or all locations, if the district is de-selected)
     """
+    locations = None
     if reporter_pk:
         reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
         locations = reporter.reporting_location or reporter.location
