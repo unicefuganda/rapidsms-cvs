@@ -1,19 +1,16 @@
 from django.conf.urls.defaults import *
 from cvs.views import basic, reporters, map, facilities, ajax_upload
-from healthmodels import *
-from generic.views import generic, generic_row, generic_dashboard, generic_map
+from generic.views import generic, generic_row, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
-from contact.forms import FreeSearchForm, FreeSearchForm2, DistictFilterForm, MassTextForm, RolesFilter
+from contact.forms import FreeSearchForm, FreeSearchForm2, MassTextForm, RolesFilter
+from mtrack.forms import DistictFilterForm
 from cvs.forms import ActivateForm, FacilityFilterForm, DeactivateForm, LastReportingFilter, FacilityDistrictFilter
 from cvs.utils import get_reporters
 from cvs.sorters import \
-    LatestSubmissionSorter, \
-    LatestJoinedSorter, \
-    TotalFacilitySubmissionSorter
+    LatestSubmissionSorter
 from uganda_common.reports import XFormDateGetter
 from cvs.views.stats import export_as_excel
 from healthmodels.models.HealthProvider import HealthProviderBase
-from healthmodels.models.HealthFacility import HealthFacilityBase
 from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
 from cvs.utils import get_all_messages, get_unsolicited_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
@@ -23,8 +20,7 @@ from cvs.reports import *
 from rapidsms_httprouter.models import Message
 from contact.models import MassText
 from contact.forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
-from django.views.generic.simple import direct_to_template
-from django.views.decorators.cache import cache_page
+
 
 urlpatterns = patterns('',
    #############################################

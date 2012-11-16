@@ -76,6 +76,7 @@ def editReporterFacilities(request, reporter_pk=None, district_pk=None):
     of the district that the reporter belongs to
     (or all heatlh facilities, if the district is de-selected)
     """
+    facilities = None
     if reporter_pk:
         reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)
         locations = reporter.reporting_location or reporter.location
