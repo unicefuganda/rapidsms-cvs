@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
 from cvs.utils import get_all_messages, get_unsolicited_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
 from mtrack.utils import get_facilites_for_view
-from mtrack.models import Facilities, Reporters
+from mtrack.models import Facilities, Reporters, Schedules
 from cvs.reports import *
 from rapidsms_httprouter.models import Message
 from contact.models import MassText
@@ -30,7 +30,7 @@ urlpatterns = patterns('',
     url(r'^cvs/reporter/$', login_required(generic), {
       'model':Reporters,
       'queryset':get_reporters,
-      'filter_forms':[FreeSearchForm2, DistictFilterForm, FacilityFilterForm, RolesFilter, LastReportingFilter],
+      'filter_forms':[FreeSearchForm2, FacilityFilterForm, RolesFilter, LastReportingFilter, DistictFilterForm],
       'action_forms':[MassTextForm, DeactivateForm],
       'objects_per_page':25,
       'partial_row':'cvs/reporter/partials/reporter_row2.html',
@@ -285,3 +285,4 @@ urlpatterns = patterns('',
     }, name="cvs-forms"),
     url(r"^cvs/forms/(\d+)/submissions/$", login_required(basic.view_submissions)),
 )
+
