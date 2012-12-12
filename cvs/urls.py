@@ -2,8 +2,8 @@ from django.conf.urls.defaults import *
 from cvs.views import basic, reporters, map, facilities, ajax_upload
 from generic.views import generic, generic_row, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
-from contact.forms import FreeSearchForm, FreeSearchForm2, MassTextForm, RolesFilter
-from mtrack.forms import DistictFilterForm
+from contact.forms import FreeSearchForm2, MassTextForm
+from mtrack.forms import DistrictFilterForm, RolesFilter
 from cvs.forms import ActivateForm, FacilityFilterForm, DeactivateForm, LastReportingFilter, FacilityDistrictFilter
 from cvs.utils import get_reporters
 from cvs.sorters import \
@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
 from cvs.utils import get_all_messages, get_unsolicited_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
 from mtrack.utils import get_facilites_for_view
-from mtrack.models import Facilities, Reporters, Schedules
+from mtrack.models import Facilities, Reporters
 from cvs.reports import *
 from rapidsms_httprouter.models import Message
 from contact.models import MassText
@@ -30,7 +30,7 @@ urlpatterns = patterns('',
     url(r'^cvs/reporter/$', login_required(generic), {
       'model':Reporters,
       'queryset':get_reporters,
-      'filter_forms':[FreeSearchForm2, FacilityFilterForm, RolesFilter, LastReportingFilter, DistictFilterForm],
+      'filter_forms':[FreeSearchForm2, FacilityFilterForm, RolesFilter, LastReportingFilter, DistrictFilterForm],
       'action_forms':[MassTextForm, DeactivateForm],
       'objects_per_page':25,
       'partial_row':'cvs/reporter/partials/reporter_row2.html',
@@ -54,7 +54,7 @@ urlpatterns = patterns('',
     url(r'^cvs/train/reporter/$', login_required(generic), {
       'model':Reporters,
       'queryset':get_training_vhts,
-      'filter_forms':[FreeSearchForm2, DistictFilterForm, FacilityFilterForm, RolesFilter],
+      'filter_forms':[FreeSearchForm2, DistrictFilterForm, FacilityFilterForm, RolesFilter],
       'action_forms':[MassTextForm, ActivateForm],
       'objects_per_page':25,
       'partial_row':'cvs/reporter/partials/trainee_row.html',
