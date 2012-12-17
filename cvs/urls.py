@@ -54,7 +54,7 @@ urlpatterns = patterns('',
     url(r'^cvs/train/reporter/$', login_required(generic), {
       'model':Reporters,
       'queryset':get_training_vhts,
-      'filter_forms':[FreeSearchForm2, DistrictFilterForm, FacilityFilterForm, RolesFilter],
+      'filter_forms':[FreeSearchForm2, FacilityFilterForm, RolesFilter, DistrictFilterForm],
       'action_forms':[MassTextForm, ActivateForm],
       'objects_per_page':25,
       'partial_row':'cvs/reporter/partials/trainee_row.html',
