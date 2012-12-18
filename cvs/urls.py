@@ -2,6 +2,8 @@ from django.conf.urls.defaults import *
 from cvs.views import basic, reporters, map, facilities, ajax_upload
 from generic.views import generic, generic_row, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
+from contact.forms import FreeSearchForm, FreeSearchForm2, MassTextForm, RolesFilter
+from mtrack.forms import DistrictFilterForm
 from contact.forms import FreeSearchForm2, MassTextForm
 from mtrack.forms import DistrictFilterForm, RolesFilter, PhaseFilter
 from cvs.forms import ActivateForm, FacilityFilterForm, DeactivateForm, LastReportingFilter, FacilityDistrictFilter
@@ -54,6 +56,7 @@ urlpatterns = patterns('',
     url(r'^cvs/train/reporter/$', login_required(generic), {
       'model':Reporters,
       'queryset':get_training_vhts,
+      'filter_forms':[FreeSearchForm2, DistrictFilterForm, FacilityFilterForm, RolesFilter],
       'filter_forms':[FreeSearchForm2, FacilityFilterForm, RolesFilter, DistrictFilterForm],
       'action_forms':[MassTextForm, ActivateForm],
       'objects_per_page':25,
@@ -100,12 +103,12 @@ urlpatterns = patterns('',
     url(r'^cvs/((train|orphaned)/)?reporter/(?P<reporter_pk>\d+)/locations/edit/((?P<district_pk>\d+)/)?', reporters.editReporterLocations),
     url(r'^cvs/((train|orphaned)/)?reporter/locations/edit/((?P<district_pk>\d+)/)?', reporters.editReporterLocations),
     url(r'^cvs/((train|orphaned)/)?reporter/((?P<reporter_pk>\d+)/)?facilities/edit/((?P<district_pk>\d+)/)?', reporters.editReporterFacilities),
-    #url(r'^cvs/((train|orphaned)/)?reporter/facilities/edit/((?P<district_pk>\d+)/)?', reporters.editReporterFacilities),
+    # url(r'^cvs/((train|orphaned)/)?reporter/facilities/edit/((?P<district_pk>\d+)/)?', reporters.editReporterFacilities),
     url(r'^cvs/((train|orphaned)/)?reporter/(?P<reporter_pk>\d+)/delete', reporters.deleteReporter),
     url(r'^cvs/(orphaned/)?reporter/(?P<pk>\d+)/show', generic_row, {'model':Reporters, 'partial_row':'cvs/reporter/partials/reporter_row2.html'}),
     url(r'^cvs/train/reporter/(?P<pk>\d+)/show', generic_row, {'model':Reporters, 'partial_row':'cvs/reporter/partials/trainee_row.html'}),
     url(r'^cvs/reporter/new', reporters.newReporter),
-    #url(r'^cvs/reporter/new',),
+    # url(r'^cvs/reporter/new',),
     url(r'^ajax_upload/$', ajax_upload.ajax_upload, name="ajax_upload"),
 
 
@@ -124,11 +127,11 @@ urlpatterns = patterns('',
       'results_title':'Health Facilities',
       'columns':[('Name', True, 'name', SimpleSorter()),
                  ('Type', True, 'type', SimpleSorter()),
-                 #('Code', True, 'code', SimpleSorter(),),
+                 # ('Code', True, 'code', SimpleSorter(),),
                  ('District', True, 'district', SimpleSorter(),),
                  ('Last Reporting Date', True, 'last_reporting_date', LatestSubmissionSorter(),),
-                 ('Total Reports', True, 'total_reports', SimpleSorter()), #TotalFacilitySubmissionSorter(),),
-                 ('Catchment Areas', True, 'catchment_areas', SimpleSorter()), #__name', SimpleSorter(),),
+                 ('Total Reports', True, 'total_reports', SimpleSorter()),  # TotalFacilitySubmissionSorter(),),
+                 ('Catchment Areas', True, 'catchment_areas', SimpleSorter()),  # __name', SimpleSorter(),),
                  ('', False, '', None,)],
       'sort_column':'last_reporting_date',
       'sort_ascending':False,
@@ -179,7 +182,7 @@ urlpatterns = patterns('',
                  ],
        'sort_column':'date',
        'sort_ascending':False,
-    },), #name="cvs-messagelog"),
+    },),  # name="cvs-messagelog"),
 
     url(r'^cvs/allmessagelog/$', login_required(generic), {
        'model':Message,
