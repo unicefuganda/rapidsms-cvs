@@ -3,7 +3,7 @@ from cvs.views import basic, reporters, map, facilities, ajax_upload
 from generic.views import generic, generic_row, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
 from contact.forms import FreeSearchForm2, MassTextForm
-from mtrack.forms import DistrictFilterForm, RolesFilter
+from mtrack.forms import DistrictFilterForm, RolesFilter, PhaseFilter
 from cvs.forms import ActivateForm, FacilityFilterForm, DeactivateForm, LastReportingFilter, FacilityDistrictFilter
 from cvs.utils import get_reporters
 from cvs.sorters import \
@@ -30,7 +30,7 @@ urlpatterns = patterns('',
     url(r'^cvs/reporter/$', login_required(generic), {
       'model':Reporters,
       'queryset':get_reporters,
-      'filter_forms':[FreeSearchForm2, FacilityFilterForm, RolesFilter, LastReportingFilter, DistrictFilterForm],
+      'filter_forms':[FreeSearchForm2, FacilityFilterForm, RolesFilter, LastReportingFilter, DistrictFilterForm,PhaseFilter],
       'action_forms':[MassTextForm, DeactivateForm],
       'objects_per_page':25,
       'partial_row':'cvs/reporter/partials/reporter_row2.html',
