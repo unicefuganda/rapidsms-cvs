@@ -2,11 +2,9 @@ from django.conf.urls.defaults import *
 from cvs.views import basic, reporters, map, facilities, ajax_upload
 from generic.views import generic, generic_row, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
-from contact.forms import FreeSearchForm, FreeSearchForm2, MassTextForm, RolesFilter
-from mtrack.forms import DistrictFilterForm
-from contact.forms import FreeSearchForm2, MassTextForm
-from mtrack.forms import DistrictFilterForm, RolesFilter, PhaseFilter
-from cvs.forms import ActivateForm, FacilityFilterForm, DeactivateForm, LastReportingFilter, FacilityDistrictFilter
+from contact.forms import  FreeSearchForm2, MassTextForm
+from mtrack.forms import DistrictFilterForm, RolesFilter, PhaseFilter, FacilityFilterForm
+from cvs.forms import ActivateForm, DeactivateForm, LastReportingFilter, FacilityDistrictFilter
 from cvs.utils import get_reporters
 from cvs.sorters import \
     LatestSubmissionSorter
@@ -32,7 +30,7 @@ urlpatterns = patterns('',
     url(r'^cvs/reporter/$', login_required(generic), {
       'model':Reporters,
       'queryset':get_reporters,
-      'filter_forms':[FreeSearchForm2, FacilityFilterForm, RolesFilter, LastReportingFilter, DistrictFilterForm,PhaseFilter],
+      'filter_forms':[FreeSearchForm2, DistrictFilterForm, RolesFilter, LastReportingFilter, FacilityFilterForm, PhaseFilter],
       'action_forms':[MassTextForm, DeactivateForm],
       'objects_per_page':25,
       'partial_row':'cvs/reporter/partials/reporter_row2.html',
@@ -56,7 +54,6 @@ urlpatterns = patterns('',
     url(r'^cvs/train/reporter/$', login_required(generic), {
       'model':Reporters,
       'queryset':get_training_vhts,
-      'filter_forms':[FreeSearchForm2, DistrictFilterForm, FacilityFilterForm, RolesFilter],
       'filter_forms':[FreeSearchForm2, FacilityFilterForm, RolesFilter, DistrictFilterForm],
       'action_forms':[MassTextForm, ActivateForm],
       'objects_per_page':25,
