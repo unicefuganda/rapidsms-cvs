@@ -11,6 +11,7 @@ from mtrack.utils import \
     get_last_reporting_date, \
     get_facility_reports, \
     reporting_facilities
+from mtrack.models import XFormSubmissionExtras
 import calendar
 import time
 import re
@@ -63,6 +64,18 @@ def join_date(connection):
 
 def get_submission_values(submission):
     return submission.eav.get_values().order_by('attribute__xformfield__order')
+
+def get_submission_facility(submission):
+    try:
+        return submission.xformsubmissionextras_set.all()[0].facility.name
+    except:
+        return ""
+
+def get_submission_facility_type(submission):
+    try:
+        return submission.xformsubmissionextras_set.all()[0].facility.type.name
+    except:
+        return ""
 
 def name(location):
     return location.name
@@ -192,7 +205,7 @@ def do_date_range(parser, token):
 
 	return DateRangeNode(chunks[1], chunks[2], chunks[3], chunks[4])
 
-#get reporting period for given date
+# get reporting period for given date
 def get_reporting_period(d, period=0, weekday=getattr(settings, 'FIRSTDAY_OF_REPORTING_WEEK', 3)):
     d = datetime.datetime(d.year, d.month, d.day)
     last_thursday = d - datetime.timedelta((((7 - weekday) + d.weekday()) % 7)) - datetime.timedelta((period - 1) * 7)
@@ -207,7 +220,7 @@ def get_reporting_week_number(d):
     if start_of_year.weekday() != 0:
         toret += 1
     return toret
-#return name for user's excel report
+# return name for user's excel report
 def get_user_report_name(user, args):
     rtype = args.strip()
     psurfix = '' if rtype == '033b' else rtype
@@ -235,6 +248,8 @@ register.filter('hash', hash)
 register.filter('get_district', get_district)
 register.filter('get_facility_district', get_facility_district)
 register.filter('get_submission_values', get_submission_values)
+register.filter('get_submission_facility', get_submission_facility)
+register.filter('get_submission_facility_type', get_submission_facility_type)
 register.filter('breadcrumb', breadcrumb)
 register.filter('reporting_week', get_reporting_week_number)
 register.filter('get_user_report_name', get_user_report_name)

@@ -18,12 +18,13 @@ from script.utils.handling import find_closest_match, find_best_response
 from ussd.models import ussd_pre_transition, ussd_complete, Navigation, TransitionException, Field, Question
 from rapidsms.contrib.locations.models import Location
 import itertools
-#from dhis2.utils import get_reporting_week_for_day
-#from cvs.tasks import sendSubmissionToDHIS2
+# from dhis2.utils import get_reporting_week_for_day
+# from cvs.tasks import sendSubmissionToDHIS2
 from django.conf import settings
 from rapidsms_httprouter.models import Message
 from django.dispatch import receiver
 from unregister.models import Blacklist
+# from mtrack.models import XFormSubmissionExtras
 
 mcd_keywords = getattr(settings, 'MCDTRAC_XFORMS_KEYWORDS', ['dpt', 'muac', 'tet', 'anc', 'eid', 'reg', 'me', 'vit', 'worm'])
 
@@ -307,11 +308,15 @@ def check_validity(xform_type, submission, health_provider, patient, day_range):
 def check_basic_validity(xform_type, submission, health_provider, day_range):
     xform = XForm.objects.get(keyword=xform_type)
     start_date = datetime.datetime.now() - datetime.timedelta(hours=(day_range * 24))
+    new_facility = submission.xformsubmissionextras_set.all()[0].facility if submission.xformsubmissionextras_set.all() else health_provider.facility
     for s in XFormSubmission.objects.filter(connection__contact__healthproviderbase__healthprovider=health_provider,
                                             xform=xform,
                                             created__gte=start_date).exclude(pk=submission.pk):
-        s.has_errors = True
-        s.save()
+        # if and only if submissions are for the same facility - then invalidate old
+        old_facility = s.xformsubmissionextras_set.all()[0].facility if s.xformsubmissionextras_set.all() else None
+        if old_facility and new_facility and (old_facility.id == new_facility.id):
+            s.has_errors = True
+            s.save()
 
 def patient_label(patient):
         gender = 'male' if patient.gender == 'M' else 'female'
@@ -346,7 +351,6 @@ def xform_received_handler(sender, **kwargs):
 
     if submission.has_errors:
         return
-
     # TODO: check validity
     patient = None
     kwargs.setdefault('message', None)
@@ -488,6 +492,7 @@ def xform_received_handler(sender, **kwargs):
         health_provider.save()
         if health_provider.facility:
             health_provider.facility.last_reporting_date = datetime.datetime.now().date()
+            # XFormSubmissionExtras.objects.create(submission=submission, facility=health_provider.facility)
             health_provider.facility.save()
 #            if getattr(settings, 'DHIS2_ENABLED', False):
 #                facility_code = health_provider.facility.code
@@ -500,6 +505,7 @@ def xform_received_handler(sender, **kwargs):
 
         submission.response = "You reported %s.If there is an error,please resend." % ','.join(value_list)
         submission.save()
+
 
     if xform.keyword in XFORMS and \
         not (submission.connection.contact and submission.connection.contact.active):
@@ -613,8 +619,8 @@ def ussd_reg(sender, **kwargs):
             facility = find_closest_match(facility, HealthFacility.objects)
         provider = HealthProvider.objects.create(name=name, facility=facility, reporting_location=district, active=False)
         provider.connection_set.add(sender.connection)
-        #sender.connection.contact = provider
-        #sender.connection.save()
+        # sender.connection.contact = provider
+        # sender.connection.save()
     except Navigation.DoesNotExist:
         pass
 
