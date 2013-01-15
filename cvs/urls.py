@@ -8,6 +8,7 @@ from cvs.forms import ActivateForm, DeactivateForm, LastReportingFilter, Facilit
 from cvs.utils import get_reporters
 from cvs.sorters import \
     LatestSubmissionSorter
+from rapidsms.contrib.locations.models import Location
 from uganda_common.reports import XFormDateGetter
 from cvs.views.stats import export_as_excel
 from healthmodels.models.HealthProvider import HealthProviderBase
@@ -49,6 +50,7 @@ urlpatterns = patterns('',
                  ('', False, '', None,)],
       'sort_column':'last_reporting_date',
       'sort_ascending':False,
+      'districts':[d.upper() for d in Location.objects.filter(type='district').values_list('name',flat=True)]
     }, name="cvs-contact"),
     # Trainees
     url(r'^cvs/train/reporter/$', login_required(generic), {
