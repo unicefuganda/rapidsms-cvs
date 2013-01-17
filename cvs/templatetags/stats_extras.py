@@ -9,9 +9,7 @@ from django.conf import settings
 from mtrack.utils import \
     get_district_for_facility, \
     get_last_reporting_date, \
-    get_facility_reports, \
     reporting_facilities
-from mtrack.models import XFormSubmissionExtras
 import calendar
 import time
 import re

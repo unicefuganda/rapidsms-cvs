@@ -70,13 +70,14 @@ def editReporterLocations(request, reporter_pk=None, district_pk=None):
                               context_instance=RequestContext(request))
 
 
-def editReporterFacilities(request, reporter_pk=None, district_pk=None):
+def editReporterFacilities(request, reporter_pk=None, district_pk=None,district=None):
     """ 
     This view renders only the select box for facilities, which is filtered
     to only those health facilities that have catchment areas within all the descendants 
     of the district that the reporter belongs to
     (or all heatlh facilities, if the district is de-selected)
     """
+    if district: district_pk = Location.objects.filter(type='district').get(name__iexact=district).pk
     facilities = None
     if reporter_pk:
         reporter = get_object_or_404(HealthProviderBase, pk=reporter_pk)

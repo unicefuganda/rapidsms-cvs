@@ -1,4 +1,5 @@
 {% extends "cvs/reporter/contacts_base.html" %}
+{% load get_id %}
 {% block content %}
 	<script language="javascript">
         function createUploader(){
@@ -37,7 +38,9 @@
                 $('#new').hide();
             });
             {% if request.user.username in districts %}
-            $('#id_phase').parents('table').hide()
+            $('#id_phase').parents('table').hide();
+            $('#id_facility').parent('td').load('/cvs/reporter/facilities/edit/{{ request.user.username }}/');
+            $('#id_district2').val('{{ request.user.username|district_id }}').attr('disabled','disabled');
             {% endif %}
 		});
 	</script>
