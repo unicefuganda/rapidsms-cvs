@@ -50,7 +50,7 @@ urlpatterns = patterns('',
                  ('', False, '', None,)],
       'sort_column':'last_reporting_date',
       'sort_ascending':False,
-      'districts':[d.upper() for d in Location.objects.filter(type='district').values_list('name',flat=True)]
+      'districts':[d.upper() for d in Location.objects.filter(type='district').values_list('name', flat=True)]
     }, name="cvs-contact"),
     # Trainees
     url(r'^cvs/train/reporter/$', login_required(generic), {
@@ -130,7 +130,8 @@ urlpatterns = patterns('',
                  ('District', True, 'district', SimpleSorter(),),
                  ('Last Reporting Date', True, 'last_reporting_date', LatestSubmissionSorter(),),
                  ('Total Reports', True, 'total_reports', SimpleSorter()),  # TotalFacilitySubmissionSorter(),),
-                 ('Catchment Areas', True, 'catchment_areas', SimpleSorter()),  # __name', SimpleSorter(),),
+                 # ('Catchment Areas', True, 'catchment_areas', SimpleSorter()),  # __name', SimpleSorter(),),
+                 ('Has Complete Rpt', False, '', SimpleSorter(),),
                  ('', False, '', None,)],
       'sort_column':'last_reporting_date',
       'sort_ascending':False,

@@ -22,9 +22,14 @@
     </td>
     <td id="row_{{ object.pk }}">
         <ul>
-        {% for l in object.catchment_areas|split:"," %}
-        	<li>{{ l }}</li>
-        {% endfor %}
+            {#{% for l in object.catchment_areas|split:"," %}#}
+            {#	<li>{{ l }}</li>#}
+            {#{% endfor %}#}
+        {% if object|facility_has_complete_report %}
+            Yes
+        {% else %}
+            No
+        {% endif %}
         </ul>
     </td>
     <td class="button_col">

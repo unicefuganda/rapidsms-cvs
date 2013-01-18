@@ -9,7 +9,12 @@ from django.conf import settings
 from mtrack.utils import \
     get_district_for_facility, \
     get_last_reporting_date, \
-    reporting_facilities
+    reporting_facilities, \
+    get_facility_reports, \
+    reporting_facilities, \
+    get_facility_reports, \
+    reporting_facilities, last_reporting_period
+from mtrack.models import XFormSubmissionExtras
 import calendar
 import time
 import re
@@ -74,6 +79,17 @@ def get_submission_facility_type(submission):
         return submission.xformsubmissionextras_set.all()[0].facility.type.name
     except:
         return ""
+
+def facility_has_complete_report(facility_id):
+    required_keywords = getattr(settings, 'COMPLETE_REPORTS_KEYWORDS', ['act', 'cases', 'treat', 'test', 'opd'])
+    kws = XFormSubmissionExtras.objects.filter(facility=facility_id,
+            submission__has_errors=False,
+            submission__xform__keyword__in=required_keywords,
+            cdate__range=last_reporting_period(period=0, todate=True)).distinct().\
+                    values_list('submission__xform__keyword', flat=True)
+    if len(kws) == len(required_keywords):
+        return True
+    return False
 
 def name(location):
     return location.name
@@ -245,6 +261,7 @@ register.filter('facility_reports', facility_reports)
 register.filter('hash', hash)
 register.filter('get_district', get_district)
 register.filter('get_facility_district', get_facility_district)
+register.filter('facility_has_complete_report', facility_has_complete_report)
 register.filter('get_submission_values', get_submission_values)
 register.filter('get_submission_facility', get_submission_facility)
 register.filter('get_submission_facility_type', get_submission_facility_type)

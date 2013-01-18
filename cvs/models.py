@@ -465,6 +465,12 @@ def xform_received_handler(sender, **kwargs):
         submission.save()
 
     elif xform.keyword in ['act', 'com', 'mal', 'rutf', 'home', 'epi', 'cases', 'death', 'opd', 'test', 'treat', 'rdt', 'qun', 'med', 'doc']:
+        if datetime.date.today().weekday() in (4, 5, 6):
+            submission.response = "Your HMIS 033b report is late and has NOT been accepted by mTrack. Send a copy of this report to your DHT. All 033B " + \
+            "reports on mTrac should be submitted on Monday"
+            submission.has_errors = True
+            submission.save()
+            return
         check_basic_validity(xform.keyword, submission, health_provider, 1)
 
         # aliasing for different epi commands
