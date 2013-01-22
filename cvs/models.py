@@ -2,29 +2,23 @@ from rapidsms_xforms.models import XFormField, XForm, XFormSubmission, dl_distan
 import re
 import datetime
 from healthmodels.models import *
-from healthmodels.models.HealthProvider import HealthProviderBase
 from rapidsms.contrib.locations.models import Location
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import Group
-from django.db.models.signals import pre_delete, post_syncdb, post_save
+from django.db.models.signals import pre_delete, post_save
 from rapidsms.models import Contact
 from poll.models import Poll
 from eav.models import Attribute
 from cvs.utils import XFORMS
 from script.signals import *
 from script.models import *
-from uganda_common.utils import parse_district_value
 from script.utils.handling import find_closest_match, find_best_response
 from ussd.models import ussd_pre_transition, ussd_complete, Navigation, TransitionException, Field, Question
-from rapidsms.contrib.locations.models import Location
 import itertools
-# from dhis2.utils import get_reporting_week_for_day
-# from cvs.tasks import sendSubmissionToDHIS2
 from django.conf import settings
 from rapidsms_httprouter.models import Message
 from django.dispatch import receiver
 from unregister.models import Blacklist
-# from mtrack.models import XFormSubmissionExtras
 
 mcd_keywords = getattr(settings, 'MCDTRAC_XFORMS_KEYWORDS', ['dpt', 'muac', 'tet', 'anc', 'eid', 'reg', 'me', 'vit', 'worm'])
 
@@ -309,14 +303,11 @@ def check_basic_validity(xform_type, submission, health_provider, day_range):
     xform = XForm.objects.get(keyword=xform_type)
     start_date = datetime.datetime.now() - datetime.timedelta(hours=(day_range * 24))
     new_facility = submission.xformsubmissionextras_set.all()[0].facility if submission.xformsubmissionextras_set.all() else health_provider.facility
-    for s in XFormSubmission.objects.filter(connection__contact__healthproviderbase__healthprovider=health_provider,
+    for s in XFormSubmission.objects.filter(connection__contact__healthproviderbase__healthprovider__facility=new_facility,
                                             xform=xform,
                                             created__gte=start_date).exclude(pk=submission.pk):
-        # if and only if submissions are for the same facility - then invalidate old
-        old_facility = s.xformsubmissionextras_set.all()[0].facility if s.xformsubmissionextras_set.all() else None
-        if old_facility and new_facility and (old_facility.id == new_facility.id):
-            s.has_errors = True
-            s.save()
+        s.has_errors = True
+        s.save()
 
 def patient_label(patient):
         gender = 'male' if patient.gender == 'M' else 'female'
