@@ -339,7 +339,7 @@ def get_all_messages(**kwargs):
     Get all messages that are direct responses to polls (not related to the anonymous hotline)
     """
     request = kwargs.pop('request')
-    area = get_location_for_user(request)
+    area = get_location_for_user(request.user)
     if not area == Location.tree.root_nodes()[0]:
         return Message.objects.exclude(connection__identity__in=getattr(settings, 'MODEM_NUMBERS', ['256777773260', '256752145316', '256711957281', '256790403038', '256701205129'])).\
             exclude(connection__backend__name="yo8200").filter(direction='I', connection__contact__reporting_location__in=area.get_descendants(include_self=True).all()).order_by('-date')
