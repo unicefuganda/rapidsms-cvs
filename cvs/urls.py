@@ -12,12 +12,15 @@ from rapidsms.contrib.locations.models import Location
 from uganda_common.reports import XFormDateGetter
 from cvs.views.stats import export_as_excel
 from healthmodels.models.HealthProvider import HealthProviderBase
-from django.contrib.auth.decorators import login_required
+try:
+    from mtrack.decorators import login_required
+except ImportError:
+    from django.contrib.auth.decorators import login_required
 from rapidsms_xforms.models import XForm
 from cvs.utils import get_all_messages, get_unsolicited_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
 from mtrack.utils import get_facilites_for_view
 from mtrack.models import Facilities, Reporters
-from cvs.reports import *
+from cvs.reports import HomeReport, DeathReport, BirthReport, EpiReport, MuacReport, MainReport, MTrackMalariaReport, MTrackNutritionReport, MTrackBirthReport, MTrackEpiReport, MTrackReport
 from rapidsms_httprouter.models import Message
 from contact.models import MassText
 from contact.forms import FreeSearchTextForm, DistictFilterMessageForm, HandledByForm, ReplyTextForm
@@ -247,7 +250,7 @@ urlpatterns = patterns('',
     (r'^cvs/death/', include(DeathReport().as_urlpatterns())),
     (r'^cvs/home/', include(HomeReport().as_urlpatterns())),
 
-    (r'^mtrack/stats/', include(MTrackReport().as_urlpatterns(name='mtrack-stats'))),
+    (r'^mtrack/stats/', include(MTrackReport().as_urlpatterns(name='mtrack-stats',login_wrapper=login_required))),
     (r'^mtrack/epi/', include(MTrackEpiReport().as_urlpatterns())),
     (r'^mtrack/birth/', include(MTrackBirthReport().as_urlpatterns())),
     (r'^mtrack/muac/', include(MTrackNutritionReport().as_urlpatterns())),
