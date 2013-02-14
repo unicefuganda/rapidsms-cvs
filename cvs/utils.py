@@ -1,25 +1,18 @@
-import itertools
-from django.db import connection
-from django.db.models import Q, Sum
-from django.utils.datastructures import SortedDict
-from django.contrib.auth.models import Group
-from healthmodels.models.HealthProvider import HealthProvider, HealthProviderBase
+from django.db.models import Sum
+from healthmodels.models.HealthProvider import HealthProvider
 from rapidsms_xforms.models import *
 import datetime
-import time
 from django.http import HttpResponse
 from django.db.models import Count
-from uganda_common.utils import TIME_RANGES
 from rapidsms_httprouter.models import Message
 from contact.models import MassText
-from poll.models import Poll, Category, Rule
+from poll.models import Poll
 from rapidsms.contrib.locations.models import Location
 from django.conf import settings
-from script.models import Script, ScriptStep
 from rapidsms.models import Contact
-from uganda_common.utils import get_location_for_user, get_messages
-from mtrack.utils import last_reporting_period
-from mtrack.models import AnonymousReport, Reporters
+from uganda_common.utils import get_location_for_user
+from mtrack.utils import last_reporting_period,get_messages
+from mtrack.models import Reporters
 from healthmodels.models.HealthFacility import HealthFacility
 try:
     from django.contrib.sites import Site
