@@ -10,8 +10,8 @@ from poll.models import Poll
 from rapidsms.contrib.locations.models import Location
 from django.conf import settings
 from rapidsms.models import Contact
-from uganda_common.utils import get_location_for_user
-from mtrack.utils import last_reporting_period,get_messages
+from uganda_common.utils import get_location_for_user,get_messages
+from mtrack.utils import last_reporting_period
 from mtrack.models import Reporters
 from healthmodels.models.HealthFacility import HealthFacility
 try:
