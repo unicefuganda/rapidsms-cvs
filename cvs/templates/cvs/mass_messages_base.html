@@ -3,6 +3,7 @@
     Mass Messages - {{ block.super }}
 {% endblock %}
 {% block extra_links %}
+<a href="{% url massmessage_excel %}" style="font-size:12pt">&lt;&lt; Download Excel Log</a> |
 <a href="{% url cvs-messagelog %}" style="font-size:12pt">&lt;&lt; Message Log</a> |
 <a href="{% url cvs-training-messagelog %}" style="font-size:12pt">&lt;&lt; Training Messages</a> |
 <a href="{% url cvs-allmessages %}" style="font-size:12pt">&lt;&lt; All Incoming Messages</a>
