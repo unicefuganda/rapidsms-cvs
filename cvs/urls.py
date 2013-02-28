@@ -13,10 +13,7 @@ from uganda_common.reports import XFormDateGetter
 from cvs.views.stats import export_as_excel
 from healthmodels.models.HealthProvider import HealthProviderBase
 
-try:
-    from mtrack.decorators import login_required
-except ImportError:
-    from django.contrib.auth.decorators import login_required
+from mtrack.decorators import login_required
 from rapidsms_xforms.models import XForm
 from cvs.utils import get_all_messages, get_unsolicited_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
 from mtrack.utils import get_facilites_for_view, get_location_mass_messages
@@ -119,7 +116,7 @@ urlpatterns = patterns('',
                            {'model': Reporters, 'partial_row': 'cvs/reporter/partials/reporter_row2.html'}),
                        url(r'^cvs/train/reporter/(?P<pk>\d+)/show', generic_row,
                            {'model': Reporters, 'partial_row': 'cvs/reporter/partials/trainee_row.html'}),
-                       url(r'^cvs/reporter/new', reporters.newReporter),
+                       url(r'^cvs/reporter/new', login_required(reporters.newReporter)),
                        # url(r'^cvs/reporter/new',),
                        url(r'^ajax_upload/$', ajax_upload.ajax_upload, name="ajax_upload"),
 
@@ -151,14 +148,14 @@ urlpatterns = patterns('',
                            'sort_ascending': False,
                        }, name="cvs-facility"),
 
-                       url(r'^cvs/facility/(?P<facility_pk>\d+)/edit', facilities.editFacility),
+                       url(r'^cvs/facility/(?P<facility_pk>\d+)/edit', login_required(facilities.editFacility)),
                        url(r'^cvs/facility/(?P<facility_pk>\d+)/locations/edit/((?P<district_pk>\d+)/)?',
                            facilities.editFacilityLocations),
-                       url(r'^cvs/facility/locations/new/((?P<district_pk>\d+)/)?', facilities.editFacilityLocations),
-                       url(r'^cvs/facility/(?P<facility_pk>\d+)/delete', facilities.deleteFacility),
+                       url(r'^cvs/facility/locations/new/((?P<district_pk>\d+)/)?', login_required(facilities.editFacilityLocations)),
+                       url(r'^cvs/facility/(?P<facility_pk>\d+)/delete', login_required(facilities.deleteFacility)),
                        url(r'^cvs/facility/(?P<pk>\d+)/show', generic_row,
                            {'model': Facilities, 'partial_row': 'cvs/facility/partials/facility_row.html'}),
-                       url(r'^cvs/facility/new', facilities.newFacility),
+                       url(r'^cvs/facility/new', login_required(facilities.newFacility)),
 
 
                        #############################################
