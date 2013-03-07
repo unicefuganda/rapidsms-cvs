@@ -38,7 +38,7 @@ class DeactivateForm(ActionForm):
         pks = []
         for r in results:
             pks.append(r.pk)
-        Contact.objects.filter(pk__in=pks).update(active=True)
+        Contact.objects.filter(pk__in=pks).update(active=False)
         return ('%d Contacts are now deactivated.' % len(results), 'success',)
 
 
