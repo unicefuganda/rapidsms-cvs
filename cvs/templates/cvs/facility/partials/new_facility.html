@@ -5,7 +5,7 @@
 		<!-- successfully added new facility {{ added_facility.name }}!-->
 	</td>
 	<td colspan="2" style="text-align:right">
-	    <a href="javascript:void(0)" onclick="newFacility(this)">Add New Facility</a>
+	    {#<a href="javascript:void(0)" onclick="newFacility(this)">Add New Facility</a>#}
 	    <script>
 		$('#tmp_{{ added_facility.pk }}').parents('tr').after('<tr id="row_{{ added_facility.pk }}"></tr>');
 		$('#row_{{ added_facility.pk }}').load('../facility/{{ added_facility.pk }}/show');
