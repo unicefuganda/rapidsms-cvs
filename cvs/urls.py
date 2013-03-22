@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import *
+from django.contrib.auth.decorators import login_required
 from cvs.views import basic, reporters, map, facilities, ajax_upload
 from generic.views import generic, generic_row, generic_map
 from generic.sorters import SimpleSorter, TupleSorter
@@ -13,9 +14,9 @@ from uganda_common.reports import XFormDateGetter
 from cvs.views.stats import export_as_excel
 from healthmodels.models.HealthProvider import HealthProviderBase
 
-from mtrack.decorators import login_required
+
 from rapidsms_xforms.models import XForm
-from cvs.utils import get_all_messages, get_unsolicited_messages, get_mass_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
+from cvs.utils import get_all_messages, get_unsolicited_messages, get_training_messages, get_nolocation_vhts, get_training_vhts, get_dashboard_messages
 from mtrack.utils import get_facilites_for_view, get_location_mass_messages
 from mtrack.models import Facilities, Reporters
 from cvs.reports import HomeReport, DeathReport, BirthReport, EpiReport, MuacReport, MainReport, MTrackMalariaReport, MTrackNutritionReport, MTrackBirthReport, MTrackEpiReport, MTrackReport
