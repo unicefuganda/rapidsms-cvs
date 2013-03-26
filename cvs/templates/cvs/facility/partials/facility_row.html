@@ -18,7 +18,8 @@
     </td>
     <td>
         {#{{ object|facility_reports }}#}
-        {{ object.total_reports }}
+        {#{{ object.total_reports }}#}
+        {{object.owner}}
     </td>
     <td id="row_{{ object.pk }}">
         <ul>
@@ -40,6 +41,9 @@
              {#<a href="javascript:void(0)" onclick="editFacility(this, {{ object.pk }})">#}
                 {#<img src="{{ MEDIA_URL }}poll/icons/silk/pencil.png" />#}
             {#</a>#}
+            <a href="javascript:void(0)" onclick="detail_elem(this)" id="x_{{ object.pk }}" title="Details">
+            	<img src="{{ MEDIA_URL }}cvs/icons/info.png">
+            </a>
         </div>
     </td>
 {% endblock %}

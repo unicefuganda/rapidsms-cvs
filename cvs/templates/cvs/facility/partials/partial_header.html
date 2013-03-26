@@ -1,8 +1,17 @@
 {% extends 'generic/partials/partial_header.html' %}
 {% block secondrow %}
 <tr>
-<td colspan="10" style="text-align:right">
-    {#<a href="javascript:void(0)" onclick="newFacility(this)">Add New Facility</a>#}
+<td colspan="1">
+    
+    <div id="popupContact">
+    	<a id="popupContactClose" onclick="disablePopup()">x</a>
+        <h3 id="popup_heading">Facility Details</h3>
+        <p id="contactArea"></p>
+    </div>
+    <div id="backgroundPopup"></div>
+</td>
+<td colspan="9" style="text-align:right">
+	{#<a href="javascript:void(0)" onclick="newFacility(this)">Add New Facility</a>#}
 </td>
 </tr>
 {% endblock %}

@@ -8,7 +8,7 @@ function deleteFacility(elem, pk, name) {
 function editFacility(elem, pk) {
     overlay_loading_panel($(elem).parents('tr'));
     $(elem).parents('tr').load('../facility/' + pk + '/edit/', '', function () {
-        $('#div_panel_loading').hide();    
+        $('#div_panel_loading').hide();
     });
 }
 
@@ -28,6 +28,20 @@ function submitForm(link, action, resultDiv) {
 function update_facility_district(elem) {
 	facility_pk = $(elem).parents("tr").children(".facility").attr('id').substring(4);
     $('#facility_locations').empty();
-    district_pk = $('#id_facility_district').val(); 
-    $('#facility_locations').load('../facility/' + facility_pk + '/locations/edit/' + district_pk + '/');            
+    district_pk = $('#id_facility_district').val();
+    $('#facility_locations').load('../facility/' + facility_pk + '/locations/edit/' + district_pk + '/');
+}
+function detail_elem(elem){
+        $('#contactArea').html("");
+        id = elem.id.split('_')[1];
+        $('#popup_heading').html('Facility Details');
+        $.get(
+                '../facility/'+id+'/detail/',
+                {},
+                function(data){
+                        $('#contactArea').html(data);
+                }
+        );
+        centerPopup();
+    loadPopup();
 }

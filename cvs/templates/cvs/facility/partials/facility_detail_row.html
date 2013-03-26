@@ -1,0 +1,78 @@
+{% load stats_extras %}
+<table width="100%">
+<tr>
+	<td width="30%">Facility</td>
+	<td>
+            <span style="font-size: 0.8em;">{{ object.name }}</span>
+    </td>
+ </tr>
+ <tr>
+ 	<td>Type</td>
+    <td>
+       <span style="font-size: 0.8em;">{{ object.type }}</span>   
+    </td>
+</tr>
+<tr>
+	<td>Last Reporting Date</td>
+    <td width="60px;">
+        <span style="font-size: 0.8em;">{{ object.last_reporting_date|date }}</span>
+    </td>
+</tr>
+<tr>
+	<td>Catchment Areas</td>
+    <td>
+        <span>
+            <ul>
+                {% for ca in object.catchment_areas.all.distinct %}
+                <li style="font-size:11px;">
+                {{ ca.name }} {{ ca.type }}
+                </li>
+                {% endfor %}
+            </ul>
+
+        </span>
+    </td>
+</tr>
+<tr>
+	<td>Owner</td>
+    <td>
+    	{{ object.owner }}
+    </td>
+</tr>
+<tr>
+	<td>Authority</td>
+    <td>
+		{{ object.authority }}
+	</td>
+</tr>
+<tr>
+	<td>District</td>
+	<td>
+		{{ object.district }}
+	</td>
+</tr>
+<tr>
+	<td>DHIS2 UUID</td>
+    <td>
+        <span style="font-size:0.9em;">{{ object.uuid }}</span>
+    </td>
+</tr>
+<tr>
+	<td>Has Complete Report</td>
+    <td>
+        <span style="font-size:0.9em;">
+        	{% if object|facility_has_complete_report %}
+            	Yes
+        	{% else %}
+            	No
+        	{% endif %}
+       	</span>   
+    </td>
+</tr>
+<tr>
+	<td>Reports HMIS 033B</td>
+    <td>
+        <span style="font-size:11px;">{{ "Yes" }}</span>        
+    </td>
+</tr>
+</table>

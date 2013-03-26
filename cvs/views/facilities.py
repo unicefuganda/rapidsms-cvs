@@ -11,7 +11,7 @@ from generic.views import generic_row
 from rapidsms.contrib.locations.models import Location
 from mtrack.utils import get_district_for_facility
 from mtrack.models import Facilities
-#from cvs.views.facilities import facility_form
+# from cvs.views.facilities import facility_form
 from django.views.decorators.cache import cache_page
 from django.db import transaction
 
@@ -67,8 +67,8 @@ def newFacility(request):
     if request.method == 'POST':
         facility_form = FacilityForm(data=request.POST, username=request.user)
         if facility_form.is_valid():
-            #facility_form.facility = HealthFacility.objects.create()
-            #facility_form.save()
+            # facility_form.facility = HealthFacility.objects.create()
+            # facility_form.save()
             facility_form.facility = HealthFacility.objects.create(name=facility_form.cleaned_data['name'],
                                           code=facility_form.cleaned_data['code'],
                                           type=facility_form.cleaned_data['type'])
@@ -93,4 +93,12 @@ def newFacility(request):
                                   context_instance=RequestContext(request))
         transaction.commit()
         return toret
+
+def facilityDetails(request, facility_pk=0):
+    facility = HealthFacilityBase.objects.select_related('type__name', 'catchment_areas', '').get(pk=facility_pk)
+    if request.method == "GET":
+        return render_to_response("cvs/facility/partials/facility_detail_row.html",
+                                  {'object':facility},
+                                  context_instance=RequestContext(request)
+                                  )
 

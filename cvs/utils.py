@@ -10,7 +10,7 @@ from poll.models import Poll
 from rapidsms.contrib.locations.models import Location
 from django.conf import settings
 from rapidsms.models import Contact
-from uganda_common.utils import get_location_for_user,get_messages
+from uganda_common.utils import get_location_for_user, get_messages
 from mtrack.utils import last_reporting_period
 from mtrack.models import Reporters
 from healthmodels.models.HealthFacility import HealthFacility
@@ -20,21 +20,21 @@ except ImportError:
     pass
 
 XFORMS = [
-    'epi', # Weekly-submitted VHT epidemiological reports
-    'home', # Monthly-submitted PVHT home visitation reports
-    'muac', # VHT report of child malnutrition
-    'birth', # VHT report of a birth
-    'death', # VHT report of a death
-    'itp', # Health Center report of an inpatient treatment
-    'otp', # Health Center report of an outpatient treatment
-    'cure', # Health Center report of patient cure
-    'reg', # Registers a reporter with their name
-    'pvht', # Registers a PVHT with their facility
-    'vht', # Registers a VHT with their facility
-    'com', # Routine VHT Report of weekly aggregate indicators
-    'mal', # Routine HC report of weekly itp/otp treatments
-    'rutf', # Routine HC report of weekly otc/itc stock reports
-    'act', # Routine report of ACT stock
+    'epi',  # Weekly-submitted VHT epidemiological reports
+    'home',  # Monthly-submitted PVHT home visitation reports
+    'muac',  # VHT report of child malnutrition
+    'birth',  # VHT report of a birth
+    'death',  # VHT report of a death
+    'itp',  # Health Center report of an inpatient treatment
+    'otp',  # Health Center report of an outpatient treatment
+    'cure',  # Health Center report of patient cure
+    'reg',  # Registers a reporter with their name
+    'pvht',  # Registers a PVHT with their facility
+    'vht',  # Registers a VHT with their facility
+    'com',  # Routine VHT Report of weekly aggregate indicators
+    'mal',  # Routine HC report of weekly itp/otp treatments
+    'rutf',  # Routine HC report of weekly otc/itc stock reports
+    'act',  # Routine report of ACT stock
     'opd',
     'test',
     'treat',
@@ -171,7 +171,7 @@ def registered_reporters(location, roles=['VHT', 'PVHT']):
     count_val = 'id'
 
     if 'HC' in roles:
-        #return do_stuff2(location)
+        # return do_stuff2(location)
         count_val = 'facility__id'
         tnum = 9
 
@@ -306,12 +306,12 @@ def get_area(request):
 def get_reporters(**kwargs):
     request = kwargs.pop('request')
     area = get_area(request)
-    #toret = HealthProvider.objects.filter(active=True)
+    # toret = HealthProvider.objects.filter(active=True)
     toret = Reporters.objects.filter(active=True)
     if area:
         toret = toret.filter(reporting_location__in=area.get_descendants(include_self=True).values_list('id', flat=True))
     return toret
-    #return toret.select_related('facility__type__name', 'reporting_location').annotate(Count('connection__submissions')).all()
+    # return toret.select_related('facility__type__name', 'reporting_location').annotate(Count('connection__submissions')).all()
 
 def get_unsolicited_messages(**kwargs):
     request = kwargs.pop('request')
@@ -323,7 +323,7 @@ def get_unsolicited_messages(**kwargs):
     location = get_location_for_user(request.user)
     messages = messages.filter(connection__contact__reporting_location__in=location.get_descendants(include_self=True))
     # get rid of unregistered, anonymous, and trainee connections
-    messages = messages.exclude(connection__contact=None).exclude(connection__contact__active=False)
+    messages = messages.exclude(connection__contact=None)  # .exclude(connection__contact__active=False)
     messages = messages.order_by('-date')
     return messages
 
@@ -371,7 +371,7 @@ class ExcelResponse(HttpResponse):
             else:
                 use_xls = True
         if use_xls:
-            ##formatting of the cells
+            # #formatting of the cells
             # Grey background for the header row
             BkgPat = xlwt.Pattern()
             BkgPat.pattern = xlwt.Pattern.SOLID_PATTERN
