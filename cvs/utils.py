@@ -494,4 +494,4 @@ def get_user_district_facilities(user):
             return HealthFacility.objects.filter(catchment_areas__in=loc[0].\
                                                  get_descendants(include_self=True)).distinct().\
                                                  values('pk', 'name', 'type__name').order_by('name')
-    return HealthFacility.objects.all().values('pk', 'name', 'type__name').order_by('name')
+    return HealthFacility.objects.none()

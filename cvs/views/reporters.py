@@ -70,7 +70,7 @@ def editReporterLocations(request, reporter_pk=None, district_pk=None):
                               context_instance=RequestContext(request))
 
 
-def editReporterFacilities(request, reporter_pk=None, district_pk=None,district=None):
+def editReporterFacilities(request, reporter_pk=None, district_pk=None, district=None):
     """ 
     This view renders only the select box for facilities, which is filtered
     to only those health facilities that have catchment areas within all the descendants 
@@ -95,32 +95,27 @@ def editReporterFacilities(request, reporter_pk=None, district_pk=None,district=
                               {'facilities': facilities,
                                'reporter': reporter},
                               context_instance=RequestContext(request))
-@transaction.commit_manually
+@transaction.commit_on_success
 @login_required
 def newReporter(request):
     if request.method == 'POST':
         reporter_form = ReporterForm(data=request.POST, request=request)
         if reporter_form.is_valid():
             reporter_form.reporter = HealthProvider.objects.create(active=True)
-            transaction.commit()
             reporter_form.save()
             reporter = reporter_form.reporter
-            transaction.commit()
             return render_to_response('cvs/reporter/partials/new_reporter.html',
                                       {'added_reporter':reporter},
                                       context_instance=RequestContext(request))
         else:
-            transaction.commit()
             return render_to_response('cvs/reporter/partials/new_reporter.html',
                                       {'report_form':reporter_form},
                                       context_instance=RequestContext(request))
     else:
         reporter_form = ReporterForm(request=request)
-        #print reporter_form
         facilities = get_user_district_facilities(request.user)
         toret = render_to_response('cvs/reporter/partials/new_reporter.html',
                            {'reporter_form':reporter_form,
                             'facilities':facilities},
                            context_instance=RequestContext(request))
-        transaction.commit()
         return toret
