@@ -14,6 +14,7 @@ from uganda_common.utils import get_location_for_user, get_messages
 from mtrack.utils import last_reporting_period
 from mtrack.models import Reporters
 from healthmodels.models.HealthFacility import HealthFacility
+from django.core.cache import cache
 try:
     from django.contrib.sites import Site
 except ImportError:
@@ -316,8 +317,13 @@ def get_reporters(**kwargs):
 def get_unsolicited_messages(**kwargs):
     request = kwargs.pop('request')
 
-    # get all unsolicited messages
-    messages = get_messages(request)
+    # get all unsolicited messages, from cache if available
+    from_cache = cache.get('_get_messages_')
+    if from_cache is not None:
+        messages = from_cache
+    else:
+        messages = get_messages(request)
+        cache.set('_get_messages_', messages, getattr(settings, 'QUERY_CACHE_TIMEOUT', 60 * 60))
 
     # now filter by user's location
     location = get_location_for_user(request.user)
