@@ -109,7 +109,7 @@ def facilityReportCompleteness(request, facility_pk=0):
     reports = XFormSubmissionExtras.objects.filter(facility=facility_pk,
             submission__has_errors=False,
             submission__xform__keyword__in=required_keywords,
-            cdate__range=last_reporting_period(period=8, todate=True))
+            cdate__range=last_reporting_period(period=0, todate=True))
     reporters = reports.values('submission__connection', 'reporter__name',
                                'submission__connection__identity').distinct()
 
