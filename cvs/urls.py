@@ -168,6 +168,7 @@ urlpatterns = patterns('',
                            {'model': Facilities, 'partial_row': 'cvs/facility/partials/facility_row.html'}),
                        url(r'^cvs/facility/new', login_required(facilities.newFacility)),
                        url(r'^cvs/facility/(?P<facility_pk>\d+)/detail/', login_required(facilities.facilityDetails), name='facility-details'),
+                       url(r'^cvs/facility/(?P<facility_pk>\d+)/completeness/', login_required(facilities.facilityReportCompleteness), name='facility-report-completeness'),
 
                        #############################################
                        #              MESSAGE VIEWS                #

@@ -1,0 +1,37 @@
+{% load stats_extras %}
+<table width="100%">
+<tr>
+	<td width="30%">Accepted Reports</td>
+	<td>
+            <!--<span style="font-size: 0.8em;">CASES.MA.5</span>-->
+            <table>
+            	<tr><td>#</td><td>Message</td></tr>
+            	{% for r in reports %}
+            		<tr>
+            			<td>{{ forloop.counter }}</td>
+            			<td>{{ r }}</td>
+            		</tr>
+            	{% endfor %}
+            </table>
+    </td>
+ </tr>
+ <tr>
+ 	<td>Reporters</td>
+    <td>
+       <table>
+       		<tr><td>#</td><td>Name</td><td>Phone Number</td></tr>
+       		{% for r in reporters %}
+            		<tr>
+            			<td>{{ forloop.counter }}</td>
+            			<td>{{ r.reporter__name }}</td>
+            			<td>
+            			<a href="/contact/{{ r.submission__connection}}/message_history/" target="_blank">
+            			{{ r.submission__connection__identity }}
+            			</a>
+            			</td>
+            		</tr>
+            {% endfor %}
+       </table>   
+    </td>
+</tr>
+</table>

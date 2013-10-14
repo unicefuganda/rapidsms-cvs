@@ -32,16 +32,31 @@ function update_facility_district(elem) {
     $('#facility_locations').load('../facility/' + facility_pk + '/locations/edit/' + district_pk + '/');
 }
 function detail_elem(elem){
-        $('#contactArea').html("");
-        id = elem.id.split('_')[1];
-        $('#popup_heading').html('Facility Details');
-        $.get(
-                '../facility/'+id+'/detail/',
-                {},
-                function(data){
-                        $('#contactArea').html(data);
-                }
-        );
-        centerPopup();
+    $('#contactArea').html("");
+    id = elem.id.split('_')[1];
+    $('#popup_heading').html('Facility Details');
+    $.get(
+        '../facility/'+id+'/detail/',
+        {},
+        function(data){
+            $('#contactArea').html(data);
+        }
+    );
+    centerPopup();
+    loadPopup();
+}
+
+function show_complete_reports(elem){
+    $('#contactArea').html("");
+    id = elem.id.split('_')[1];
+    $('#popup_heading').html('Facility Report Completeness');
+    $.get(
+        '../facility/' + id + '/completeness/',
+        {},
+        function(data){
+            $('#contactArea').html(data);
+        }
+    );
+    centerPopup();
     loadPopup();
 }

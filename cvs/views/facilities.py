@@ -9,11 +9,12 @@ from cvs.forms import FacilityForm
 from django.contrib.auth.decorators import login_required
 from generic.views import generic_row
 from rapidsms.contrib.locations.models import Location
-from mtrack.utils import get_district_for_facility
-from mtrack.models import Facilities
+from mtrack.utils import get_district_for_facility, last_reporting_period
+from mtrack.models import Facilities, XFormSubmissionExtras
 # from cvs.views.facilities import facility_form
 from django.views.decorators.cache import cache_page
 from django.db import transaction
+from django.conf import settings
 
 @login_required
 def deleteFacility(request, facility_pk):
@@ -99,6 +100,25 @@ def facilityDetails(request, facility_pk=0):
     if request.method == "GET":
         return render_to_response("cvs/facility/partials/facility_detail_row.html",
                                   {'object':facility},
+                                  context_instance=RequestContext(request)
+                                  )
+
+def facilityReportCompleteness(request, facility_pk=0):
+    required_keywords = getattr(settings, 'COMPLETE_REPORTS_KEYWORDS',
+                                ['act', 'cases', 'death', 'treat', 'test', 'opd', 'rdt', 'qun'])
+    reports = XFormSubmissionExtras.objects.filter(facility=facility_pk,
+            submission__has_errors=False,
+            submission__xform__keyword__in=required_keywords,
+            cdate__range=last_reporting_period(period=8, todate=True))
+    reporters = reports.values('submission__connection', 'reporter__name',
+                               'submission__connection__identity').distinct()
+
+    reports = reports.distinct().\
+    values_list('submission__message__text', flat=True)
+    print reporters
+    if request.method == "GET":
+        return render_to_response("cvs/facility/partials/facility_completeness_row.html",
+                                  {'reports': reports, 'reporters': reporters},
                                   context_instance=RequestContext(request)
                                   )
 
