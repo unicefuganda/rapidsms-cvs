@@ -29,7 +29,9 @@
         {% if object|facility_has_complete_report %}
             Yes
         {% else %}
-            No
+            <a href="javascript:void(0)" onclick="show_complete_reports(this)" id="f_{{ object.pk }}" title="Details">
+                No
+            </a>
         {% endif %}
         </ul>
     </td>
