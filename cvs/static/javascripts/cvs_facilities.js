@@ -60,3 +60,23 @@ function show_complete_reports(elem){
     centerPopup();
     loadPopup();
 }
+
+function send_sms(elem){
+    $('#contactArea').html("");
+    id = elem.id.split('_')[1];
+    $('#popup_heading').html('Send SMS');
+    $.get(
+        '../facility/' + id + '/sendsms/',
+        {},
+        function(data){
+            $('#contactArea').html(data);
+        }
+    );
+    centerPopup();
+    loadPopup();
+}
+/*
+$('#sendsms').click(function(){
+    return;
+});
+*/

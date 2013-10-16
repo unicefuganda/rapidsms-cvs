@@ -48,6 +48,10 @@
             <a href="javascript:void(0)" onclick="detail_elem(this)" id="x_{{ object.pk }}" title="Details">
             	<img src="{{ MEDIA_URL }}cvs/icons/info.png">
             </a>
+            &nbsp;
+            <a href="javascript:void(0)" onclick="send_sms(this)" id="x_{{ object.pk }}" title="Send SMS">
+            	<img src="{{ MEDIA_URL }}cvs/icons/msg.png">
+            </a>
         </div>
     </td>
 {% endblock %}

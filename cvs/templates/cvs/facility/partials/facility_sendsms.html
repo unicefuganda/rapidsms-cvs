@@ -1,0 +1,80 @@
+<div id="resp"></div>
+<br/>
+<form name="sendsmsForm" id="sendsmsForm" action="" method="post">
+    <table>
+        <tr><td>Facility:</td><td style="font-weight: bold">{{ facility.name }}<td></tr>
+        <tr>
+            <td>Group:</td>
+            <td>
+                <input name="facility" value="{{ facility.pk }}" hidden/>
+                <select name="group" id="group" style="border: 1px solid #aaa">
+                    <option value="">Select Role</option>
+                    {% for group in groups %}
+                        <option value="{{ group.id }}">{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>Message:</td>
+            <td>
+                <textarea class="smsinput" name="msg"
+                    id="msg" cols="40" rows="10" style="border: 1px solid #aaa"></textarea>
+                <input  id="counter" size="3" style="border: 1px solid #aaa" value="0" readonly/>
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>
+                <input type="submit" name="sendsms" id="sendsms"
+                    style="border: 1px solid #aaa" value="SendSMS"/>
+            </td>
+        </tr>
+    </table>
+</form>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#sendsms').click(function(){
+        $.post(
+            '../facility/' + id + '/sendsms/',
+            $("#sendsmsForm").serialize(),
+            function(data){
+                var resp = data;
+                if(resp["error"] != ""){
+                    $("#resp").html(resp["error"]);
+                    $("#resp").show();
+                    $("#resp").css({
+                        "color": "#BB0000",
+                        "background-color": "#FFF0F0",
+                        "border": "1px dashed #990000",
+                        });
+                }else{
+                    $("#resp").html(resp["msg"]);
+                    $("#resp").css({
+                        "color": "#00BB00",
+                        "background-color": "#F0FFF0",
+                        "border": "1px dashed #009900",
+                        });
+
+                }
+
+            }
+        );
+        return false;
+    });
+    $('#msg').keyup(function(){
+        var obj = $('#msg');
+        var cc = $('#counter');
+        var x = obj.val();
+        var l = obj.val().length;
+        cc.val(l);
+        if(x.length >= 160){
+                var y = obj.val().substring(0,160);
+                obj.val(y);
+                cc.val(160);
+        }
+    });
+
+});
+</script>

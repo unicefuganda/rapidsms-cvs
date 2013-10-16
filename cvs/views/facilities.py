@@ -5,16 +5,21 @@ from django.shortcuts import (render_to_response, get_object_or_404)
 from django.http import HttpResponse
 from healthmodels.models.HealthFacility import HealthFacility, \
     HealthFacilityBase, HealthFacilityType
+from healthmodels.models.HealthProvider import HealthProvider
 from cvs.forms import FacilityForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
 from generic.views import generic_row
 from rapidsms.contrib.locations.models import Location
+from rapidsms_httprouter.models import Message
+from rapidsms.models import Connection
 from mtrack.utils import get_district_for_facility, last_reporting_period
 from mtrack.models import Facilities, XFormSubmissionExtras
 # from cvs.views.facilities import facility_form
 from django.views.decorators.cache import cache_page
 from django.db import transaction
 from django.conf import settings
+from django.utils import simplejson
 
 @login_required
 def deleteFacility(request, facility_pk):
@@ -122,3 +127,28 @@ def facilityReportCompleteness(request, facility_pk=0):
                                   context_instance=RequestContext(request)
                                   )
 
+def sendSMS(request, facility_pk=0):
+    groups = Group.objects.filter(name__in=['FHD', 'HC',
+                                            'Incharge', 'Records Assistant', 'VHT']).order_by('name')
+    facility = HealthFacility.objects.get(pk=facility_pk)
+    if request.method == "GET":
+        return render_to_response("cvs/facility/partials/facility_sendsms.html",
+                                  {'groups': groups, 'facility': facility},
+                                  context_instance=RequestContext(request)
+                                  )
+    else:
+        msg = request.POST['msg']
+        grp = request.POST['group']
+        if not grp:
+            json = simplejson.dumps({'error': "role is required"})
+            return HttpResponse(json, mimetype='application/json')
+        if not msg:
+            json = simplejson.dumps({'error': "message is required"})
+            return HttpResponse(json, mimetype='application/json')
+        reporters = HealthProvider.objects.filter(facility=request.POST['facility'],
+                                                  groups__in=[grp])
+        recipient_count = reporters.count()
+        conns = Connection.objects.filter(contact__in=reporters)
+        Message.mass_text(msg, conns, status='Q', batch_status='Q')
+        json = simplejson.dumps({'msg': "sent to %s recipients" % recipient_count, 'error': ""})
+        return HttpResponse(json, mimetype='application/json')
