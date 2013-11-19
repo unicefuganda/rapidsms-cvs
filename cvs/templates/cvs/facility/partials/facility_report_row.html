@@ -1,0 +1,33 @@
+{% extends 'generic/partials/partial_row.html' %}
+{% load stats_extras %}
+{% block remaining_row_content %}
+    <td>
+        {{ object.submission.raw}}
+        <ul>
+        {% for v in object.submission|get_submission_values %}
+            <li>
+                {{ v.attribute.description }}: {{ v.value_int }}
+            </li>
+        {% endfor %}
+        </ul>
+    </td>
+    <td>
+        {% if object.reporter.default_connection %}
+            <a target="_blank" href="/contact/{{ object.reporter.default_connection.pk }}/message_history/">
+        {% endif %}
+        {% if object.reporter.name %}
+        	{{ object.reporter.name }}
+        {% else %}
+        	Anonymous User
+        {% endif %}
+        {% if object.reporter.default_connection %}
+            </a>
+        {% endif %}
+    </td>
+    <td>
+        {{ object.cdate|reporting_week }}
+    </td>
+    <td>
+        {{ object.cdate }}
+    </td>
+{% endblock %}

@@ -20,6 +20,8 @@ from django.views.decorators.cache import cache_page
 from django.db import transaction
 from django.conf import settings
 from django.utils import simplejson
+from cvs.paginator import mtrac_paginate
+from generic.views import generic
 
 @login_required
 def deleteFacility(request, facility_pk):
@@ -152,3 +154,24 @@ def sendSMS(request, facility_pk=0):
         Message.mass_text(msg, conns, status='Q', batch_status='Q')
         json = simplejson.dumps({'msg': "sent to %s recipients" % recipient_count, 'error': ""})
         return HttpResponse(json, mimetype='application/json')
+
+def get_facility_reports(request, facility_pk=0):
+    reports = XFormSubmissionExtras.objects.filter(facility=facility_pk).\
+    exclude(submission__has_errors=True).order_by('-cdate')
+    facility = reports[0].facility.name if reports else ''
+    return generic(
+                   request=request,
+                   model=XFormSubmissionExtras,
+                   queryset=reports,
+                   objects_per_page=25,
+                   partial_row='cvs/facility/partials/facility_report_row.html',
+                   paginator_template='cvs/partials/new_pagination.html',
+                   partial_header='cvs/facility/partials/facility_report_header.html',
+                   base_template='cvs/facility/facility_base.html',
+                   # columns=[('Text', 'Reporter', 'Date', '')],
+                   results_title='%s Reports' % facility,
+                   sort_column='cdate',
+                   selectable=False,
+                   paginator_func=mtrac_paginate,
+                   sort_ascending=False
+            )

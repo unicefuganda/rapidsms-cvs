@@ -170,6 +170,8 @@ urlpatterns = patterns('',
                        url(r'^cvs/facility/(?P<facility_pk>\d+)/detail/', login_required(facilities.facilityDetails), name='facility-details'),
                        url(r'^cvs/facility/(?P<facility_pk>\d+)/completeness/', login_required(facilities.facilityReportCompleteness), name='facility-report-completeness'),
                        url(r'^cvs/facility/(?P<facility_pk>\d+)/sendsms/', login_required(facilities.sendSMS), name='facility-sendsms'),
+                       url(r'^cvs/facility/reports/(?P<facility_pk>\d+)/', login_required(facilities.get_facility_reports),
+                           name="facility_reports"),
 
                        #############################################
                        #              MESSAGE VIEWS                #

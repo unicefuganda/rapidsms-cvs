@@ -2,7 +2,9 @@
 {% load stats_extras %}
 {% block remaining_row_content %}
     <td>
+    	<a href="{% url facility_reports object.id %}" target="_blank">
         {{ object.name }}
+        </a>
     </td>
     <td>
         {{ object.type }}
