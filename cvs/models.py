@@ -21,6 +21,9 @@ from django.dispatch import receiver
 from unregister.models import Blacklist
 
 mcd_keywords = getattr(settings, 'MCDTRAC_XFORMS_KEYWORDS', ['dpt', 'muac', 'tet', 'anc', 'eid', 'reg', 'me', 'vit', 'worm'])
+MTRAC_KEYWORDS = getattr(settings, 'MTRACK_XFORMS_KEYWORDS',
+                        ['cases', 'opd', 'act', 'test', 'treat', 'rdt', 'rutf', 'death', 'home', 'med', 'doc', 'com', 'epi'])
+VHT_KEYWORDS = getattr(settings, 'VHT_XFORMS_KEYWORDS', ['med', 'doc'])
 
 def parse_timedelta(command, value):
     lvalue = value.lower().strip()
@@ -455,8 +458,8 @@ def xform_received_handler(sender, **kwargs):
         submission.response = "We have recorded the death of %s." % patient_label(patient)
         submission.save()
 
-    elif xform.keyword in ['act', 'com', 'mal', 'rutf', 'home', 'epi', 'cases', 'death', 'opd', 'test', 'treat', 'rdt', 'qun', 'med', 'doc']:
-        if datetime.date.today().weekday() in (4, 5, 6) and xform.keyword not in ['med', 'doc']:
+    elif xform.keyword in MTRAC_KEYWORDS:
+        if datetime.date.today().weekday() in (4, 5, 6) and xform.keyword not in VHT_KEYWORDS:
             submission.response = "Your HMIS 033b report is late and has NOT been accepted by mTrack. Send a copy of this report to your DHT. All 033B " + \
             "reports on mTrac should be submitted on Monday"
             submission.has_errors = True
