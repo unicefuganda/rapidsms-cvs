@@ -87,7 +87,7 @@ def facility_has_complete_report(facility_id):
             submission__xform__keyword__in=required_keywords,
             cdate__range=last_reporting_period(period=0, todate=True)).distinct().\
                     values_list('submission__xform__keyword', flat=True)
-    if len(kws) == len(required_keywords):
+    if len(kws) >= len(required_keywords):
         return True
     return False
 
